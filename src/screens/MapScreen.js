@@ -39,6 +39,8 @@ const MARKER_X_POSITION=(0.12*width)/2-MARKER_SIZE/4
 const GeoFirestore=geofirestore.initializeApp(firestore());
 function MapPage(props,{navigation}) {
   const [coordinates,setCoordinates]=useState({latitude:5,longitude:5})
+
+  const [isEditingPost,setIsEditingPost]=useStateWithCallbackLazy(false);
   const [myRegion,setMyRegion]=useState({latitude:5,longitude:5,longitudeDelta:1,latitudeDelta:1})
   const [nearbyPosts,setNearbyPosts]=useState([])
   const [nearbyCoupons,setNearbyCoupons]=useState([]);
@@ -48,9 +50,8 @@ function MapPage(props,{navigation}) {
   const [claimedCoupons,setClaimedCoupons]=useState([])
   const [modalVisible,setModalVisible]=useState(false)
   const [postModalVisible,setPostModalVisible]=useState(false)
-  const [postViewerInfo,setPostViewerInfo]=useStateWithCallbackLazy(false)
-  const [postCreatorInfo,setPostCreatorInfo]=useStateWithCallbackLazy(false)
-  const [isEditingPost,setIsEditingPost]=useStateWithCallbackLazy(false)
+  const [postViewerInfo,setPostViewerInfo]=useStateWithCallbackLazy(false);
+  const [postCreatorInfo,setPostCreatorInfo]=useStateWithCallbackLazy(false);
   const [myPosts,setMyPosts]=useStateWithCallbackLazy([])
   const mapViewRef=useRef(null);
   const [mapInitialized,setMapInitialized]=useState(false);
@@ -181,8 +182,17 @@ function MapPage(props,{navigation}) {
       return year+ "-" + month+ "-" + date;
     }
 
-    const setCreatePostState=(lat,long)=>
+    const openCreatePostModal=(lat,long)=>
     {
+
+                setCreatingPost(true, () => {
+                  console.log('ZZZZZ')
+                  setLatitudeClicked(lat,()=>{
+                    setLongitudeClicked(long,()=>{
+                      setPostModalVisible(true)
+                    })
+                  })
+                });
       }
       const createPost=(point)=>
       {
@@ -194,14 +204,7 @@ function MapPage(props,{navigation}) {
             {
               if ((i==(circleCenters.length-1))&&creatingPost==false)
               {
-                setCreatingPost(true, () => {
-                  setLatitudeClicked(point.coordinate.latitude,()=>{
-                    setLongitudeClicked(point.coordinate.longitude,()=>{
-                      setPostModalVisible(true)
-                    })
-                  })
-                  //firebaseSDK.createPosts(props.uid,point.coordinate.latitude,point.coordinate.longitude,'hyouij').then(()=>{console.log(creatingPost,"HEYYYYYYYYY");setCreatingPost(false)})
-                });
+                openCreatePostModal(point.coordinate.latitude,point.coordinate.longitude)
               }
             }
             else{
@@ -210,14 +213,7 @@ function MapPage(props,{navigation}) {
           }
         }
         else{
-          setCreatingPost(true, () => {
-            setLatitudeClicked(point.coordinate.latitude,()=>{
-              setLongitudeClicked(point.coordinate.longitude,()=>{
-                setPostModalVisible(true)
-              })
-            })
-            //firebaseSDK.createPosts(props.uid,point.coordinate.latitude,point.coordinate.longitude,'hyouij').then(()=>{console.log(creatingPost,"HEYYYYYYYYY");setCreatingPost(false)})
-          });
+                openCreatePostModal(point.coordinate.latitude,point.coordinate.longitude)
         }
 
       }
@@ -294,6 +290,7 @@ function MapPage(props,{navigation}) {
               if(myPosts.includes(circleCenters[i].id))
               {
                 console.log('yay')
+                setIsEditingPost(true)
                 firebaseSDK.getPost(circleCenters[i].id).then((postObject)=>{var postObj=postObject.data();postObj.postId=circleCenters[i].id;setPostCreatorInfo(postObj, ()=>{setPostModalVisible(true)})})
               }
               else{
@@ -366,7 +363,7 @@ function MapPage(props,{navigation}) {
             >
             <View style={styles.centeredView}>
             <View style={styles.modalView}>
-            <PostCreator  postCreatorInfo={postCreatorInfo} isEditing={isEditingPost}uid={props.uid} latitude={latitudeClicked} longitude={longitudeClicked}  crtPost={crtPost} closePostCreatorModal={closePostCreatorModal}></PostCreator>
+            <PostCreator  postCreatorInfo={{}} isEditingPost={true} uid={props.uid} latitude={latitudeClicked} longitude={longitudeClicked}  crtPost={crtPost} closePostCreatorModal={closePostCreatorModal}></PostCreator>
             </View>
             </View>
             </Modal>

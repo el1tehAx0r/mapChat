@@ -52,7 +52,8 @@ const deletePost=()=>
 }
 const setFinalButtons=()=>
 {
-  if(props.setIsEditingPost){
+  console.log(props.isEditingPost,'RRRR')
+  if(props.isEditingPost){
   return (
 
     <>
@@ -69,6 +70,7 @@ const setFinalButtons=()=>
               <Text style={styles.textStyle}>Delete</Text>
             </TouchableHighlight></>
   )}
+  else{
   return(
             <TouchableHighlight
               style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
@@ -77,6 +79,7 @@ const setFinalButtons=()=>
               <Text style={styles.textStyle}>Create Post</Text>
             </TouchableHighlight>
   )
+}
 
 }
 
