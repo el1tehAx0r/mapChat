@@ -1,0 +1,107 @@
+/*firestore()
+.collection('Regions').get().then((regions)=>{
+console.log(regions.docs)
+regions.docs.forEach((item) => {
+console.log(item.data())
+});
+
+})*/
+
+//Geolocation.getCurrentPosition(info => console.log(info));
+
+// Add a GeoDocument to a GeoCollection
+/*geocollection.add({
+name: 'Geofirestore',
+score: 100,
+// The coordinates field must be a GeoPoint!
+coordinates: new firebase.firestore.GeoPoint(40.7589, -73.9851)
+})*/
+
+const CARD_HEIGHT = 220;
+const CARD_WIDTH = width * 0.8;
+const SPACING_FOR_CARD_INSET = width * 0.1 - 10;
+    <Animated.ScrollView
+        horizontal
+        pagingEnabled
+        scrollEventThrottle={1}
+        showsHorizontalScrollIndicator={false}
+        snapToInterval={CARD_WIDTH + 20}
+        snapToAlignment="center"
+        style={styles.scrollView}
+        contentInset={{
+          top: 0,
+          left: SPACING_FOR_CARD_INSET,
+          bottom: 0,
+          right: SPACING_FOR_CARD_INSET
+        }}
+        contentContainerStyle={{
+          paddingHorizontal: Platform.OS === 'android' ? SPACING_FOR_CARD_INSET : 0
+        }}>
+        {otherUsers.map((marker, index) =>(
+          <View style={styles.card} key={index}>
+            <Image
+              source={props.uid}
+              style={styles.cardImage}
+              resizeMode="cover"
+            />
+          </View>
+        ))}
+      </Animated.ScrollView>
+
+  <Animated.ScrollView
+        horizontal
+        pagingEnabled
+        scrollEventThrottle={1}
+        showsHorizontalScrollIndicator={false}
+        snapToInterval={CARD_WIDTH + 20}
+        snapToAlignment="center"
+        style={styles.scrollView}
+        contentInset={{
+          top: 0,
+          left: SPACING_FOR_CARD_INSET,
+          bottom: 0,
+          right: SPACING_FOR_CARD_INSET
+        }}
+        contentContainerStyle={{
+          paddingHorizontal: Platform.OS === 'android' ? SPACING_FOR_CARD_INSET : 0
+        }}
+        onScroll={Animated.event(
+          [
+            {
+              nativeEvent: {
+                contentOffset: {
+                  x: mapAnimation,
+                }
+              },
+            },
+          ],
+          {useNativeDriver: true}
+        )}
+      >
+        {otherUsers.map((marker, index) =>(
+          <View style={styles.card} key={index}>
+            <Image
+              source={props.PPPathDb}
+              style={styles.cardImage}
+              resizeMode="cover"
+            />
+            <View style={styles.textContent}>
+              <Text numberOfLines={1} style={styles.cardtitle}>Hey</Text>
+              <Text numberOfLines={1} style={styles.cardDescription}>Hey</Text>
+              <View style={styles.button}>
+                <TouchableOpacity
+                  onPress={() => {}}
+                  style={[styles.signIn, {
+                    borderColor: '#FF6347',
+                    borderWidth: 1
+                  }]}
+                >
+                  <Text style={[styles.textSign, {
+                    color: '#FF6347'
+                  }]}>Order Now</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        ))}
+      </Animated.ScrollView>

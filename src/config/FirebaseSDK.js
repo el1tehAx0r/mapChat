@@ -1,0 +1,338 @@
+import firebase from '@react-native-firebase/app';
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
+import * as geofirestore from 'geofirestore';
+import Geolocation from '@react-native-community/geolocation';
+ import storage from '@react-native-firebase/storage';
+const GeoFirestore=geofirestore.initializeApp(firestore());
+class FirebaseSDK {
+  constructor() {
+  }
+
+
+  loginHardCode = async (email,password) => {
+    auth()
+    .signInWithEmailAndPassword('adu@noctrl.edu', 'Littledude1!')
+    .then(() => {
+      console.log('User account created & signed in!');
+    })
+    .catch(error => {
+      if (error.code === 'auth/email-already-in-use') {
+        console.log('That email address is already in use!');
+      }
+
+      if (error.code === 'auth/invalid-email') {
+        console.log('That email address is invalid!');
+      }
+      console.error(error);
+    });
+  };
+  login = async (email,password) => {
+    return new Promise((resolve)=>
+    {
+    auth()
+    .signInWithEmailAndPassword(email, password)
+    .then(() => {
+      console.log('User account created & signed in!');
+      resolve(true)
+    })
+    .catch(error => {
+      if (error.code === 'auth/email-already-in-use') {
+        console.log('That email address is already in use!');
+      }
+
+      if (error.code === 'auth/invalid-email') {
+        console.log('That email address is invalid!');
+      }
+      resolve(false)
+      console.error(error);
+    });
+  })
+  };
+  userExist=async(email,username) =>{
+    var doesUsernameExist=await this.variableExist('Users','displayName',username);
+    var doesEmailExist= await this.variableExist('Users','email',email);
+    if(!doesUsernameExist){
+        if(!doesEmailExist){
+          return false
+        }
+    }
+    return true
+  }
+  variableExist=async(collection,field,value)=>{
+    var result =await firestore()
+    .collection(collection)
+    .where(field,'==',value).get()
+    if(result.size>=1)
+    {
+      console.log(field, ' exist');
+      return true
+    }
+    else{
+      console.log(field, value,' does not exist')
+      return false
+    }
+  }
+
+
+  createUser=async(email,username,password)=>{
+
+    const geocollection = GeoFirestore.collection('Users');
+    auth().createUserWithEmailAndPassword(email,password)
+    .then(() => {
+      var user = auth().currentUser;
+      if (user) {
+        geocollection.doc(user.uid).set({
+          displayName: username,
+        coordinates:new firebase.firestore.GeoPoint(2.5,2.3),
+          email: email,
+          photoURL:"",
+        }).then(() => {
+          console.log('User added!');
+        }).catch((err)=>console.log(err))
+      } else {
+      }
+      console.log('User account created & signed in!');
+    })
+    .catch(error => {
+      if (error.code === 'auth/email-already-in-use') {
+        console.log('That email address is already in use!');
+      }
+
+      if (error.code === 'auth/invalid-email') {
+        console.log('That email address is invalid!');
+      }
+
+      console.error(error);
+    });}
+
+    /*  createUser=async(phone_number,email,username,password)=>{
+    auth().createUser({
+    email: email,
+    emailVerified: false,
+    phoneNumber: phone_number,
+    password: password,
+    displayName: username,
+    photoURL: '',
+    disabled: false
+  }).then(() => {
+  var user = auth().currentUser;
+  if (user) {
+  console.log(user)
+  geocollection.doc(user.uid).set({
+  DisplayName: username,
+  Email: email,
+  PPPathDb:"",
+  PhoneNumber:password,
+  Username:username,
+}).then(() => {
+console.log('User added!');
+}).catch((err)=>console.log(err))
+} else {
+}
+console.log('User account created & signed in!');
+})
+.catch(error => {
+if (error.code === 'auth/email-already-in-use') {
+console.log('That email address is already in use!');
+}
+
+if (error.code === 'auth/invalid-email') {
+console.log('That email address is invalid!');
+}
+
+console.error(error);
+});}*/
+
+createUserHardCode=async(phone_number,email,username,password)=>{
+  const geocollection = GeoFirestore.collection('Users');
+  auth().createUserWithEmailAndPassword('bennyz5@gmail.com','Littledude1!')
+  .then(() => {
+    var user = auth().currentUser;
+    if (user) {
+      console.log(user)
+      geocollection.doc(user.uid).set({
+        phoneNumber: '+12222222222',
+        coordinates:new firebase.firestore.GeoPoint(2.5,2.3),
+        displayName: 'bennyz5',
+        photoURL: 'https://scontent-ort2-1.xx.fbcdn.net/v/t1.0-9/117817111_308049447197739_3150057679575135482_n.jpg?_nc_cat=104&_nc_sid=09cbfe&_nc_ohc=873vxbPNBmoAX_wxMQc&_nc_ht=scontent-ort2-1.xx&oh=74cf666bcd67a1d332313ba3d4636c8a&oe=5F8568B9',}
+      )
+      .then(() => {
+        console.log('User added!');
+      }).catch((err)=>console.log(err))
+
+      auth().currentUser.updateProfile({
+        displayName: 'bennyz5',
+        photoURL: 'http://www.example.com/12345678/photo.png',
+      }).then((me)=>{console.log(user)}).catch((err)=>console.log(err))
+    } else {
+    }
+    console.log('User account created & signed in!');
+  })
+  .catch(error => {
+    if (error.code === 'auth/email-already-in-use') {
+      console.log('That email address is already in use!');
+    }
+
+    if (error.code === 'auth/invalid-email') {
+      console.log('That email address is invalid!');
+    }
+
+    console.error(error);
+  });}
+
+  getCurrentUserInfo=async()=>
+  {
+    var user = auth().currentUser;
+    if(user)
+    {
+      try{
+        console.log(user,'THIS IS USER')
+        var docRef = await firestore().collection('Users').doc(user.uid).get();
+        var docRefData=docRef.data()
+        docRefData.uid=user.uid;
+        return docRefData
+      }
+      catch(err)
+      {
+        console.log(err)
+      }
+    }
+  }
+  updateSelfLocation=(uid)=>
+  {
+    return new Promise((resolve)=>{
+      Geolocation.watchPosition((position)=>
+      {
+        firestore().collection('Users').doc(uid).update({coordinates:new firebase.firestore.GeoPoint(position.coords.latitude, position.coords.longitude)})
+        var coordinates={
+          latitude:position.coords.latitude,
+          longitude:position.coords.longitude
+        }
+        resolve(coordinates)
+      },(err)=>{console.log(err)},{distanceFilter:5, enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 })
+    })
+    }
+
+            sendMessage=(senderId,recieverId,chatId,message)=>
+            {
+              firestore().collection('Messages').add({senderUid:senderUid,recieverUid:recieverUid,message:message,timestamp:firestore().FieldValue.serverTimestamp()}).then((messageId)=>{
+                firestore().collection('Chats').doc(chatId).update({messages:firestore().FieldValue.arrayUnion(messageId)})})
+              }
+              createChat=(senderUid,recieverUid,message)=>
+              {
+                firestore().collection('Messages').add({senderUid:senderUid,recieverUid:recieverUid,message:message}).then((messageId)=>{
+                  firestore().collection('Chats').add({participants:[senderUid,recieverUid],messages:[messageId]}).then((chatId)=>
+                  {
+                    firestore.collection('Users').doc(senderUid).update({chats:firestore().FieldValue.arrayUnion(chatId)})
+                    firestore.collection('Users').doc(recieverUid).update({chats:firestore().FieldValue.arrayUnion(chatId)})
+                  })})
+                }
+
+                createPost=(uid,latitude,longitude,message,shopAddress,iconUrl,expirationDate,imageUrl)=>
+                {
+                  const geocollection=GeoFirestore.collection('Posts');
+                  return new Promise((resolve)=>
+                  {
+                    geocollection.add({op:uid,expirationDate:expirationDate,shopAddress:shopAddress,message:message,icon:iconUrl,uid:uid,timestamp:firebase.firestore.FieldValue.serverTimestamp(),image:imageUrl,coordinates:new firebase.firestore.GeoPoint(latitude,longitude)}).then((post)=>{
+                      firestore().collection('Users').doc(uid).update({
+                        myPosts:firebase.firestore.FieldValue.arrayUnion(post),
+                      }).then(()=>{console.log('yayyyy');resolve(post)});
+                    });
+                  })
+                }
+
+                editPost=(postId,message,shopAddress,iconUrl,expirationDate,imageUrl)=>
+                {
+                  const geocollection=GeoFirestore.collection('Posts');
+                  return new Promise((resolve)=>
+                  {
+                    geocollection.doc(postId).update({expirationDate:expirationDate,shopAddress:shopAddress,message:message,icon:iconUrl,timestamp:firebase.firestore.FieldValue.serverTimestamp(),image:imageUrl}).then(()=>{});
+                  })
+                }
+                deletePost=(postId)=>
+                {firestore().collection('Posts').doc(postId).delete().then(() => { console.log('postDeleted!');});}
+
+                getPost=async (pid)=>
+                {
+                  var docRef = await firestore().collection('Posts').doc(pid).get();
+                  return docRef;
+                }
+
+                unclaimCoupon=async(uid,couponId)=>
+                {
+                  var docRefCoupon = await firestore().collection('Posts').doc(couponId);
+                  var docRefUser = await firestore().collection('User').doc(uid);
+                  firestore().collection('Users').doc(uid).update({
+                    claimedCoupons: firebase.firestore.FieldValue.arrayRemove(docRefCoupon),
+                  })
+                  firestore().collection('Posts').doc(couponId).update({
+                    usersClaimed: firebase.firestore.FieldValue.arrayRemove(docRefUser),
+                  })
+                }
+                claimCoupon=async(uid,couponId)=>
+                {
+                  var docRefCoupon = await firestore().collection('Posts').doc(couponId);
+                  var docRefUser = await firestore().collection('User').doc(uid);
+                  firestore().collection('Users').doc(uid).update({
+
+                    claimedCoupons:firebase.firestore.FieldValue.arrayUnion(docRefCoupon),
+                  })
+                  firestore().collection('Posts').doc(couponId).update({
+                    usersClaimed:firebase.firestore.FieldValue.arrayUnion(docRefUser),
+                  })
+                }
+                getCreatedCoupons=async(uid,couponIds)=>
+                {
+                  var coupons=[]
+                  var docRef = await firestore().collection('Posts').doc(pid).get();
+                  await couponIds.forEach(async(couponId)=> {
+                    var docRef = await firestore().collection('Posts').doc(couponId).get();
+                  });
+                }
+                getClaimedCoupons=async(uid,couponIds)=>
+                {
+                  var coupons=[]
+                  await couponIds.forEach(async (couponId)=> {
+                    var docRef = await firestore().collection('Posts').doc(couponId).get();
+                  });
+                }
+                addToStorage=async(storagePath,localPath,collectionName,documentName,field)=>
+                {
+                return new Promise((resolve)=>{
+  const reference=storage().ref(storagePath)
+    reference.putFile(localPath).then((path)=>{console.log(path)
+ storage()
+  .ref(storagePath)
+  .getDownloadURL().then((url)=>{
+    var urlToString=url+''
+    console.log(urlToString,'lskjdfkls',url)
+    console.log(collectionName,'zzzzzzzz')
+    console.log(documentName,'sdklfjskldjf')
+  firestore().collection(collectionName)
+  .doc(documentName)
+  .update({
+    [field]:url,
+  })
+  .then(() => {
+    console.log('User updated!');
+    resolve(url)
+  }).catch((err)=>
+{
+  console.log(err)
+});}
+);
+})})
+                }
+                /*          refreshMarkerTimes=(uid)=>
+                {
+                firestore().collection('Users').update({LastMarkerDate:firebase.firestore.FieldValue.serverTimestamp()})
+              }
+              setMarkerStatuses=(uid,markerStatuses)=>{
+              firestore().collection('Users').update({MarkerStatuses:markerStatuses})}*/
+
+            }
+
+
+            const firebaseSDK = new FirebaseSDK();
+            export default firebaseSDK;

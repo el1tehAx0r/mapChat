@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "296204123359",
+    "firebase_url": "https://mapapp-1e662.firebaseio.com",
+    "project_id": "mapapp-1e662",
+    "storage_bucket": "mapapp-1e662.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:296204123359:android:3e48857aec52f5484f3d6a",
+        "android_client_info": {
+          "package_name": "com.gaialive"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "296204123359-uupkrn3o6b9eik2snqtkqgsudas9u68v.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.gaialive",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "296204123359-5lhmma07qo482332ior6v86v7dj432eb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC_RTAre5G0J9W6esl8OAouQnHk1xw81SQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "296204123359-5lhmma07qo482332ior6v86v7dj432eb.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
