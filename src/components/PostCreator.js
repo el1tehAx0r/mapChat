@@ -44,11 +44,12 @@ ImagePicker.openPicker({
 }
 const editPost=()=>
 {
-  firebaseSDK.editPost(props.postCreatorInfo.postId,message,shopAddress,iconUrl,expirationDate,imageUrl)
+  firebaseSDK.editPost(props.postCreatorInfo.postId,message,shopAddress,iconUrl,date,imageUrl)
 }
 const deletePost=()=>
 {
-//firebaseSDK.deletePost(props.postCreatorInfo.postId)
+firebaseSDK.deletePost(props.postCreatorInfo.postId)
+cancelPressed()
 }
 const setFinalButtons=()=>
 {
@@ -82,12 +83,12 @@ const setFinalButtons=()=>
 
 }
 
-useEffect(()=>{console.log(expirationDate);console.log(props.postCreatorInfo,'BRRR')},[expirationDate])
+useEffect(()=>{console.log(expirationDate);console.log(props.postCreatorInfo,'BRRR')},[])
 
 const createPost=()=>
 {
 
-  props.crtPost(props.uid,props.coordinates.latitude,props.coordinates.longitude,message,shopAddress,iconUrl,expirationDate,imageUrl)
+  props.crtPost(props.uid,props.latitude,props.longitude,message,shopAddress,iconUrl,expirationDate,imageUrl)
 }
   return (
     <View style={{padding: 10}}>
@@ -120,12 +121,6 @@ const createPost=()=>
    />
 </TouchableHighlight>
     <View style={{flexDirection:"row"}}>
-      <TextInput
-        style={{ height: 35, borderColor: 'gray', borderWidth: 1 }}
-        placeholder="Coupon Code"
-        onChangeText={text => setCouponCode(text)}
-        defaultValue={props.postCreatorInfo.message}
-      />
 
  <DatePicker
         style={{width: '70%'}}
@@ -156,7 +151,7 @@ const createPost=()=>
       <TextInput
         style={{ height: 35, borderColor: 'gray', borderWidth: 1 }}
         placeholder="Description"
-        onChangeText={text => setMessage(text)}
+        onChangeText={message=> setMessage(message)}
         defaultValue={props.postCreatorInfo.message}
       />
     <View style={{flexDirection:"row"}}>
@@ -166,7 +161,7 @@ const createPost=()=>
       <TextInput
         style={{ height: 35, borderColor: 'gray', borderWidth: 1 }}
         placeholder="Address of Store"
-        onChangeText={text => setShopAddress(text)}
+        onChangeText={shopAddress=> setShopAddress(shopAddress)}
         defaultValue={props.postCreatorInfo.shopAddress}/>
 
 <View style={{flexDirection:'row'}}>

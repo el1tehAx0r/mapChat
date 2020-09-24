@@ -48,6 +48,7 @@ function MapPage(props,{navigation}) {
   const [modalVisible,setModalVisible]=useState(false)
   const [postModalVisible,setPostModalVisible]=useState(false)
   const [postViewerInfo,setPostViewerInfo]=useStateWithCallbackLazy(false);
+  const [bullshit,setBullshit]=useStateWithCallbackLazy(false);
   const [postCreatorInfo,setPostCreatorInfo]=useStateWithCallbackLazy({expirationDate:'',message:'',op:'',image:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d',icon:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d'});
   const [myPosts,setMyPosts]=useStateWithCallbackLazy([])
   const mapViewRef=useRef(null);
@@ -262,6 +263,18 @@ function MapPage(props,{navigation}) {
           }
         }
       },[])
+  const isMountRef = useRef(true);
+
+      useEffect(()=>
+    {
+      console.log(isMountRef,'SZZZZ')
+      console.log(isMountRef.current,'WTF')
+      if (isMountRef.current) {
+        isMountRef.current=false;
+    } else {
+setPostModalVisible(!postModalVisible)
+    }
+    },[postCreatorInfo])
 
       const onDrag=()=>{
         console.log('fuck')
@@ -287,15 +300,19 @@ function MapPage(props,{navigation}) {
           {
             if (getDistanceFromLatLonInm(circleCenters[i].latitude,circleCenters[i].longitude,coordinates.latitude,coordinates.longitude)<10)
             {
-              console.log(myPosts)
+              console.log(myPosts,'AAAAA')
               if(myPosts.includes(circleCenters[i].id))
               {
+                var circleCenterId=circleCenters[i].id
+                console.log(circleCenters[i].id,'kkk',i)
                 console.log('yay')
-                firebaseSDK.getPost(circleCenters[i].id).then((postObject)=>{var postObj=postObject.data();postObj.postId=circleCenters[i].id;setPostCreatorInfo(postObj, ()=>{setEditingPost(true,()=>{setPostModalVisible(true)})})})
+                firebaseSDK.getPost(circleCenters[i].id).then((postObject)=>{var postObj=postObject.data();postObj.postId=circleCenters[i].id;console.log(i,'omgwtf',circleCenters[i].id);console.log(postObj,'skldjfklsj'); setEditingPost(true,(x)=>{setPostCreatorInfo(postObj)})})
               }
               else{
+                console.log('tatiyana')
                 firebaseSDK.getPost(circleCenters[i].id).then((postObject)=>{var postObj=postObject.data();postObj.postId=circleCenters[i].id;setPostViewerInfo(postObj, ()=>{setModalVisible(true)})})
               }
+              break;
             }
 
           }
@@ -303,9 +320,8 @@ function MapPage(props,{navigation}) {
         }
         const closePostCreatorModal=()=>
         {
-          setPostModalVisible(!postModalVisible);
           setEditingPost(false)
-          setPostCreatorInfo({expirationDate:'',message:'',op:'',image:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d',icon:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d'})
+          setPostCreatorInfo({expirationDate:'select expiration date',message:'',op:'',image:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d',icon:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d'})
         }
 
         const closePostViewerModal=()=>
@@ -364,7 +380,7 @@ function MapPage(props,{navigation}) {
             >
             <View style={styles.centeredView}>
             <View style={styles.modalView}>
-            <PostCreator  postCreatorInfo={{postCreatorInfo}} editingPost={editingPost} uid={props.uid} latitude={latitudeClicked} longitude={longitudeClicked}  crtPost={crtPost} closePostCreatorModal={closePostCreatorModal}></PostCreator>
+            <PostCreator  postCreatorInfo={postCreatorInfo} editingPost={editingPost} uid={props.uid} latitude={latitudeClicked} longitude={longitudeClicked}  crtPost={crtPost} closePostCreatorModal={closePostCreatorModal}></PostCreator>
             </View>
             </View>
             </Modal>
