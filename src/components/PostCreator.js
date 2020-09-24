@@ -52,10 +52,9 @@ const deletePost=()=>
 }
 const setFinalButtons=()=>
 {
-  console.log(props.isEditingPost,'RRRR')
-  if(props.isEditingPost){
+  console.log(props.editingPost,'RRRR')
+  if(props.editingPost){
   return (
-
     <>
           <TouchableHighlight
               style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
@@ -88,7 +87,7 @@ useEffect(()=>{console.log(expirationDate);console.log(props.postCreatorInfo,'BR
 const createPost=()=>
 {
 
-  props.crtPost(props.uid,props.latitude,props.longitude,message,shopAddress,iconUrl,expirationDate,imageUrl)
+  props.crtPost(props.uid,props.coordinates.latitude,props.coordinates.longitude,message,shopAddress,iconUrl,expirationDate,imageUrl)
 }
   return (
     <View style={{padding: 10}}>

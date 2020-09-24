@@ -39,26 +39,24 @@ const MARKER_X_POSITION=(0.12*width)/2-MARKER_SIZE/4
 const GeoFirestore=geofirestore.initializeApp(firestore());
 function MapPage(props,{navigation}) {
   const [coordinates,setCoordinates]=useState({latitude:5,longitude:5})
-
-  const [isEditingPost,setIsEditingPost]=useStateWithCallbackLazy(false);
   const [myRegion,setMyRegion]=useState({latitude:5,longitude:5,longitudeDelta:1,latitudeDelta:1})
   const [nearbyPosts,setNearbyPosts]=useState([])
   const [nearbyCoupons,setNearbyCoupons]=useState([]);
   const [postCenters, setPostCenters]=useState([])
-  const [creatingPost,setCreatingPost]=useStateWithCallbackLazy(false)
   const [circleCenters,setCircleCenters]=useState([])
   const [claimedCoupons,setClaimedCoupons]=useState([])
   const [modalVisible,setModalVisible]=useState(false)
   const [postModalVisible,setPostModalVisible]=useState(false)
   const [postViewerInfo,setPostViewerInfo]=useStateWithCallbackLazy(false);
-  const [postCreatorInfo,setPostCreatorInfo]=useStateWithCallbackLazy(false);
+  const [postCreatorInfo,setPostCreatorInfo]=useStateWithCallbackLazy({expirationDate:'',message:'',op:'',image:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d',icon:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d'});
   const [myPosts,setMyPosts]=useStateWithCallbackLazy([])
   const mapViewRef=useRef(null);
   const [mapInitialized,setMapInitialized]=useState(false);
-  const [latitudeClicked,setLatitudeClicked]=useStateWithCallbackLazy(false);
-  const [longitudeClicked,setLongitudeClicked]=useStateWithCallbackLazy(false);
+  const [latitudeClicked,setLatitudeClicked]=useStateWithCallbackLazy(1);
+  const [longitudeClicked,setLongitudeClicked]=useStateWithCallbackLazy(1);
   const [createdCoupons,setCreatedCoupons]=useState(false);
   const [deviceHeading,setDeviceHeading]=useState(1);
+  const [editingPost,setEditingPost]=useStateWithCallbackLazy(false)
   let postUnsub;
   let myPostUnsub;
   let watchId;
@@ -185,12 +183,11 @@ function MapPage(props,{navigation}) {
     const openCreatePostModal=(lat,long)=>
     {
 
-                setCreatingPost(true, () => {
-                  console.log('ZZZZZ')
-                  setLatitudeClicked(lat,()=>{
-                    setLongitudeClicked(long,()=>{
-                      setPostModalVisible(true)
-                    })
+                  setLatitudeClicked(lat,(b)=>{
+                    console.log(latitudeClicked,'kjkslkldll')
+                    setLongitudeClicked(long,(c)=>{
+                        setPostModalVisible(true)
+                        console.log(editingPost,'faslestioi')
                   })
                 });
       }
@@ -200,9 +197,10 @@ function MapPage(props,{navigation}) {
         {
           for( var i in circleCenters)
           {
+            console.log('zz')
             if (getDistanceFromLatLonInm(circleCenters[i].latitude,circleCenters[i].longitude,point.coordinate.latitude,point.coordinate.longitude)>20)
             {
-              if ((i==(circleCenters.length-1))&&creatingPost==false)
+              if ((i==(circleCenters.length-1)))
               {
                 openCreatePostModal(point.coordinate.latitude,point.coordinate.longitude)
               }
@@ -242,6 +240,9 @@ function MapPage(props,{navigation}) {
         }
       };
 
+      useEffect(()=>{
+        console.log(editingPost,'YOOOO')
+  },[editingPost])
       useEffect(()=>{
         getUserPosts();
         updateSelfLocation();
@@ -290,8 +291,7 @@ function MapPage(props,{navigation}) {
               if(myPosts.includes(circleCenters[i].id))
               {
                 console.log('yay')
-                setIsEditingPost(true)
-                firebaseSDK.getPost(circleCenters[i].id).then((postObject)=>{var postObj=postObject.data();postObj.postId=circleCenters[i].id;setPostCreatorInfo(postObj, ()=>{setPostModalVisible(true)})})
+                firebaseSDK.getPost(circleCenters[i].id).then((postObject)=>{var postObj=postObject.data();postObj.postId=circleCenters[i].id;setPostCreatorInfo(postObj, ()=>{setEditingPost(true,()=>{setPostModalVisible(true)})})})
               }
               else{
                 firebaseSDK.getPost(circleCenters[i].id).then((postObject)=>{var postObj=postObject.data();postObj.postId=circleCenters[i].id;setPostViewerInfo(postObj, ()=>{setModalVisible(true)})})
@@ -304,7 +304,8 @@ function MapPage(props,{navigation}) {
         const closePostCreatorModal=()=>
         {
           setPostModalVisible(!postModalVisible);
-          setCreatingPost(false)
+          setEditingPost(false)
+          setPostCreatorInfo({expirationDate:'',message:'',op:'',image:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d',icon:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d'})
         }
 
         const closePostViewerModal=()=>
@@ -363,7 +364,7 @@ function MapPage(props,{navigation}) {
             >
             <View style={styles.centeredView}>
             <View style={styles.modalView}>
-            <PostCreator  postCreatorInfo={{}} isEditingPost={true} uid={props.uid} latitude={latitudeClicked} longitude={longitudeClicked}  crtPost={crtPost} closePostCreatorModal={closePostCreatorModal}></PostCreator>
+            <PostCreator  postCreatorInfo={{postCreatorInfo}} editingPost={editingPost} uid={props.uid} latitude={latitudeClicked} longitude={longitudeClicked}  crtPost={crtPost} closePostCreatorModal={closePostCreatorModal}></PostCreator>
             </View>
             </View>
             </Modal>
