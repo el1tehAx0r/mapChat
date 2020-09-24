@@ -9,16 +9,12 @@ import { Form, TextValidator } from 'react-native-validator-form';
 import firebaseSDK from '../config/FirebaseSDK'
 import styles from '../StyleSheet';
 const PostCreator= (props) => {
-  const [text, setText] = useState('');
-const [date,setDate]=useState('')
 const [postType,setPostType]=useState('');
-  const [iconMessage,setIconMessage]=useState('https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d');
-  const [shopAddress,setShopAddress]=useState('');
-  const [message,setMessage]=useState('');
-  const [couponCode,setCouponCode]=useState('');
-  const [iconUrl,setIconUrl]=useState('https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d');
-  const [expirationDate,setExpirationDate]=useState(null);
-  const [imageUrl,setImageUrl]=useState('https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d');
+  const [shopAddress,setShopAddress]=useState(props.postCreatorInfo.shopAddress);
+  const [message,setMessage]=useState(props.postCreatorInfo.message);
+  const [iconUrl,setIconUrl]=useState(props.postCreatorInfo.iconUrl);
+  const [expirationDate,setExpirationDate]=useState(props.postCreatorInfo.expirationDate);
+  const [imageUrl,setImageUrl]=useState(props.postCreatorInfo.imageUrl);
 const cancelPressed=()=>
 {
 props.closePostCreatorModal()
@@ -39,16 +35,16 @@ ImagePicker.openPicker({
   height: 65,
   cropping: true
 }).then(image => {
-  setIcon(image)
+  setIconUrl(image.path)
 });
 }
 const editPost=()=>
 {
-  firebaseSDK.editPost(props.postCreatorInfo.postId,message,shopAddress,iconUrl,date,imageUrl)
+  firebaseSDK.editPost(props.postCreatorInfo.postId,message,shopAddress,iconUrl,expirationDate,imageUrl)
 }
 const deletePost=()=>
 {
-firebaseSDK.deletePost(props.postCreatorInfo.postId)
+firebaseSDK.deletePost(props.uid,props.postCreatorInfo.postId)
 cancelPressed()
 }
 const setFinalButtons=()=>
@@ -126,7 +122,7 @@ const createPost=()=>
         style={{width: '70%'}}
         date={expirationDate}
         mode="date"
-        placeholder={props.postCreatorInfo.expirationDate}
+        placeholder={'select expiration date'}
         format="YYYY-MM-DD"
         minDate="2020-05-01"
         confirmBtnText="Confirm"

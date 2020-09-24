@@ -83,7 +83,7 @@ const onChangeText=(value)=>{
 
 const initializeUserInfo=()=>
 {
-firebaseSDK.getCurrentUserInfo().then((user)=>{console.log(user,'newUSERSTUFF');setDisplayName(user.displayName);
+firebaseSDK.getCurrentUserInfo().then((user)=>{setDisplayName(user.displayName);
 
   setUserInfo(user);
   if(user.PPPathDb!='')

@@ -234,9 +234,9 @@ createUserHardCode=async(phone_number,email,username,password)=>{
                   const geocollection=GeoFirestore.collection('Posts');
                   return new Promise((resolve)=>
                   {
-                    geocollection.add({op:uid,expirationDate:expirationDate,shopAddress:shopAddress,message:message,icon:iconUrl,uid:uid,timestamp:firebase.firestore.FieldValue.serverTimestamp(),image:imageUrl,coordinates:new firebase.firestore.GeoPoint(latitude,longitude)}).then((post)=>{
+                    geocollection.add({op:uid,expirationDate:expirationDate,shopAddress:shopAddress,message:message,iconUrl:iconUrl,uid:uid,timestamp:firebase.firestore.FieldValue.serverTimestamp(),imageUrl:imageUrl,coordinates:new firebase.firestore.GeoPoint(latitude,longitude)}).then((post)=>{
                       firestore().collection('Users').doc(uid).update({
-                        myPosts:firebase.firestore.FieldValue.arrayUnion(post),
+                        myPosts:firebase.firestore.FieldValue.arrayUnion(post._document),
                       }).then(()=>{console.log('yayyyy');resolve(post)});
                     });
                   })
@@ -250,8 +250,18 @@ createUserHardCode=async(phone_number,email,username,password)=>{
                     geocollection.doc(postId).update({expirationDate:expirationDate,shopAddress:shopAddress,message:message,icon:iconUrl,timestamp:firebase.firestore.FieldValue.serverTimestamp(),image:imageUrl}).then(()=>{});
                   })
                 }
-                deletePost=(postId)=>
-                {firestore().collection('Posts').doc(postId).delete().then(() => { console.log('postDeleted!');});}
+                deletePost=(uid,postId)=>
+                {
+                var postRef=firestore().collection('Posts').doc(postId).get().then((post)=>
+              {
+                  firestore().collection('Users').doc(uid).update({
+                    myPosts:firebase.firestore.FieldValue.arrayRemove(post._ref),
+                  }).then(()=>
+                {
+                  firestore().collection('Posts').doc(postId).delete().then((checking) => {console.log('postDeleted!');});
+                })
+              });
+                }
 
                 getPost=async (pid)=>
                 {

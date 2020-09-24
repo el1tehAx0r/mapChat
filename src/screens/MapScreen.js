@@ -49,12 +49,13 @@ function MapPage(props,{navigation}) {
   const [postModalVisible,setPostModalVisible]=useState(false)
   const [postViewerInfo,setPostViewerInfo]=useStateWithCallbackLazy(false);
   const [bullshit,setBullshit]=useStateWithCallbackLazy(false);
-  const [postCreatorInfo,setPostCreatorInfo]=useStateWithCallbackLazy({expirationDate:'',message:'',op:'',image:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d',icon:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d'});
+  const [postCreatorInfo,setPostCreatorInfo]=useStateWithCallbackLazy({expirationDate:null,message:'',op:'',imageUrl:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d',iconUrl:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d'});
   const [myPosts,setMyPosts]=useStateWithCallbackLazy([])
   const mapViewRef=useRef(null);
   const [mapInitialized,setMapInitialized]=useState(false);
   const [latitudeClicked,setLatitudeClicked]=useStateWithCallbackLazy(1);
   const [longitudeClicked,setLongitudeClicked]=useStateWithCallbackLazy(1);
+  const [postCreator,setPostCreator]=useState(null)
   const [createdCoupons,setCreatedCoupons]=useState(false);
   const [deviceHeading,setDeviceHeading]=useState(1);
   const [editingPost,setEditingPost]=useStateWithCallbackLazy(false)
@@ -101,7 +102,7 @@ function MapPage(props,{navigation}) {
       .doc(props.uid).onSnapshot(documentSnapshot => {
         try{
           var userPosts=documentSnapshot.data().myPosts.map((post, index)=>{
-            return post._document._documentPath._parts[1]
+            return post._documentPath._parts[1]
           })
           setMyPosts(userPosts)
         }
@@ -321,7 +322,7 @@ setPostModalVisible(!postModalVisible)
         const closePostCreatorModal=()=>
         {
           setEditingPost(false)
-          setPostCreatorInfo({expirationDate:'select expiration date',message:'',op:'',image:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d',icon:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d'})
+          setPostCreatorInfo({expirationDate:null,message:'',op:'',imageUrl:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d',iconUrl:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d'})
         }
 
         const closePostViewerModal=()=>
