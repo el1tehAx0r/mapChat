@@ -1,5 +1,5 @@
 import React, { useState,useEffect } from 'react';
-import { Text, TextInput, View,Button,TouchableHighlight, Image } from 'react-native';
+import { Text,TextInput,View,Button,TouchableHighlight,Image,KeyboardAvoidingView } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import DatePicker from 'react-native-datepicker'
 import Icon from 'react-native-vector-icons/Feather';
@@ -49,8 +49,8 @@ cancelPressed()
 }
 const setFinalButtons=()=>
 {
-  console.log(props.editingPost,'RRRR')
-  if(props.editingPost){
+  console.log(props.postCreatorInfo.isEditing,'RRRR')
+  if(props.postCreatorInfo.isEditing){
   return (
     <>
           <TouchableHighlight
@@ -84,7 +84,7 @@ useEffect(()=>{console.log(expirationDate);console.log(props.postCreatorInfo,'BR
 const createPost=()=>
 {
 
-  props.crtPost(props.uid,props.latitude,props.longitude,message,shopAddress,iconUrl,expirationDate,imageUrl)
+  props.createPost(props.uid,props.postCreatorInfo.latitude,props.postCreatorInfo.longitude,message,shopAddress,iconUrl,expirationDate,imageUrl)
 }
   return (
     <View style={{padding: 10}}>

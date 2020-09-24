@@ -67,7 +67,7 @@ useEffect (() => {
        height: 200,}}
      resizeMode='cover'
      source={{
-       uri:props.postViewerInfo.image}}
+       uri:props.postViewerInfo.imageUrl}}
    />
     <View style={{flexDirection:"row"}}>
  <DatePicker

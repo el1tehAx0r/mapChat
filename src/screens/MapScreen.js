@@ -184,14 +184,12 @@ function MapPage(props,{navigation}) {
 
     const openCreatePostModal=(lat,long)=>
     {
-
-                  setLatitudeClicked(lat,(b)=>{
-                    console.log(latitudeClicked,'kjkslkldll')
-                    setLongitudeClicked(long,(c)=>{
-                        setPostModalVisible(true)
-                        console.log(editingPost,'faslestioi')
-                  })
-                });
+console.log('lskdjl')
+    var postObject={}
+    postObject=postCreatorInfo;
+    console.log(postObject)
+    setPostCreatorInfo({latitude:lat,longitude:long,expirationDate:null,message:'',op:'',imageUrl:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d',iconUrl:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d'}
+,()=>{console.log('jk');setPostModalVisible(true)})
       }
       const createPost=(point)=>
       {
@@ -199,11 +197,11 @@ function MapPage(props,{navigation}) {
         {
           for( var i in circleCenters)
           {
-            console.log('zz')
             if (getDistanceFromLatLonInm(circleCenters[i].latitude,circleCenters[i].longitude,point.coordinate.latitude,point.coordinate.longitude)>20)
             {
               if ((i==(circleCenters.length-1)))
               {
+console.log('zzz')
                 openCreatePostModal(point.coordinate.latitude,point.coordinate.longitude)
               }
             }
@@ -243,9 +241,6 @@ function MapPage(props,{navigation}) {
       };
 
       useEffect(()=>{
-        console.log(editingPost,'YOOOO')
-  },[editingPost])
-      useEffect(()=>{
         getUserPosts();
         updateSelfLocation();
         return () => {
@@ -264,18 +259,6 @@ function MapPage(props,{navigation}) {
           }
         }
       },[])
-  const isMountRef = useRef(true);
-
-      useEffect(()=>
-    {
-      console.log(isMountRef,'SZZZZ')
-      console.log(isMountRef.current,'WTF')
-      if (isMountRef.current) {
-        isMountRef.current=false;
-    } else {
-setPostModalVisible(!postModalVisible)
-    }
-    },[postCreatorInfo])
 
       const onDrag=()=>{
         console.log('fuck')
@@ -305,9 +288,7 @@ setPostModalVisible(!postModalVisible)
               if(myPosts.includes(circleCenters[i].id))
               {
                 var circleCenterId=circleCenters[i].id
-                console.log(circleCenters[i].id,'kkk',i)
-                console.log('yay')
-                firebaseSDK.getPost(circleCenters[i].id).then((postObject)=>{var postObj=postObject.data();postObj.postId=circleCenters[i].id;console.log(i,'omgwtf',circleCenters[i].id);console.log(postObj,'skldjfklsj'); setEditingPost(true,(x)=>{setPostCreatorInfo(postObj)})})
+                firebaseSDK.getPost(circleCenters[i].id).then((postObject)=>{var postObj=postObject.data();postObj.postId=circleCenters[i].id;postObj.isEditing=true; setPostCreatorInfo(postObj, ()=>{setPostModalVisible(true)})})
               }
               else{
                 console.log('tatiyana')
@@ -321,8 +302,8 @@ setPostModalVisible(!postModalVisible)
         }
         const closePostCreatorModal=()=>
         {
-          setEditingPost(false)
           setPostCreatorInfo({expirationDate:null,message:'',op:'',imageUrl:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d',iconUrl:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d'})
+          setPostModalVisible(false)
         }
 
         const closePostViewerModal=()=>
@@ -338,6 +319,7 @@ setPostModalVisible(!postModalVisible)
           zoomEnabled={false}
           onDoublePress={(e)=>
             {
+              console.log('longpress')
               createPost(e.nativeEvent)
             }}
             camera = {{
@@ -381,7 +363,7 @@ setPostModalVisible(!postModalVisible)
             >
             <View style={styles.centeredView}>
             <View style={styles.modalView}>
-            <PostCreator  postCreatorInfo={postCreatorInfo} editingPost={editingPost} uid={props.uid} latitude={latitudeClicked} longitude={longitudeClicked}  crtPost={crtPost} closePostCreatorModal={closePostCreatorModal}></PostCreator>
+            <PostCreator  postCreatorInfo={postCreatorInfo}  uid={props.uid}  createPost={crtPost} closePostCreatorModal={closePostCreatorModal}></PostCreator>
             </View>
             </View>
             </Modal>
