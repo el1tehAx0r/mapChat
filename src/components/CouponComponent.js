@@ -22,6 +22,10 @@ const closePostViewerModal=()=>
   setModalVisible(false)
 }
 
+useEffect(()=>
+{
+  console.log('QEUNING',props.uid)
+},[])
 return(
 <><Separator/>
 

@@ -17,7 +17,7 @@ const renderCoupon=(couponId,message,expirationDate,imageUrl,postViewerInfo,clai
 {
   console.log(message,expirationDate,imageUrl)
   console.log(postViewerInfo,'psoidjfioj')
-  return( <><CouponComponent couponId={couponId} message={message} postViewerInfo={postViewerInfo} claimedCoupons={claimedCoupons} expirationDate={expirationDate} imageUrl={imageUrl} onPress={couponPressed}/></>)
+  return( <><CouponComponent uid={props.uid} couponId={couponId} message={message} postViewerInfo={postViewerInfo} claimedCoupons={claimedCoupons} expirationDate={expirationDate} imageUrl={imageUrl} onPress={couponPressed}/></>)
 }
 useEffect(()=>
 {

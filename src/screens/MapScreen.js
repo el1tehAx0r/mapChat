@@ -57,6 +57,7 @@ function MapPage(props,{navigation}) {
   const [longitudeClicked,setLongitudeClicked]=useStateWithCallbackLazy(1);
   const [postCreator,setPostCreator]=useState(null)
   const [createdCoupons,setCreatedCoupons]=useState(false);
+  const [test,setTest]=useState(props.claimedCoupons);
   const [deviceHeading,setDeviceHeading]=useState(1);
   const [editingPost,setEditingPost]=useStateWithCallbackLazy(false)
   let postUnsub;
@@ -84,7 +85,6 @@ function MapPage(props,{navigation}) {
   }
   const crtPost=(uid,latitude,longitude,message,shopAddress,iconUrl,expirationDate,imageUrl)=>
   {
-
     firebaseSDK.createPost(uid,latitude,longitude,message,shopAddress,iconUrl,expirationDate,imageUrl).then((post)=>{
       var postId=post._document._documentPath._parts[1]
       var remotePath='couponPic/'+postId
@@ -241,7 +241,7 @@ console.log('zzz')
       };
 
       useEffect(()=>{
-        getUserPosts();
+        //getUserPosts();
         updateSelfLocation();
         return () => {
           console.log('yaypoo')
@@ -259,6 +259,15 @@ console.log('zzz')
           }
         }
       },[])
+      useEffect(()=>{
+        setClaimedCoupons(props.claimedCoupons)
+        console.log(props.claimedCoupons)
+      },[props.claimedCoupons])
+      useEffect(()=>
+    {
+      setMyPosts(props.myPosts)
+        console.log(props.myPosts)
+    },[props.myPosts])
 
       const onDrag=()=>{
         console.log('fuck')

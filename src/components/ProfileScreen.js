@@ -12,6 +12,7 @@ import {DisplayName }from '../components/DisplayName.js'
  import storage from '@react-native-firebase/storage';
  import firestore from '@react-native-firebase/firestore';
  import firebase from '@react-native-firebase/app';
+ import GiftedListView from 'react-native-gifted-listview';
 import {
   TextField,
   FilledTextField,

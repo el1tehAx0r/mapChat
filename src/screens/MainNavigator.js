@@ -26,11 +26,14 @@ const Tab = createMaterialTopTabNavigator();
 function MainNavigator({route, navigation}) {
   const {user}=route.params;
   // Set an initializing state whilst Firebase connects
+  const [myPosts,setMyPosts]=useState([])
+  const [claimedCoupons,setClaimedCoupons]=useState([])
   const [displayName,setDisplayName]=useState('darryl');
   const [profilePic,setProfilePic]=useState('https://www.sparklabs.com/forum/styles/comboot/theme/images/default_avatar.jpg');
   const [profilePicWidth,setProfilePicWidth]=useState(150);
   const [profilePicHeight,setProfilePicHeight]=useState(150);
   const [userInfo,setUserInfo]=useState({})
+  let postUnsub;
   const requestCameraPermission = async () => {
   try {
     const granted = await PermissionsAndroid.request(
@@ -77,6 +80,32 @@ function MainNavigator({route, navigation}) {
     })
   }
 
+    const getUserPosts=()=>
+    {
+      postUnsub= firestore()
+      .collection('Users')
+      .doc(user.uid).onSnapshot(documentSnapshot => {
+        try{
+          var userPosts=documentSnapshot.data().myPosts.map((post, index)=>{
+            return post._documentPath._parts[1]
+          })
+          setMyPosts(userPosts)
+        }
+        catch{}
+        try{
+          var userClaimedCoupons=documentSnapshot.data().claimedCoupons.map((post, index)=>{
+            return(post._documentPath._parts[1])
+            console.log(post,'TESTY')
+          })
+          console.log(userClaimedCoupons,'TESTING')
+          setClaimedCoupons(userClaimedCoupons)
+        }
+        catch{
+          console.log('didntwork')
+        }
+
+      });
+    }
 const onChangeText=(value)=>{
   setDisplayName(value)
 }
@@ -94,7 +123,15 @@ firebaseSDK.getCurrentUserInfo().then((user)=>{setDisplayName(user.displayName);
 });
 }
   useEffect(() => {
+    getUserPosts()
     initializeUserInfo()
+        return () => {
+         if(postUnsub!=undefined)
+          {
+            postUnsub()
+            postUnsub=null;
+          }
+        }
   }, [])
 const signOut=()=>
 {
@@ -106,10 +143,10 @@ const signOut=()=>
 <Tab.Navigator swipeEnabled={false}>
     <Tab.Screen
     name="Map"
-       children={()=><MapPage uid={user.uid} />}/>
+       children={()=><MapPage claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid} />}/>
     <Tab.Screen
     name="ProfilePage"
-    children={()=><ProfilePage uid={user.uid}/>}/>
+    children={()=><ProfilePage  claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid}/>}/>
     </Tab.Navigator>
   );
 }

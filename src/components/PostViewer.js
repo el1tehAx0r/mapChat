@@ -22,6 +22,7 @@ const claimCoupon=()=>
 
 const unclaimCoupon=()=>
 {
+  console.log(props.uid,props.postViewerInfo.postId)
   firebaseSDK.unclaimCoupon(props.uid,props.postViewerInfo.postId)
 }
 const actionButton=()=>
@@ -49,6 +50,7 @@ useEffect(() => {
 const isFirstRun = useRef(true);
 useEffect (() => {
     if (isFirstRun.current) {
+      console.log(props.uid,'SEEING')
         isFirstRun.current = false;
         return;
     }

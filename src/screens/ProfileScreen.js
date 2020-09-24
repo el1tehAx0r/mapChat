@@ -32,7 +32,7 @@ function ProfilePage(props,{navigation}) {
   const [profilePicWidth,setProfilePicWidth]=useState(150);
   const [profilePicHeight,setProfilePicHeight]=useState(150);
   const [userInfo,setUserInfo]=useState({})
-  const [myCoupons,setMyCoupons]=useState([])
+  const [myPosts,setMyPosts]=useState([])
   const [claimedCoupons,setClaimedCoupons]=useState([])
   const requestCameraPermission = async () => {
   try {
@@ -114,11 +114,16 @@ firebaseSDK.getCurrentUserInfo().then((user)=>{setDisplayName(user.displayName);
 useEffect(()=>{
 })
   useEffect(() => {
-    //couponGrabber()
-
     initializeUserInfo()
   }, [])
 
+  useEffect(() => {
+    setClaimedCoupons(props.claimedCoupons)
+  }, [props.claimedCoupons])
+
+  useEffect(() => {
+    setMyPosts(props.myPosts)
+  }, [props.myPosts])
 const signOut=()=>
 {
   auth()
@@ -138,7 +143,7 @@ const signOut=()=>
          </View>
          <Separator/>
         <View style={{flex:5,}}>
-        {/*<CouponContainerComponent coupons={myCoupons}/>*/}
+        {<CouponContainerComponent uid={props.uid} coupons={claimedCoupons}/>}
         </View>
 
 
