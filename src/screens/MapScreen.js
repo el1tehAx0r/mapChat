@@ -150,21 +150,14 @@ const crtPost=(uid,latitude,longitude,message,shopAddress,iconUrl,expirationDate
       const postquery = postgeocollection.near({ center: new firebase.firestore.GeoPoint(coordinates.latitude,coordinates.longitude), radius: 1000000 });
       postUnsub=postquery.onSnapshot((dog)=>{
         console.log(dog.docs,'benten1')
-        var jsxPostsMarkers=[]
-        var jsxPostMarkersTemp=dog.docs.map((markerInfo,index)=>{
-          return <PostMarker circleCenters={circleCenters} key={index} coordinate={{latitude:markerInfo.data().coordinates.latitude,longitude:markerInfo.data().coordinates.longitude}}/>
-        })
         var centerPoints=dog.docs.map((markerInfo,index)=>{
-          return {latitude:markerInfo.data().coordinates.latitude,longitude:markerInfo.data().coordinates.longitude, id:markerInfo.id,}
+          return {latitude:markerInfo.data().coordinates.latitude,longitude:markerInfo.data().coordinates.longitude, id:markerInfo.id,iconUrl:markerInfo.data().iconUrl}
         })
         setCircleCenters(centerPoints)
-        jsxPostsMarkers=jsxPostMarkersTemp
-        setNearbyPosts(jsxPostsMarkers)
         console.log(dog.docs.length,'sdjflsjdkfs')
         if(dog.docs.length==0)
         {
           setCircleCenters([])
-          setNearbyPosts([])
         }
       })
     }
@@ -262,6 +255,38 @@ console.log('zzz')
           console.warn(err);
         }
       };
+useEffect(()=>
+{
+        var jsxPostsMarkers=[]
+        var jsxPostMarkersTemp=circleCenters.map((markerInfo,index)=>{
+          return <PostMarker mapViewPressed={mapViewPressed} key={index} iconUrl={markerInfo.iconUrl} coordinate={{latitude:markerInfo.latitude,longitude:markerInfo.longitude}}/>
+        })
+        jsxPostsMarkers=jsxPostMarkersTemp
+        setNearbyPosts(jsxPostsMarkers)
+        if(circleCenters.length==0)
+        {
+          setNearbyPosts([])
+        }
+},[circleCenters])
+      useEffect(()=>
+    {
+      console.log('AAAAAAAAAAAAAAAAAAAAATHESE ARE CIRCLE CENTERS',props.circleCenters)
+    },[props.circleCenters])
+
+      useEffect(()=>
+    {
+      console.log('AAAAAAAAAAAAAAAAAAAAATHESE ARE CIRCLE CENTERS',props.deviceHeading)
+    },[props.deviceHeading])
+
+      useEffect(()=>
+    {
+      console.log('AAAAAAAAAAAAAAAAAAAAATHESE ARE CIRCLE CENTERS',props.coordinates)
+    },[props.coordinates])
+
+      useEffect(()=>
+    {
+      console.log('AAAAAAAAAAAAAAAAAAAAATHESE ARE CIRCLE CENTERS',props.nearbyPosts)
+    },[props.nearbyPosts])
 
       useEffect(()=>{
         //getUserPosts();
@@ -289,7 +314,7 @@ console.log('zzz')
       useEffect(()=>
     {
       setMyPosts(props.myPosts)
-        console.log(props.myPosts)
+        console.log(props.myPosts,'HUNDRED MILLI')
     },[props.myPosts])
 
       const onDrag=()=>{
@@ -312,13 +337,16 @@ console.log('zzz')
         }
         const mapViewPressed=(coordinates)=>
         {
+          console.log(props.myPosts,'TEHSE ARE MY POSTS')
+          console.log(circleCenters,"THESE ARE CIRC DNESLS")
           for (var i in circleCenters)
           {
-            if (getDistanceFromLatLonInm(circleCenters[i].latitude,circleCenters[i].longitude,coordinates.latitude,coordinates.longitude)<10)
+            if (getDistanceFromLatLonInm(circleCenters[i].latitude,circleCenters[i].longitude,coordinates.latitude,coordinates.longitude)<7)
             {
-              console.log(myPosts,'AAAAA')
               if(myPosts.includes(circleCenters[i].id))
               {
+              console.log(myPosts,'ATHIS IS MY POST')
+              console.log(circleCenters[i].id,'tHIS IS ID')
                 var circleCenterId=circleCenters[i].id
                 firebaseSDK.getPost(circleCenters[i].id).then((postObject)=>{var postObj=postObject.data();postObj.postId=circleCenters[i].id;postObj.isEditing=true; setPostCreatorInfo(postObj, ()=>{setPostModalVisible(true)})})
               }
@@ -347,7 +375,9 @@ console.log('zzz')
           <MapView
           scrollEnabled={true}
           rotateEnabled={true}
-          onPress={(e)=>{mapViewPressed(e.nativeEvent.coordinate);console.log(e.nativeEvent)}}
+showsUserLocation={true}
+          onPress={(e)=>{//mapViewPressed(e.nativeEvent.coordinate);
+            console.log(e.nativeEvent)}}
           zoomEnabled={false}
           onDoublePress={(e)=>
             {

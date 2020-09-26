@@ -16,6 +16,10 @@ import ChatScreen from './ChatScreen.js'
  import firestore from '@react-native-firebase/firestore';
  import firebase from '@react-native-firebase/app';
  import firebaseSDK from '../config/FirebaseSDK';
+import RNDeviceHeading from 'react-native-device-heading'
+import Geolocation from '@react-native-community/geolocation';
+import * as geofirestore from 'geofirestore';
+const GeoFirestore=geofirestore.initializeApp(firestore());
  import {
   TextField,
   FilledTextField,
@@ -25,14 +29,19 @@ const Tab = createMaterialTopTabNavigator();
 function MainNavigator({route, navigation}) {
   const {user}=route.params;
   // Set an initializing state whilst Firebase connects
-  const [myPosts,setMyPosts]=useState([])
-  const [claimedCoupons,setClaimedCoupons]=useState([])
   const [displayName,setDisplayName]=useState('darryl');
   const [profilePic,setProfilePic]=useState('https://www.sparklabs.com/forum/styles/comboot/theme/images/default_avatar.jpg');
   const [profilePicWidth,setProfilePicWidth]=useState(150);
   const [profilePicHeight,setProfilePicHeight]=useState(150);
   const [userInfo,setUserInfo]=useState({})
+  const [claimedCoupons,setClaimedCoupons]=useState([])
+  const [coordinates,setCoordinates]=useState({latitude:5,longitude:5})
+  const [myPosts,setMyPosts]=useState([])
+  const [circleCenters,setCircleCenters]=useState([])
+  const [nearbyPosts,setNearbyPosts]=useState([])
+  const [deviceHeading,setDeviceHeading]=useState(1);
   let postUnsub;
+  let watchId;
   const requestCameraPermission = async () => {
   try {
     const granted = await PermissionsAndroid.request(
@@ -105,6 +114,51 @@ function MainNavigator({route, navigation}) {
 
       });
     }
+
+  const updateSelfLocation=()=>
+  {
+    RNDeviceHeading.start(20, degree => {
+      setDeviceHeading(degree)
+      //   console.log(degree,"degrees rotated")
+    });
+    watchId=Geolocation.watchPosition((position)=>
+    {
+      if(postUnsub!=undefined)
+      {
+        postUnsub()
+        postUnsub=null;
+      }
+      firestore().collection('Users').doc(user.uid).update({coordinates:new firebase.firestore.GeoPoint(position.coords.latitude, position.coords.longitude)})
+      firestore().collection('Users').doc(user.uid).update({'g.geopoint':new firebase.firestore.GeoPoint(position.coords.latitude, position.coords.longitude)})
+      setCoordinates({latitude:position.coords.latitude,longitude:position.coords.longitude})
+      mapObjectGrabber({latitude:position.coords.latitude,longitude:position.coords.longitude})
+    },(err)=>{console.log(err)},{distanceFilter:5, enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 })
+  }
+
+    const mapObjectGrabber=(coordinates)=>
+    {
+      const postgeocollection = GeoFirestore.collection('Posts');
+      console.log(postgeocollection,'postgeo')
+      const postquery = postgeocollection.near({ center: new firebase.firestore.GeoPoint(coordinates.latitude,coordinates.longitude), radius: 1000000 });
+      postUnsub=postquery.onSnapshot((dog)=>{
+        console.log(dog.docs,'benten1')
+        var jsxPostsMarkers=[]
+        var jsxPostMarkersTemp=dog.docs.map((markerInfo,index)=>{
+          return {coordinates:{latitude:markerInfo.data().coordinates.latitude,longitude:markerInfo.data().coordinates.longitude},iconUrl:markerInfo.data().iconUrl}})
+        var centerPoints=dog.docs.map((markerInfo,index)=>{
+          return {latitude:markerInfo.data().coordinates.latitude,longitude:markerInfo.data().coordinates.longitude, id:markerInfo.id,}
+        })
+        setCircleCenters(centerPoints)
+        jsxPostsMarkers=jsxPostMarkersTemp
+        setNearbyPosts(jsxPostsMarkers)
+        console.log(dog.docs.length,'sdjflsjdkfs')
+        if(dog.docs.length==0)
+        {
+          setCircleCenters([])
+          setNearbyPosts([])
+        }
+      })
+    }
 const onChangeText=(value)=>{
   setDisplayName(value)
 }
@@ -121,14 +175,27 @@ firebaseSDK.getCurrentUserInfo().then((user)=>{setDisplayName(user.displayName);
   }
 });
 }
+useEffect(()=>
+{
+  console.log('ANSKLFLLL',myPosts)
+},[myPosts])
   useEffect(() => {
+    updateSelfLocation()
     getUserPosts()
     initializeUserInfo()
         return () => {
-         if(postUnsub!=undefined)
+          console.log('yaypoo')
+          Geolocation.clearWatch(watchId);
+          Geolocation.stopObserving()
+          if(postUnsub!=undefined)
           {
             postUnsub()
             postUnsub=null;
+          }
+          if(myPostUnsub!=undefined)
+          {
+            myPostUnsub()
+            myPostUnsub=null;
           }
         }
   }, [])
@@ -142,7 +209,7 @@ const signOut=()=>
 <Tab.Navigator swipeEnabled={false}>
     <Tab.Screen
     name="Map"
-       children={()=><MapPage claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid} />}/>
+       children={()=><MapPage circleCenters={circleCenters} claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid} />}/>
     <Tab.Screen
     name="ProfilePage"
     children={()=><ProfilePage  claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid}/>}/>
