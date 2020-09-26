@@ -38,10 +38,6 @@ ImagePicker.openPicker({
   setIconUrl(image.path)
 });
 }
-const editPost=()=>
-{
-  firebaseSDK.editPost(props.postCreatorInfo.postId,message,shopAddress,iconUrl,expirationDate,imageUrl)
-}
 const deletePost=()=>
 {
 firebaseSDK.deletePost(props.uid,props.postCreatorInfo.postId)
@@ -49,7 +45,6 @@ cancelPressed()
 }
 const setFinalButtons=()=>
 {
-  console.log(props.postCreatorInfo.isEditing,'RRRR')
   if(props.postCreatorInfo.isEditing){
   return (
     <>
@@ -86,6 +81,26 @@ const createPost=()=>
 
   props.createPost(props.uid,props.postCreatorInfo.latitude,props.postCreatorInfo.longitude,message,shopAddress,iconUrl,expirationDate,imageUrl)
 }
+
+const editPost=()=>
+{
+  firebaseSDK.editPost(props.postCreatorInfo.postId,message,shopAddress,iconUrl,expirationDate,imageUrl).then((post)=>
+{
+      var postId=props.postCreatorInfo.postId
+      var remotePath='couponPic/'+postId
+      var localPath=imageUrl.toString()
+      var collectionName='Posts'
+      var documentName=postId
+      var field='imageUrl'
+      firebaseSDK.addToStorage(remotePath,localPath,collectionName,documentName,field)
+      var remotePath='couponIcon/'+postId
+      var localPath=iconUrl.toString()
+      var collectionName='Posts'
+      var documentName=postId
+      var field='iconUrl'
+      firebaseSDK.addToStorage(remotePath,localPath,collectionName,documentName,field)
+})
+}
   return (
     <View style={{padding: 10}}>
 <DropDownPicker
@@ -94,7 +109,7 @@ const createPost=()=>
         {label: 'Postnot implemented ', value: 'coupon_video', icon: () => <Icon name="flag" size={15} color="#900" />},
         {label: 'Postnot implemented', value: 'coupon_video', icon: () => <Icon name="flag" size={15} color="#900" />}, ]}
     defaultValue={null}
-    placeholder={'select post type'}
+    placeholder={'Expiremental for Multiple sources of Media Do not click yet Will brek program'}
     containerStyle={{height:'12%'}}
     style={{backgroundColor: '#fafafa'}}
     itemStyle={{

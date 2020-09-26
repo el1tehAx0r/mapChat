@@ -32,7 +32,7 @@ useEffect(()=>
     var holder=couponRefs.data()
     holder.postId=props.coupons[i]
     console.log(holder,'hollllderr')
-    theCoupons=renderCoupon(props.coupons[i],couponRefs.data().message,couponRefs.data().expirationDate,couponRefs.data().image, holder,props.coupons)
+    theCoupons=renderCoupon(props.coupons[i],couponRefs.data().message,couponRefs.data().expirationDate,couponRefs.data().imageUrl, holder,props.coupons)
   }
   console.log(theCoupons)
   setCoupons(theCoupons)

@@ -83,7 +83,7 @@ function MapPage(props,{navigation}) {
       mapObjectGrabber({latitude:position.coords.latitude,longitude:position.coords.longitude})
     },(err)=>{console.log(err)},{distanceFilter:5, enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 })
   }
-  const crtPost=(uid,latitude,longitude,message,shopAddress,iconUrl,expirationDate,imageUrl)=>
+const crtPost=(uid,latitude,longitude,message,shopAddress,iconUrl,expirationDate,imageUrl)=>
   {
     firebaseSDK.createPost(uid,latitude,longitude,message,shopAddress,iconUrl,expirationDate,imageUrl).then((post)=>{
       var postId=post._document._documentPath._parts[1]
@@ -91,10 +91,35 @@ function MapPage(props,{navigation}) {
       var localPath=imageUrl.toString()
       var collectionName='Posts'
       var documentName=postId
-      var field='image'
+      var field='imageUrl'
+      firebaseSDK.addToStorage(remotePath,localPath,collectionName,documentName,field)
+      var remotePath='iconUrl/'+postId
+      var localPath=iconUrl.toString()
+      var collectionName='Posts'
+      var documentName=postId
+      var field='iconUrl'
       firebaseSDK.addToStorage(remotePath,localPath,collectionName,documentName,field)
       closePostCreatorModal()})
     }
+/* const editPost=(uid,postId,message,shopAddress,iconUrl,expirationDate,imageUrl)=>
+  {
+  firebaseSDK.editPost(props.postCreatorInfo.postId,message,shopAddress,iconUrl,expirationDate,imageUrl)
+    firebaseSDK.createPost(uid,latitude,longitude,message,shopAddress,iconUrl,expirationDate,imageUrl).then((post)=>{
+      var postId=post._document._documentPath._parts[1]
+      var remotePath='couponPic/'+postId
+      var localPath=imageUrl.toString()
+      var collectionName='Posts'
+      var documentName=postId
+      var field='imageUrl'
+      firebaseSDK.addToStorage(remotePath,localPath,collectionName,documentName,field)
+      var remotePath='iconUrl/'+postId
+      var localPath=iconUrl.toString()
+      var collectionName='Posts'
+      var documentName=postId
+      var field='iconUrl'
+      firebaseSDK.addToStorage(remotePath,localPath,collectionName,documentName,field)
+      closePostCreatorModal()})
+    }*/
     const getUserPosts=()=>
     {
       myPostUnsub= firestore()
@@ -116,12 +141,10 @@ function MapPage(props,{navigation}) {
         catch{
           console.log('didntwork')
         }
-
       });
     }
     const mapObjectGrabber=(coordinates)=>
     {
-
       const postgeocollection = GeoFirestore.collection('Posts');
       console.log(postgeocollection,'postgeo')
       const postquery = postgeocollection.near({ center: new firebase.firestore.GeoPoint(coordinates.latitude,coordinates.longitude), radius: 1000000 });
@@ -129,7 +152,7 @@ function MapPage(props,{navigation}) {
         console.log(dog.docs,'benten1')
         var jsxPostsMarkers=[]
         var jsxPostMarkersTemp=dog.docs.map((markerInfo,index)=>{
-          return <PostMarker  key={index} coordinate={{latitude:markerInfo.data().coordinates.latitude,longitude:markerInfo.data().coordinates.longitude}}/>
+          return <PostMarker circleCenters={circleCenters} key={index} coordinate={{latitude:markerInfo.data().coordinates.latitude,longitude:markerInfo.data().coordinates.longitude}}/>
         })
         var centerPoints=dog.docs.map((markerInfo,index)=>{
           return {latitude:markerInfo.data().coordinates.latitude,longitude:markerInfo.data().coordinates.longitude, id:markerInfo.id,}

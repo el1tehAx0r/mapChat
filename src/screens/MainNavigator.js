@@ -10,6 +10,7 @@ import ChatScreen from './ChatScreen.js'
  import {GetUserInfo} from '../components/UserInfo.js'
  import MapPage from './MapScreen.js';
  import ProfilePage from './ProfileScreen';
+ import CouponPage from './CouponScreen';
  import TabBar from "@mindinventory/react-native-tab-bar-interaction";
  import storage from '@react-native-firebase/storage';
  import firestore from '@react-native-firebase/firestore';
@@ -20,8 +21,6 @@ import ChatScreen from './ChatScreen.js'
   FilledTextField,
   OutlinedTextField2,
 } from 'react-native-material-textfield';
-
-
 const Tab = createMaterialTopTabNavigator();
 function MainNavigator({route, navigation}) {
   const {user}=route.params;
@@ -147,6 +146,9 @@ const signOut=()=>
     <Tab.Screen
     name="ProfilePage"
     children={()=><ProfilePage  claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid}/>}/>
+    <Tab.Screen
+    name="Coupon Screen"
+    children={()=><CouponPage claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid}/>}/>
     </Tab.Navigator>
   );
 }

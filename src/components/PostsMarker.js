@@ -7,6 +7,9 @@ import CustomCallout from '../components/CustomCallout'
 import Ionicons from 'react-native-vector-icons/Ionicons';
 //Geolocation.getCurrentPosition(info => console.log(info));
 export default function PostMarker(props) {
+  useEffect(()=>{
+    console.log('AAAAa',props.circleCenters)
+  },[props.circleCenters])
   return (
 <><Circle tracksViewChanges={false} center={props.coordinate} radius={10}/>
 </>

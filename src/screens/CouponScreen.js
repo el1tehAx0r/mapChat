@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {Button, TouchableHighlight, View,Image, Modal, Text,TextInput,StyleSheet } from 'react-native';
+import {Button, TouchableHighlight, View,Image, Modal, Text,TextInput,StyleSheet,Picker } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import {DisplayName }from '../components/DisplayName.js'
 import ChatScreen from './ChatScreen.js'
@@ -25,13 +25,11 @@ const Separator = () => (
   <View style={styles.separator} />
 );
 //Geolocation.getCurrentPosition(info => console.log(info));
-function ProfilePage(props,{navigation}) {
+function CouponPage(props,{navigation}) {
   // Set an initializing state whilst Firebase connects
-  const [displayName,setDisplayName]=useState('userName');
-  const [profilePic,setProfilePic]=useState('https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d');
-  const [profilePicWidth,setProfilePicWidth]=useState(150);
-  const [profilePicHeight,setProfilePicHeight]=useState(150);
-  const [userInfo,setUserInfo]=useState({})
+
+  const [filter1Value,setFilter1Value]=useState([])
+  const [filter2Value,setFilter2Value]=useState([])
   const [myPosts,setMyPosts]=useState([])
   const [claimedCoupons,setClaimedCoupons]=useState([])
   const requestCameraPermission = async () => {
@@ -57,19 +55,6 @@ function ProfilePage(props,{navigation}) {
     console.warn(err);
   }
 };
-  const onPPPress = (width,height,path) => {
-  setProfilePicWidth(width);
-  setProfilePicHeight(height);
-  var remotePath='profilePics/'+displayName
-  var localPath=path
-  var collectionName='Users'
-  var documentName=auth().currentUser.uid
-  var field='photoURL'
-firebaseSDK.addToStorage(remotePath,localPath,collectionName,documentName,field).then((url)=>
-{
-  setProfilePic(url)
-})
-  }
 
 const onChangeText=(value)=>{
   setDisplayName(value)
@@ -100,22 +85,6 @@ setMyCoupons(userPosts)
 
       });
 }*/
-const initializeUserInfo=()=>
-{
-firebaseSDK.getCurrentUserInfo().then((user)=>{setDisplayName(user.displayName);
-
-  setUserInfo(user);
-  if(user.photoURL!='')
-    {
-    setProfilePic(user.photoURL)
-  }
-});
-}
-useEffect(()=>{
-})
-  useEffect(() => {
-    initializeUserInfo()
-  }, [])
 
   useEffect(() => {
     setClaimedCoupons(props.claimedCoupons)
@@ -133,24 +102,33 @@ const signOut=()=>
   return (
     <View style={{flex:1,flexDirection:'column'}}>
          <View style={styles.bottomBorder}>
-        <View style={{flex:3, justifyContent:'center',alignItems:'center'}}>
-        <PP onPPClicked={onPPPress} PPPath={profilePic}/>
-        </View>
-        <View style={{flex:2, }}>
-<Button title="signout" onPress={signOut}></Button>
-        <DisplayName defaultValue={displayName} onChangeText={onChangeText}/>
-        </View>
+            <Picker
+        selectedValue={'Distance'}
+        style={{ height: 50, width: 150 }}
+        onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}
+      >
+        <Picker.Item label="Date" value="Date" />
+        <Picker.Item label="Distance" value="Distance" />
+      </Picker>
+
+            <Picker
+        selectedValue={'ClaimedCoupons'}
+        style={{ height: 50, width: 200}}
+        onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}
+      >
+        <Picker.Item label="ClaimedCoupons" value="ClaimedCoupons" />
+        <Picker.Item label="MyPosts" value="MyPosts" />
+      </Picker>
          </View>
          <Separator/>
         <View style={{flex:5,}}>
+        {<CouponContainerComponent uid={props.uid} coupons={claimedCoupons}/>}
         </View>
-
-
     </View>
   );
 }
 
-export default ProfilePage;
+export default CouponPage;
 const styles=StyleSheet.create({
   container: {
    ...StyleSheet.absoluteFillObject,
@@ -169,7 +147,7 @@ const styles=StyleSheet.create({
   },
   bottomBorder:
   {
-    flexDirection:'row',flex:2,}
+    flexDirection:'row',flex:1,}
 })
 /*const styles = StyleSheet.create({
   scrollView: {
