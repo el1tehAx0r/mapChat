@@ -88,7 +88,7 @@ function MainNavigator({route, navigation}) {
     })
   }
 
-    const getUserPosts=()=>
+    function getUserPosts()
     {
       postUnsub= firestore()
       .collection('Users')
@@ -103,9 +103,7 @@ function MainNavigator({route, navigation}) {
         try{
           var userClaimedCoupons=documentSnapshot.data().claimedCoupons.map((post, index)=>{
             return(post._documentPath._parts[1])
-            console.log(post,'TESTY')
           })
-          console.log(userClaimedCoupons,'TESTING')
           setClaimedCoupons(userClaimedCoupons)
         }
         catch{
@@ -123,11 +121,6 @@ function MainNavigator({route, navigation}) {
     });
     watchId=Geolocation.watchPosition((position)=>
     {
-      if(postUnsub!=undefined)
-      {
-        postUnsub()
-        postUnsub=null;
-      }
       firestore().collection('Users').doc(user.uid).update({coordinates:new firebase.firestore.GeoPoint(position.coords.latitude, position.coords.longitude)})
       firestore().collection('Users').doc(user.uid).update({'g.geopoint':new firebase.firestore.GeoPoint(position.coords.latitude, position.coords.longitude)})
       setCoordinates({latitude:position.coords.latitude,longitude:position.coords.longitude})
@@ -138,10 +131,8 @@ function MainNavigator({route, navigation}) {
     const mapObjectGrabber=(coordinates)=>
     {
       const postgeocollection = GeoFirestore.collection('Posts');
-      console.log(postgeocollection,'postgeo')
       const postquery = postgeocollection.near({ center: new firebase.firestore.GeoPoint(coordinates.latitude,coordinates.longitude), radius: 1000000 });
       postUnsub=postquery.onSnapshot((dog)=>{
-        console.log(dog.docs,'benten1')
         var jsxPostsMarkers=[]
         var jsxPostMarkersTemp=dog.docs.map((markerInfo,index)=>{
           return {coordinates:{latitude:markerInfo.data().coordinates.latitude,longitude:markerInfo.data().coordinates.longitude},iconUrl:markerInfo.data().iconUrl}})
@@ -151,7 +142,6 @@ function MainNavigator({route, navigation}) {
         setCircleCenters(centerPoints)
         jsxPostsMarkers=jsxPostMarkersTemp
         setNearbyPosts(jsxPostsMarkers)
-        console.log(dog.docs.length,'sdjflsjdkfs')
         if(dog.docs.length==0)
         {
           setCircleCenters([])
@@ -170,32 +160,25 @@ firebaseSDK.getCurrentUserInfo().then((user)=>{setDisplayName(user.displayName);
   setUserInfo(user);
   if(user.PPPathDb!='')
     {
-      console.log(user.PPPathDb)
     setProfilePic(user.PPPathDb)
   }
 });
 }
 useEffect(()=>
 {
-  console.log('ANSKLFLLL',myPosts)
 },[myPosts])
   useEffect(() => {
-    updateSelfLocation()
+    //updateSelfLocation()
     getUserPosts()
     initializeUserInfo()
         return () => {
           console.log('yaypoo')
+          RNDeviceHeading.stop();
           Geolocation.clearWatch(watchId);
-          Geolocation.stopObserving()
           if(postUnsub!=undefined)
           {
             postUnsub()
             postUnsub=null;
-          }
-          if(myPostUnsub!=undefined)
-          {
-            myPostUnsub()
-            myPostUnsub=null;
           }
         }
   }, [])

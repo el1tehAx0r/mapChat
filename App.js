@@ -18,7 +18,6 @@ function App() {
   const query=firestore().collection('Users').doc(user.uid).get().then(
     (querySnapshot)=>
     {
-      console.log(querySnapshot,'BIG')
       if (querySnapshot.data()==undefined)
       {
         console.log(querySnapshot.data())
@@ -36,8 +35,6 @@ function App() {
     //setUser(user);
     if(user!=null)
     {
-
-      console.log(user,'THIS IS USER')
 waitUserInfoUpdated(user)
     }
 else{setUser(user)}

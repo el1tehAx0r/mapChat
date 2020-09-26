@@ -15,8 +15,6 @@ const couponPressed=(couponId)=>
 }
 const renderCoupon=(couponId,message,expirationDate,imageUrl,postViewerInfo,claimedCoupons)=>
 {
-  console.log(message,expirationDate,imageUrl)
-  console.log(postViewerInfo,'psoidjfioj')
   return( <><CouponComponent uid={props.uid} couponId={couponId} message={message} postViewerInfo={postViewerInfo} claimedCoupons={claimedCoupons} expirationDate={expirationDate} imageUrl={imageUrl} onPress={couponPressed}/></>)
 }
 useEffect(()=>
@@ -27,14 +25,11 @@ useEffect(()=>
   {
 
     var couponRefs=await FirebaseSDK.getPost(props.coupons[i])
-    console.log(couponRefs.data())
     theCoupons.push(couponRefs.data())
     var holder=couponRefs.data()
     holder.postId=props.coupons[i]
-    console.log(holder,'hollllderr')
     theCoupons=renderCoupon(props.coupons[i],couponRefs.data().message,couponRefs.data().expirationDate,couponRefs.data().imageUrl, holder,props.coupons)
   }
-  console.log(theCoupons)
   setCoupons(theCoupons)
     }
     fetchCoupons()

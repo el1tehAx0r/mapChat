@@ -74,7 +74,7 @@ const setFinalButtons=()=>
 
 }
 
-useEffect(()=>{console.log(expirationDate);console.log(props.postCreatorInfo,'BRRR')},[])
+useEffect(()=>{},[])
 
 const createPost=()=>
 {

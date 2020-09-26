@@ -60,9 +60,9 @@ function MapPage(props,{navigation}) {
   const [test,setTest]=useState(props.claimedCoupons);
   const [deviceHeading,setDeviceHeading]=useState(1);
   const [editingPost,setEditingPost]=useStateWithCallbackLazy(false)
+  const [watchId,setWatchId]=useState()
   let postUnsub;
   let myPostUnsub;
-  let watchId;
   const updateSelfLocation=()=>
   {
 
@@ -70,7 +70,7 @@ function MapPage(props,{navigation}) {
       setDeviceHeading(degree)
       //   console.log(degree,"degrees rotated")
     });
-    watchId=Geolocation.watchPosition((position)=>
+    var watch=Geolocation.watchPosition((position)=>
     {
       if(postUnsub!=undefined)
       {
@@ -82,6 +82,8 @@ function MapPage(props,{navigation}) {
       setCoordinates({latitude:position.coords.latitude,longitude:position.coords.longitude})
       mapObjectGrabber({latitude:position.coords.latitude,longitude:position.coords.longitude})
     },(err)=>{console.log(err)},{distanceFilter:5, enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 })
+    setWatchId(watch)
+
   }
 const crtPost=(uid,latitude,longitude,message,shopAddress,iconUrl,expirationDate,imageUrl)=>
   {
@@ -146,15 +148,12 @@ const crtPost=(uid,latitude,longitude,message,shopAddress,iconUrl,expirationDate
     const mapObjectGrabber=(coordinates)=>
     {
       const postgeocollection = GeoFirestore.collection('Posts');
-      console.log(postgeocollection,'postgeo')
       const postquery = postgeocollection.near({ center: new firebase.firestore.GeoPoint(coordinates.latitude,coordinates.longitude), radius: 1000000 });
       postUnsub=postquery.onSnapshot((dog)=>{
-        console.log(dog.docs,'benten1')
         var centerPoints=dog.docs.map((markerInfo,index)=>{
           return {latitude:markerInfo.data().coordinates.latitude,longitude:markerInfo.data().coordinates.longitude, id:markerInfo.id,iconUrl:markerInfo.data().iconUrl}
         })
         setCircleCenters(centerPoints)
-        console.log(dog.docs.length,'sdjflsjdkfs')
         if(dog.docs.length==0)
         {
           setCircleCenters([])
@@ -200,10 +199,8 @@ const crtPost=(uid,latitude,longitude,message,shopAddress,iconUrl,expirationDate
 
     const openCreatePostModal=(lat,long)=>
     {
-console.log('lskdjl')
     var postObject={}
     postObject=postCreatorInfo;
-    console.log(postObject)
     setPostCreatorInfo({latitude:lat,longitude:long,expirationDate:null,message:'',op:'',imageUrl:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d',iconUrl:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d'}
 ,()=>{console.log('jk');setPostModalVisible(true)})
       }
@@ -270,29 +267,36 @@ useEffect(()=>
 },[circleCenters])
       useEffect(()=>
     {
-      console.log('AAAAAAAAAAAAAAAAAAAAATHESE ARE CIRCLE CENTERS',props.circleCenters)
     },[props.circleCenters])
 
       useEffect(()=>
     {
-      console.log('AAAAAAAAAAAAAAAAAAAAATHESE ARE CIRCLE CENTERS',props.deviceHeading)
+    },[props.myPosts])
+
+      useEffect(()=>
+    {
     },[props.deviceHeading])
 
       useEffect(()=>
     {
-      console.log('AAAAAAAAAAAAAAAAAAAAATHESE ARE CIRCLE CENTERS',props.coordinates)
     },[props.coordinates])
 
       useEffect(()=>
     {
-      console.log('AAAAAAAAAAAAAAAAAAAAATHESE ARE CIRCLE CENTERS',props.nearbyPosts)
     },[props.nearbyPosts])
+
+      useEffect(()=>
+    {
+      console.log(watchId,'HTHSLDJKL')
+    },[watchId])
 
       useEffect(()=>{
         //getUserPosts();
         updateSelfLocation();
+        console.log(watchId)
         return () => {
           console.log('yaypoo')
+          console.log(watchId,'THIS IS WATCHID')
           Geolocation.clearWatch(watchId);
           Geolocation.stopObserving()
           if(postUnsub!=undefined)
@@ -309,12 +313,10 @@ useEffect(()=>
       },[])
       useEffect(()=>{
         setClaimedCoupons(props.claimedCoupons)
-        console.log(props.claimedCoupons)
       },[props.claimedCoupons])
       useEffect(()=>
     {
       setMyPosts(props.myPosts)
-        console.log(props.myPosts,'HUNDRED MILLI')
     },[props.myPosts])
 
       const onDrag=()=>{
@@ -337,16 +339,13 @@ useEffect(()=>
         }
         const mapViewPressed=(coordinates)=>
         {
-          console.log(props.myPosts,'TEHSE ARE MY POSTS')
-          console.log(circleCenters,"THESE ARE CIRC DNESLS")
+          console.log(myPosts,'tHESE MYPSOIDS')
           for (var i in circleCenters)
           {
             if (getDistanceFromLatLonInm(circleCenters[i].latitude,circleCenters[i].longitude,coordinates.latitude,coordinates.longitude)<7)
             {
               if(myPosts.includes(circleCenters[i].id))
               {
-              console.log(myPosts,'ATHIS IS MY POST')
-              console.log(circleCenters[i].id,'tHIS IS ID')
                 var circleCenterId=circleCenters[i].id
                 firebaseSDK.getPost(circleCenters[i].id).then((postObject)=>{var postObj=postObject.data();postObj.postId=circleCenters[i].id;postObj.isEditing=true; setPostCreatorInfo(postObj, ()=>{setPostModalVisible(true)})})
               }
@@ -375,7 +374,6 @@ useEffect(()=>
           <MapView
           scrollEnabled={true}
           rotateEnabled={true}
-showsUserLocation={true}
           onPress={(e)=>{//mapViewPressed(e.nativeEvent.coordinate);
             console.log(e.nativeEvent)}}
           zoomEnabled={false}
