@@ -196,9 +196,9 @@ const signOut=()=>
     <Tab.Screen
     name="ProfilePage"
     children={()=><ProfilePage  claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid}/>}/>
-    <Tab.Screen
+    {/*<Tab.Screen
     name="Coupon Screen"
-    children={()=><CouponPage claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid}/>}/>
+    children={()=><CouponPage claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid}/>}/>*/}
     </Tab.Navigator>
   );
 }

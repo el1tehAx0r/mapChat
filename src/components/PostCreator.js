@@ -1,7 +1,8 @@
 import React, { useState,useEffect } from 'react';
-import { Text,TextInput,View,Button,TouchableHighlight,Image,KeyboardAvoidingView } from 'react-native';
+import { Text,TextInput,View,Button,TouchableHighlight,Image,KeyboardAvoidingView,TouchableOpacity } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import DatePicker from 'react-native-datepicker'
+import RNDateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/Feather';
 import ImagePicker from 'react-native-image-crop-picker'
 import { Form, TextValidator } from 'react-native-validator-form';
@@ -13,8 +14,41 @@ const [postType,setPostType]=useState('');
   const [shopAddress,setShopAddress]=useState(props.postCreatorInfo.shopAddress);
   const [message,setMessage]=useState(props.postCreatorInfo.message);
   const [iconUrl,setIconUrl]=useState(props.postCreatorInfo.iconUrl);
+  const [expirationDay,setExpirationDay]=useState(null);
   const [expirationDate,setExpirationDate]=useState(props.postCreatorInfo.expirationDate);
+  const [expirationTime,setExpirationTime]=useState(null);
   const [imageUrl,setImageUrl]=useState(props.postCreatorInfo.imageUrl);
+  const [timePicker,setTimePicker]=useState(null)
+useEffect(()=>
+{
+  if(props.postCreatorInfo.expirationDate!=null)
+  {
+    setExpirationDate(props.postCreatorInfo.expirationDate.toDate())
+  }
+},[])
+  useEffect(()=>{
+    console.log(expirationDay,expirationTime,'BAGOLO')
+    if((expirationDay!==null) &&(expirationTime!=null))
+    {
+    setExpirationDate(combineDateAndTime(expirationDay,expirationTime))
+    }
+  },[expirationTime,expirationDay])
+
+
+const combineDateAndTime = function(date, time) {
+    var timeString = time.getHours() + ':' + time.getMinutes() + ':00';
+    date= new Date(date);
+    console.log(date,'kjklsj',time,'THESE')
+    var year = date.getFullYear();
+    var month = date.getMonth() + 1; // Jan is 0, dec is 11
+    var day = date.getDate();
+    var hours=time.getHours();
+    var minutes=time.getMinutes();
+    var combined = new Date(year,month,day,hours,minutes,0,0);
+    console.log(combined,'WKJSDKLJ')
+
+    return combined;
+};
 const cancelPressed=()=>
 {
 props.closePostCreatorModal()
@@ -28,7 +62,18 @@ ImagePicker.openPicker({
   setImageUrl(image.path)
 });
 }
-
+const showTimePicker =()=>
+{
+  setTimePicker(
+        <RNDateTimePicker
+          testID="dateTimePicker"
+          value={new Date()}
+          mode={'time'}
+          is24Hour={true}
+          display="default"
+          onChange={onChange}
+        />)
+}
   const onPressIconUrl= () => {
 ImagePicker.openPicker({
   width:65,
@@ -38,6 +83,7 @@ ImagePicker.openPicker({
   setIconUrl(image.path)
 });
 }
+
 const deletePost=()=>
 {
 firebaseSDK.deletePost(props.uid,props.postCreatorInfo.postId)
@@ -74,7 +120,6 @@ const setFinalButtons=()=>
 
 }
 
-useEffect(()=>{},[])
 
 const createPost=()=>
 {
@@ -98,9 +143,18 @@ const editPost=()=>
       var collectionName='Posts'
       var documentName=postId
       var field='iconUrl'
-      firebaseSDK.addToStorage(remotePath,localPath,collectionName,documentName,field)
+      firebaseSDK.addToStorage(remotePath,localPath,collectionName,documentName,field).then(()=>
+    {
+      cancelPressed()
+    })
 })
 }
+
+  const onChange = (event, selectedTime) => {
+    console.log(selectedTime)
+    setTimePicker(null)
+    setExpirationTime(selectedTime)
+  };
   return (
     <View style={{padding: 10}}>
 <DropDownPicker
@@ -134,11 +188,11 @@ const editPost=()=>
     <View style={{flexDirection:"row"}}>
 
  <DatePicker
-        style={{width: '70%'}}
+        style={{width: '100%'}}
         date={expirationDate}
         mode="date"
-        placeholder={'select expiration date'}
-        format="YYYY-MM-DD"
+        placeholder={'pick expiration date'}
+        format="YYYY-MM-DDTHH:MM:SSZ"
         minDate="2020-05-01"
         confirmBtnText="Confirm"
         cancelBtnText="Cancel"
@@ -150,15 +204,14 @@ const editPost=()=>
             marginLeft: 0
           },
           dateInput: {
+            paddingBottom:10,
             marginLeft: 36,
             height:30
-          }
-          // ... You can check the source to find the other keys.
-        }}
-        onDateChange={(date) => {setExpirationDate(date);}}
+          }}}
+        onDateChange={(date) => {setExpirationDay(date);showTimePicker();}}
       />
+      {timePicker}
       </View>
-
       <TextInput
         style={{ height: 35, borderColor: 'gray', borderWidth: 1 }}
         placeholder="Description"

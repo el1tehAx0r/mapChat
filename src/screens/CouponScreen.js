@@ -26,10 +26,7 @@ const Separator = () => (
 );
 //Geolocation.getCurrentPosition(info => console.log(info));
 function CouponPage(props,{navigation}) {
-  // Set an initializing state whilst Firebase connects
-
-  const [filter1Value,setFilter1Value]=useState([])
-  const [filter2Value,setFilter2Value]=useState([])
+  const [sortFilter,setSortFilter]=useState(null)
   const [myPosts,setMyPosts]=useState([])
   const [claimedCoupons,setClaimedCoupons]=useState([])
   const requestCameraPermission = async () => {
@@ -59,32 +56,6 @@ function CouponPage(props,{navigation}) {
 const onChangeText=(value)=>{
   setDisplayName(value)
 }
-/*const couponGrabber= async ()=>
-{
-             const subscriber = firestore()
-      .collection('Users')
-      .doc(props.uid).onSnapshot(documentSnapshot => {
-        try{
-        var userPosts=documentSnapshot.data().myPosts.map((post, index)=>{
-       return post._document._documentPath._parts[1];
-      })
-setMyCoupons(userPosts)
-    }
-    catch{//log('didntwork')
-  setMyCoupons([])}
-    try{
-        var userClaimedCoupons=documentSnapshot.data().claimedCoupons.map(async (post, index)=>{
-       return post._document._documentPath._parts[1]
-        })
-        setClaimedCoupons(userClaimedCoupons)
-      }
-      catch{
-        setClaimedCoupons([])
-        //console.log('didntwork')
-      }
-
-      });
-}*/
 
   useEffect(() => {
     setClaimedCoupons(props.claimedCoupons)
@@ -103,26 +74,17 @@ const signOut=()=>
     <View style={{flex:1,flexDirection:'column'}}>
          <View style={styles.bottomBorder}>
             <Picker
-        selectedValue={'Distance'}
-        style={{ height: 50, width: 150 }}
-        onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}
+        selectedValue={'Date'}
+        style={{ height: 50, width: '70%' }}
+        onValueChange={(itemValue, itemIndex) => sortFilter(itemValue)}
       >
-        <Picker.Item label="Date" value="Date" />
+        <Picker.Item label="Date (Expire first list first)" value="Date" />
         <Picker.Item label="Distance" value="Distance" />
-      </Picker>
-
-            <Picker
-        selectedValue={'ClaimedCoupons'}
-        style={{ height: 50, width: 200}}
-        onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}
-      >
-        <Picker.Item label="ClaimedCoupons" value="ClaimedCoupons" />
-        <Picker.Item label="MyPosts" value="MyPosts" />
       </Picker>
          </View>
          <Separator/>
         <View style={{flex:5,}}>
-        {<CouponContainerComponent uid={props.uid} coupons={claimedCoupons}/>}
+        {<CouponContainerComponent sortFilter={sortFilter} key={props.uid} uid={props.uid} coupons={claimedCoupons}/>}
         </View>
     </View>
   );

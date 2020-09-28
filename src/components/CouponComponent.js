@@ -12,10 +12,7 @@ const CouponComponent =(props)=>
 const onPress=()=>
 {
   props.onPress(props.couponId)
-  console.log(props.claimedCoupons)
-  console.log(props.postViewerInfo)
   setModalVisible(true)
-  console.log('viewPressed')
 }
 const closePostViewerModal=()=>
 {
@@ -24,7 +21,6 @@ const closePostViewerModal=()=>
 
 useEffect(()=>
 {
-  console.log('QEUNING',props.uid)
 },[])
 return(
 <><Separator/>
@@ -39,7 +35,7 @@ return(
       >
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
-          <PostViewer uid={props.uid} closePostViewerModal={closePostViewerModal}  postViewerInfo={props.postViewerInfo} claimedCoupons={props.claimedCoupons} />
+          <PostViewer uid={props.uid} closePostViewerModal={closePostViewerModal} postViewerInfo={props.postViewerInfo} claimedCoupons={props.claimedCoupons} />
           </View>
         </View>
       </Modal>
@@ -51,13 +47,14 @@ return(
        width: 45,
        height: 30,}}
      resizeMode='cover'
-     source={{uri:props.imageUrl}}
-   />
+     source={{uri:props.imageUrl}} />
+        <Text style={styles.text}>
+        {props.expirationDate.toString()}
+        </Text>
         <Text style={styles.text}>
         {props.message}
         </Text>
         <Text style={styles.text}>
-        {props.expirationDate}
         </Text>
    </View>
    </TouchableOpacity>
@@ -80,7 +77,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
   },
   text: {
-    fontSize: 20,
+    fontSize: 15,
   },
 
 bottomBorder:

@@ -287,18 +287,14 @@ useEffect(()=>
 
       useEffect(()=>
     {
-      console.log(watchId,'HTHSLDJKL')
     },[watchId])
 
       useEffect(()=>{
         //getUserPosts();
         updateSelfLocation();
-        console.log(watchId)
         return () => {
           console.log('yaypoo')
-          console.log(watchId,'THIS IS WATCHID')
           Geolocation.clearWatch(watchId);
-          Geolocation.stopObserving()
           if(postUnsub!=undefined)
           {
             postUnsub()
@@ -370,7 +366,9 @@ useEffect(()=>
           setModalVisible(!modalVisible);
         }
         return (
+
           <View style={styles.container}>
+
           <MapView
           scrollEnabled={true}
           rotateEnabled={true}
@@ -401,11 +399,7 @@ useEffect(()=>
             <Modal
             animationType="slide"
             transparent={true}
-            visible={modalVisible}
-            onRequestClose={() => {
-              Alert.alert("Modal has been closed.");
-            }}
-            >
+            visible={modalVisible}>
             <View style={styles.centeredView}>
             <View style={styles.modalView}>
             <PostViewer uid={props.uid} closePostViewerModal={closePostViewerModal}   postViewerInfo={postViewerInfo} claimedCoupons={claimedCoupons} />
@@ -417,9 +411,6 @@ useEffect(()=>
             animationType="slide"
             transparent={true}
             visible={postModalVisible}
-            onRequestClose={() => {
-              Alert.alert("Modal has been closed.");
-            }}
             >
             <View style={styles.centeredView}>
             <View style={styles.modalView}>

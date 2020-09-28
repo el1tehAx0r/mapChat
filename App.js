@@ -12,6 +12,9 @@ import { createStackNavigator } from '@react-navigation/stack';
 import firebaseSDK from './src/config/FirebaseSDK';
 const Stack=createStackNavigator();
 function App() {
+  if (__DEV__) {
+  console.log = () => {};
+}
   const [initializing, setInitializing] = useState(true);
   const [user, setUser] = useState();
   function waitUserInfoUpdated (user){
@@ -20,11 +23,9 @@ function App() {
     {
       if (querySnapshot.data()==undefined)
       {
-        console.log(querySnapshot.data())
         waitUserInfoUpdated(user)
       }
       else{
-        console.log(querySnapshot.data())
         setUser(user)
     if (initializing) setInitializing(false)
       }

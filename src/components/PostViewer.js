@@ -10,6 +10,7 @@ import firebaseSDK from '../config/FirebaseSDK'
 import styles from '../StyleSheet';
 const PostViewer= (props) => {
   const [claimCouponButton,setClaimedCouponButton]=useState(null)
+  const [expirationDate,setExpirationDate]=useState(null)
 const cancelPressed=()=>
 {
 props.closePostViewerModal()
@@ -43,6 +44,13 @@ const actionButton=()=>
   }
 }
 
+useEffect(()=>
+{
+  if(props.postViewerInfo.expirationDate!=null)
+  {
+    console.log(props.postViewerInfo.expirationDate)
+  }
+},[])
 useEffect(() => {
     setClaimedCouponButton(actionButton())
 }, [props.claimedCoupons])
@@ -74,10 +82,10 @@ useEffect (() => {
     <View style={{flexDirection:"row"}}>
  <DatePicker
         style={{width: '70%'}}
-        date={props.postViewerInfo.expirationDate}
+        date={expirationDate}
         mode="date"
         placeholder="select expiration date"
-        format="YYYY-MM-DD"
+        format="YYYY-MM-DDTHH:MM:SSZ"
         minDate="2020-05-01"
         confirmBtnText="Confirm"
         cancelBtnText="Cancel"

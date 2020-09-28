@@ -11,26 +11,43 @@ const [coupons,setCoupons]=useState([])
 const couponPressed=(couponId)=>
 {
 
-  console.log(couponId)
 }
 const renderCoupon=(couponId,message,expirationDate,imageUrl,postViewerInfo,claimedCoupons)=>
 {
-  return( <><CouponComponent uid={props.uid} couponId={couponId} message={message} postViewerInfo={postViewerInfo} claimedCoupons={claimedCoupons} expirationDate={expirationDate} imageUrl={imageUrl} onPress={couponPressed}/></>)
+  return( <CouponComponent uid={props.uid} key={couponId} couponId={couponId} message={message} postViewerInfo={postViewerInfo} claimedCoupons={claimedCoupons} expirationDate={expirationDate} imageUrl={imageUrl} onPress={couponPressed}/>)
 }
+function compare( a, b ) {
+  if(props.sortFilter=='date')
+  {
+    compareExpirationDate(a,b)
+}
+}
+function compareExpirationDate(a,b)
+{
+  if ( a.expirationDate> b.expirationDate){
+    return -1;
+  }
+  if ( a.expirationDate< b.expirationDate){
+    return 1;
+  }
+  return 0;
+}
+
 useEffect(()=>
 {
-    async function fetchCoupons() {
-      var theCoupons=[]
+ async function fetchCoupons() {
+      var theCouponArrays=[]
   for (var i in props.coupons)
   {
-
     var couponRefs=await FirebaseSDK.getPost(props.coupons[i])
-    theCoupons.push(couponRefs.data())
     var holder=couponRefs.data()
     holder.postId=props.coupons[i]
-    theCoupons=renderCoupon(props.coupons[i],couponRefs.data().message,couponRefs.data().expirationDate,couponRefs.data().imageUrl, holder,props.coupons)
+    theCouponArrays.push({uid:props.coupons[i],message:couponRefs.data().message,expirationDate:couponRefs.data().expirationDate.toDate(),imageUrl:couponRefs.data().imageUrl, postViewerInfo:holder,claimedCoupons:props.coupons})
   }
-  setCoupons(theCoupons)
+  theCouponArrays.sort(compare)
+const theCoupons= theCouponArrays.map(x => renderCoupon(x.uid,x.message,x.expirationDate,x.imageUrl,x.postViewerInfo,x.claimedCoupons));
+    //theCoupons.push(renderCoupon(props.coupons[i],couponRefs.data().message,couponRefs.data().expirationDate,couponRefs.data().imageUrl, holder,props.coupons))
+setCoupons(theCoupons)
     }
     fetchCoupons()
 },[props.coupons])
