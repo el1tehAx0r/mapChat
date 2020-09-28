@@ -26,7 +26,7 @@ const Separator = () => (
 );
 //Geolocation.getCurrentPosition(info => console.log(info));
 function CouponPage(props,{navigation}) {
-  const [sortFilter,setSortFilter]=useState(null)
+  const [sortFilter,setSortFilter]=useState('Date')
   const [myPosts,setMyPosts]=useState([])
   const [claimedCoupons,setClaimedCoupons]=useState([])
   const requestCameraPermission = async () => {

@@ -12,7 +12,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import firebaseSDK from './src/config/FirebaseSDK';
 const Stack=createStackNavigator();
 function App() {
-  if (__DEV__) {
+  if (!__DEV__) {
   console.log = () => {};
 }
   const [initializing, setInitializing] = useState(true);

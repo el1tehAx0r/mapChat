@@ -130,6 +130,7 @@ android {
     }
 
     defaultConfig {
+	missingDimensionStrategy 'react-native-camera', 'general' // <--- insert this line
         applicationId "com.gaialive"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion

@@ -39,6 +39,7 @@ function MainNavigator({route, navigation}) {
   const [myPosts,setMyPosts]=useState([])
   const [circleCenters,setCircleCenters]=useState([])
   const [nearbyPosts,setNearbyPosts]=useState([])
+  const [activatedCoupons,setActivatedCoupons]=useState([])
   const [deviceHeading,setDeviceHeading]=useState(1);
   let postUnsub;
   let watchId;
@@ -105,6 +106,16 @@ function MainNavigator({route, navigation}) {
             return(post._documentPath._parts[1])
           })
           setClaimedCoupons(userClaimedCoupons)
+        }
+        catch{
+          console.log('didntwork')
+        }
+
+        try{
+          var userActivatedCoupons=documentSnapshot.data().activatedCoupons.map((post, index)=>{
+            return(post._documentPath._parts[1])
+          })
+          setActivatedCoupons(userActivatedCoupons)
         }
         catch{
           console.log('didntwork')
@@ -196,9 +207,9 @@ const signOut=()=>
     <Tab.Screen
     name="ProfilePage"
     children={()=><ProfilePage  claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid}/>}/>
-    {/*<Tab.Screen
+    <Tab.Screen
     name="Coupon Screen"
-    children={()=><CouponPage claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid}/>}/>*/}
+    children={()=><CouponPage claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid}/>}/>
     </Tab.Navigator>
   );
 }

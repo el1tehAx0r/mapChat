@@ -11,8 +11,7 @@ export default function PostMarker(props) {
   },[props.iconUrl])
   return (
 <><Circle tracksViewChanges={false} center={props.coordinate} radius={7}/>
-{/*<Marker
-tracksViewChanges={false}
+<Marker
 onPress={(coordinates)=>{props.mapViewPressed(props.coordinate)}}
 anchor={{x:0.50,y:0.48}}
   coordinate={props.coordinate}>
@@ -29,7 +28,7 @@ anchor={{x:0.50,y:0.48}}
      resizeMode='cover'
      source={{uri:props.iconUrl
      }}/>
-     </Marker>*/}
+     </Marker>
 </>
   );
 }

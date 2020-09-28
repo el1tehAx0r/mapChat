@@ -61,12 +61,13 @@ function MapPage(props,{navigation}) {
   const [deviceHeading,setDeviceHeading]=useState(1);
   const [editingPost,setEditingPost]=useStateWithCallbackLazy(false)
   const [watchId,setWatchId]=useState()
+ const mapRef = useRef(null);
   let postUnsub;
   let myPostUnsub;
   const updateSelfLocation=()=>
   {
 
-    RNDeviceHeading.start(20, degree => {
+    RNDeviceHeading.start(10, degree => {
       setDeviceHeading(degree)
       //   console.log(degree,"degrees rotated")
     });
@@ -252,6 +253,22 @@ console.log('zzz')
           console.warn(err);
         }
       };
+
+useEffect(()=>
+{
+  mapRef.current.animateCamera(
+    {
+              center: {
+                latitude: coordinates.latitude,
+                longitude: coordinates.longitude,
+              },
+              altitude:1,
+              pitch: 1,
+              heading: deviceHeading,
+              zoom:19
+            }
+  )
+},[coordinates,deviceHeading])
 useEffect(()=>
 {
         var jsxPostsMarkers=[]
@@ -370,7 +387,9 @@ useEffect(()=>
           <View style={styles.container}>
 
           <MapView
+           ref={mapRef}
           scrollEnabled={true}
+          loadingEnabled
           rotateEnabled={true}
           onPress={(e)=>{//mapViewPressed(e.nativeEvent.coordinate);
             console.log(e.nativeEvent)}}
@@ -379,17 +398,6 @@ useEffect(()=>
             {
               console.log('longpress')
               createPost(e.nativeEvent)
-            }}
-            camera = {{
-              center: {
-                latitude: coordinates.latitude,
-                longitude: coordinates.longitude,
-              },
-              altitude:1,
-              pitch: 1,
-              heading: deviceHeading,
-
-              zoom:19
             }}
             provider={PROVIDER_GOOGLE} // remove if not using Google Maps
             style={styles.container}

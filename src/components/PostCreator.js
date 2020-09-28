@@ -54,7 +54,7 @@ const cancelPressed=()=>
 props.closePostCreatorModal()
 }
   const onPressImageUrl = () => {
-ImagePicker.openPicker({
+ImagePicker.openCamera({
   width: 300,
   height: 200,
   cropping: true
