@@ -84,7 +84,7 @@ const signOut=()=>
          </View>
          <Separator/>
         <View style={{flex:5,}}>
-        {<CouponContainerComponent sortFilter={sortFilter} key={props.uid} uid={props.uid} coupons={claimedCoupons}/>}
+        {<CouponContainerComponent activatedCoupons={props.activatedCoupons} sortFilter={sortFilter} key={props.uid} uid={props.uid} coupons={claimedCoupons}/>}
         </View>
     </View>
   );

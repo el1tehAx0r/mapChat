@@ -113,7 +113,7 @@ function MainNavigator({route, navigation}) {
 
         try{
           var userActivatedCoupons=documentSnapshot.data().activatedCoupons.map((post, index)=>{
-            return(post._documentPath._parts[1])
+          return {postId:post.couponId,timeStamp:post.timeStamp}
           })
           setActivatedCoupons(userActivatedCoupons)
         }
@@ -177,7 +177,8 @@ firebaseSDK.getCurrentUserInfo().then((user)=>{setDisplayName(user.displayName);
 }
 useEffect(()=>
 {
-},[myPosts])
+  console.log(activatedCoupons)
+},[activatedCoupons])
   useEffect(() => {
     //updateSelfLocation()
     getUserPosts()
@@ -203,13 +204,13 @@ const signOut=()=>
 <Tab.Navigator swipeEnabled={false}>
     <Tab.Screen
     name="Map"
-       children={()=><MapPage circleCenters={circleCenters} claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid} />}/>
+       children={()=><MapPage  activatedCoupons={activatedCoupons} circleCenters={circleCenters} claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid} />}/>
     <Tab.Screen
     name="ProfilePage"
     children={()=><ProfilePage  claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid}/>}/>
     <Tab.Screen
     name="Coupon Screen"
-    children={()=><CouponPage claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid}/>}/>
+    children={()=><CouponPage  activatedCoupons={activatedCoupons} claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid}/>}/>
     </Tab.Navigator>
   );
 }

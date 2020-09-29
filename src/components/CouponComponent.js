@@ -35,7 +35,7 @@ return(
       >
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
-          <PostViewer uid={props.uid} closePostViewerModal={closePostViewerModal} postViewerInfo={props.postViewerInfo} claimedCoupons={props.claimedCoupons} />
+          <PostViewer activatedCoupons={props.activatedCoupons} uid={props.uid} closePostViewerModal={closePostViewerModal} postViewerInfo={props.postViewerInfo} claimedCoupons={props.claimedCoupons} />
           </View>
         </View>
       </Modal>

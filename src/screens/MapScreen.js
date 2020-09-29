@@ -403,6 +403,9 @@ useEffect(()=>
             style={styles.container}
             >
             {nearbyPosts}
+             <Marker.Animated
+    coordinate={coordinates}
+  />
             </MapView>
             <Modal
             animationType="slide"
@@ -410,7 +413,7 @@ useEffect(()=>
             visible={modalVisible}>
             <View style={styles.centeredView}>
             <View style={styles.modalView}>
-            <PostViewer uid={props.uid} closePostViewerModal={closePostViewerModal}   postViewerInfo={postViewerInfo} claimedCoupons={claimedCoupons} />
+            <PostViewer uid={props.uid} activatedCoupons={props.activatedCoupons} closePostViewerModal={closePostViewerModal}   postViewerInfo={postViewerInfo} claimedCoupons={claimedCoupons} />
             </View>
             </View>
             </Modal>

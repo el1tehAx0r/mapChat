@@ -14,12 +14,13 @@ const couponPressed=(couponId)=>
 }
 const renderCoupon=(couponId,message,expirationDate,imageUrl,postViewerInfo,claimedCoupons)=>
 {
-  return( <CouponComponent uid={props.uid} key={couponId} couponId={couponId} message={message} postViewerInfo={postViewerInfo} claimedCoupons={claimedCoupons} expirationDate={expirationDate} imageUrl={imageUrl} onPress={couponPressed}/>)
+  return( <CouponComponent activatedCoupons={props.activatedCoupons} uid={props.uid} key={couponId} couponId={couponId} message={message} postViewerInfo={postViewerInfo} claimedCoupons={claimedCoupons} expirationDate={expirationDate} imageUrl={imageUrl} onPress={couponPressed}/>)
 }
 function compare( a, b ) {
-  if(props.sortFilter=='date')
+  console.log(props.sortFilter)
+  if(props.sortFilter=='Date')
   {
-    compareExpirationDate(a,b)
+    return compareExpirationDate(a,b)
 }
 }
 function compareExpirationDate(a,b)

@@ -4,12 +4,14 @@ import DropDownPicker from 'react-native-dropdown-picker';
 import DatePicker from 'react-native-datepicker'
 import Icon from 'react-native-vector-icons/Feather';
 import ImagePicker from 'react-native-image-crop-picker'
+import CountDown from 'react-native-countdown-component';
 import { Form, TextValidator } from 'react-native-validator-form';
 
 import firebaseSDK from '../config/FirebaseSDK'
 import styles from '../StyleSheet';
 const PostViewer= (props) => {
   const [claimCouponButton,setClaimedCouponButton]=useState(null)
+  const [countDownTimer,setCountDownTimer]=useState(null)
   const [expirationDate,setExpirationDate]=useState(null)
 const cancelPressed=()=>
 {
@@ -20,7 +22,16 @@ const claimCoupon=()=>
 {
   firebaseSDK.claimCoupon(props.uid,props.postViewerInfo.postId)
 }
-
+const activateButtonPressed=()=>{
+var timeStamp=new Date()
+console.log(timeStamp)
+firebaseSDK.activateCoupon(props.uid,props.postViewerInfo.postId,timeStamp)
+    setCountDownTimer(
+      <CountDown
+        until={300}
+        onFinish={() =>setCountDownTimer(<Text>CouponBeenCLaimed</Text>)}
+        size={20}/>)
+}
 const unclaimCoupon=()=>
 {
   console.log(props.uid,props.postViewerInfo.postId)
@@ -43,22 +54,82 @@ const actionButton=()=>
             </TouchableHighlight>)
   }
 }
+const findByKey=(item,objectList,key)=>
+{
+for (var i in objectList)
+{
+    if (item==objectList[i][key])
+    {
+      return i
+    }
+    else{
+      continue
+    }
+}
+return -1;
+    }
 
 useEffect(()=>
 {
-  if(props.postViewerInfo.expirationDate!=null)
+  var itemIndex=findByKey(props.postViewerInfo.postId, props.activatedCoupons,'postId')
+  console.log(itemIndex)
+  if(itemIndex!=-1)
   {
-    console.log(props.postViewerInfo.expirationDate)
+var activatedTime=props.activatedCoupons[itemIndex].timeStamp.toDate()
+    var currentTime= new Date()
+    var antiTimeLeft=currentTime-activatedTime
+    var timeLeft=300-antiTimeLeft/1000
+    if (timeLeft<=0)
+    {
+      setCountDownTimer(<Text>You have used this coupon already come again</Text>)
+    }
+    else{
+    setCountDownTimer(
+      <CountDown
+        until={timeLeft}
+        onFinish={() => setCountDownTimer(<Text>CouponBeenCLaimed</Text>)}
+        size={20}/>)
+    }
+  }
+    else{
+  setCountDownTimer(
+            <TouchableHighlight
+              style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
+              onPress={activateButtonPressed}>
+              <Text style={styles.textStyle}>3 minute activation do not click till at the store and ready to redeem</Text>
+            </TouchableHighlight>
+
+          )
   }
 },[])
+
+useEffect(() => {
+  var itemIndex=findByKey(props.postViewerInfo.postId, props.activatedCoupons)
+  if(itemIndex!=-1)
+  {
+    var activatedTime=props.acitvatedCoupons[itemIndex][props.postViewerInfo.postId].toDate()
+    var currentTime= new Date()
+    var antiTimeLeft=activatedTime-currentTime
+    var timeLeft=300-antiTimeLeft
+    if (timeLeft<=0)
+    {
+      console.log('game over')
+    }
+    else{
+    setCountDownTimer(
+      <CountDown
+        until={timeLeft}
+        onFinish={() => setCountDownTimer(<Text>CouponBeenCLaimed</Text>)}
+        size={20}/>)
+    }
+  }
+}, [props.activatedCoupons])
 useEffect(() => {
     setClaimedCouponButton(actionButton())
 }, [props.claimedCoupons])
-
 const isFirstRun = useRef(true);
 useEffect (() => {
     if (isFirstRun.current) {
-      console.log(props.uid,'SEEING')
         isFirstRun.current = false;
         return;
     }
@@ -119,6 +190,8 @@ useEffect (() => {
             </TouchableHighlight>
 {claimCouponButton}
 </View>
+
+{countDownTimer}
     </View>
   );
 }

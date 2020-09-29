@@ -274,6 +274,15 @@ createUserHardCode=async(phone_number,email,username,password)=>{
                     usersClaimed:firebase.firestore.FieldValue.arrayUnion(docRefUser),
                   })
                 }
+
+                activateCoupon=async(uid,couponId,timeStamp)=>
+                {
+                  var docRefUser = await firestore().collection('User').doc(uid);
+                  firestore().collection('Users').doc(uid).update({
+
+                    activatedCoupons:firebase.firestore.FieldValue.arrayUnion({couponId:couponId,timeStamp:timeStamp}),
+                  })
+                }
                 getCreatedCoupons=async(uid,couponIds)=>
                 {
                   var coupons=[]
