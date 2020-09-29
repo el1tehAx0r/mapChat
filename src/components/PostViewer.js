@@ -21,6 +21,7 @@ props.closePostViewerModal()
 const claimCoupon=()=>
 {
   firebaseSDK.claimCoupon(props.uid,props.postViewerInfo.postId)
+  cancelPressed()
 }
 const activateButtonPressed=()=>{
 var timeStamp=new Date()
@@ -73,6 +74,9 @@ useEffect(()=>
 {
   var itemIndex=findByKey(props.postViewerInfo.postId, props.activatedCoupons,'postId')
   console.log(itemIndex)
+var claimed=  props.claimedCoupons.includes(props.postViewerInfo.postId)
+console.log(claimed)
+if(claimed){
   if(itemIndex!=-1)
   {
 var activatedTime=props.activatedCoupons[itemIndex].timeStamp.toDate()
@@ -81,7 +85,7 @@ var activatedTime=props.activatedCoupons[itemIndex].timeStamp.toDate()
     var timeLeft=300-antiTimeLeft/1000
     if (timeLeft<=0)
     {
-      setCountDownTimer(<Text>You have used this coupon already come again</Text>)
+      setCountDownTimer(<Text>You have used this coupon unclaim to remove from you coupons</Text>)
     }
     else{
     setCountDownTimer(
@@ -101,11 +105,12 @@ var activatedTime=props.activatedCoupons[itemIndex].timeStamp.toDate()
 
           )
   }
+}
 },[])
 
 useEffect(() => {
   var itemIndex=findByKey(props.postViewerInfo.postId, props.activatedCoupons)
-  if(itemIndex!=-1)
+  if(itemIndex!=-1&&claimed)
   {
     var activatedTime=props.acitvatedCoupons[itemIndex][props.postViewerInfo.postId].toDate()
     var currentTime= new Date()
