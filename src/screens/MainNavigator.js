@@ -2,17 +2,9 @@ import React, { useState, useEffect } from 'react';
 import {Button, TouchableHighlight, View,Image, Text,TextInput,StyleSheet } from 'react-native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import auth from '@react-native-firebase/auth';
-import {DisplayName }from '../components/DisplayName.js'
-import ChatScreen from './ChatScreen.js'
- import PhotoUpload from 'react-native-photo-upload'
- import ImagePicker from 'react-native-image-crop-picker';
- import PP from '../components/ProfilePic.js'
- import {GetUserInfo} from '../components/UserInfo.js'
  import MapPage from './MapScreen.js';
  import ProfilePage from './ProfileScreen';
  import CouponPage from './CouponScreen';
- import TabBar from "@mindinventory/react-native-tab-bar-interaction";
- import storage from '@react-native-firebase/storage';
  import firestore from '@react-native-firebase/firestore';
  import firebase from '@react-native-firebase/app';
  import firebaseSDK from '../config/FirebaseSDK';
@@ -20,23 +12,14 @@ import RNDeviceHeading from 'react-native-device-heading'
 import Geolocation from '@react-native-community/geolocation';
 import * as geofirestore from 'geofirestore';
 const GeoFirestore=geofirestore.initializeApp(firestore());
- import {
-  TextField,
-  FilledTextField,
-  OutlinedTextField2,
-} from 'react-native-material-textfield';
 const Tab = createMaterialTopTabNavigator();
 function MainNavigator({route, navigation}) {
   const {user}=route.params;
-  const [profilePic,setProfilePic]=useState('https://www.sparklabs.com/forum/styles/comboot/theme/images/default_avatar.jpg');
-  const [profilePicWidth,setProfilePicWidth]=useState(150);
-  const [profilePicHeight,setProfilePicHeight]=useState(150);
   const [userInfo,setUserInfo]=useState({})
   const [claimedCoupons,setClaimedCoupons]=useState([])
   const [coordinates,setCoordinates]=useState({latitude:5,longitude:5})
   const [myPosts,setMyPosts]=useState([])
   const [circleCenters,setCircleCenters]=useState([])
-  const [nearbyPosts,setNearbyPosts]=useState([])
   const [activatedCoupons,setActivatedCoupons]=useState([])
   const [deviceHeading,setDeviceHeading]=useState(1);
   const [watchId,setWatchId]=useState(null)
@@ -148,12 +131,6 @@ firebaseSDK.getCurrentUserInfo().then((user)=>{setUserInfo(user);
           }
         }
   }, [])
-const signOut=()=>
-{
-  auth()
-  .signOut()
-  .then(() => console.log('User signed out!'));
-}
   return (
 <Tab.Navigator swipeEnabled={false}>
     <Tab.Screen
@@ -168,5 +145,4 @@ const signOut=()=>
     </Tab.Navigator>
   );
 }
-
 export default MainNavigator;

@@ -8,13 +8,13 @@ import CountDown from 'react-native-countdown-component';
 import { Form, TextValidator } from 'react-native-validator-form';
 import firebaseSDK from '../config/FirebaseSDK'
 import styles from '../StyleSheet';
-const HomeViewer= (props) => {
+import { Col, Row, Grid } from "react-native-easy-grid";
+const SingleCell= (props) => {
+  onPress=()=>
+  {
+
+  }
   return (
-<Grid>
-    <Col>sdfjsk</Col>
-    <Col>sldjfslj</Col>
-    <Col></Col>
-</Grid>
   );
 }
-export default HomeViewer;
+export default SingleCell;

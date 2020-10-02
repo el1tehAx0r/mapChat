@@ -10,10 +10,12 @@ import ChatScreen from './ChatScreen.js'
  import MapPage from './MapScreen.js';
  import TabBar from "@mindinventory/react-native-tab-bar-interaction";
  import CouponContainerComponent from '../components/CouponContainerComponent';
+ import HomeCreator from '../components/HomeCreator';
  import storage from '@react-native-firebase/storage';
  import firestore from '@react-native-firebase/firestore';
  import firebase from '@react-native-firebase/app';
  import firebaseSDK from '../config/FirebaseSDK';
+ import { Col, Row, Grid } from "react-native-easy-grid";
  import {
   TextField,
   FilledTextField,
@@ -142,7 +144,8 @@ const signOut=()=>
         </View>
          </View>
          <Separator/>
-        <View style={{flex:5,}}>
+        <View style={{flex:5}}>
+        <HomeCreator/>
         </View>
 
 
