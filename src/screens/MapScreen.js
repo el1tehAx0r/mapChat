@@ -63,29 +63,59 @@ function MapPage(props,{navigation}) {
   const [watchId,setWatchId]=useState()
  const mapRef = useRef(null);
   let postUnsub;
-  let myPostUnsub;
-  const updateSelfLocation=()=>
-  {
+  let postUnsub2;
 
-    RNDeviceHeading.start(10, degree => {
-      setDeviceHeading(degree)
-      //   console.log(degree,"degrees rotated")
-    });
-    var watch=Geolocation.watchPosition((position)=>
+useEffect(()=>
+{
+  mapRef.current.animateCamera(
     {
-      if(postUnsub!=undefined)
-      {
-        postUnsub()
-        postUnsub=null;
-      }
-      firestore().collection('Users').doc(props.uid).update({coordinates:new firebase.firestore.GeoPoint(position.coords.latitude, position.coords.longitude)})
-      firestore().collection('Users').doc(props.uid).update({'g.geopoint':new firebase.firestore.GeoPoint(position.coords.latitude, position.coords.longitude)})
-      setCoordinates({latitude:position.coords.latitude,longitude:position.coords.longitude})
-      mapObjectGrabber({latitude:position.coords.latitude,longitude:position.coords.longitude})
-    },(err)=>{console.log(err)},{distanceFilter:5, enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 })
-    setWatchId(watch)
+              center: {
+                latitude: props.coordinates.latitude,
+                longitude: props.coordinates.longitude,
+              },
+              altitude:1,
+              pitch: 1,
+              heading: props.deviceHeading,
+              zoom:19
+            }
+  )
+},[props.coordinates,props.deviceHeading])
+useEffect(()=>
+{
+        var jsxPostsMarkers=[]
+        var jsxPostMarkersTemp=circleCenters.map((markerInfo,index)=>{
+          return <PostMarker mapViewPressed={mapViewPressed} key={index} iconUrl={markerInfo.iconUrl} coordinate={{latitude:markerInfo.latitude,longitude:markerInfo.longitude}}/>
+        })
+        jsxPostsMarkers=jsxPostMarkersTemp
+        setNearbyPosts(jsxPostsMarkers)
+        if(circleCenters.length==0)
+        {
+          setNearbyPosts([])
+        }
+},[circleCenters])
+      useEffect(()=>
+    {
+      setCircleCenters(props.circleCenters)
+    },[props.circleCenters])
+      useEffect(()=>
+    {
+      setDeviceHeading(props.deviceHeading)
+    },[props.deviceHeading])
 
-  }
+      useEffect(()=>
+    {
+      setCoordinates(props.coordinates)
+    },[props.coordinates])
+
+
+      useEffect(()=>{
+        setClaimedCoupons(props.claimedCoupons)
+      },[props.claimedCoupons])
+      useEffect(()=>
+    {
+      setMyPosts(props.myPosts)
+    },[props.myPosts])
+
 const crtPost=(uid,latitude,longitude,message,shopAddress,iconUrl,expirationDate,imageUrl)=>
   {
     firebaseSDK.createPost(uid,latitude,longitude,message,shopAddress,iconUrl,expirationDate,imageUrl).then((post)=>{
@@ -103,63 +133,6 @@ const crtPost=(uid,latitude,longitude,message,shopAddress,iconUrl,expirationDate
       var field='iconUrl'
       firebaseSDK.addToStorage(remotePath,localPath,collectionName,documentName,field)
       closePostCreatorModal()})
-    }
-/* const editPost=(uid,postId,message,shopAddress,iconUrl,expirationDate,imageUrl)=>
-  {
-  firebaseSDK.editPost(props.postCreatorInfo.postId,message,shopAddress,iconUrl,expirationDate,imageUrl)
-    firebaseSDK.createPost(uid,latitude,longitude,message,shopAddress,iconUrl,expirationDate,imageUrl).then((post)=>{
-      var postId=post._document._documentPath._parts[1]
-      var remotePath='couponPic/'+postId
-      var localPath=imageUrl.toString()
-      var collectionName='Posts'
-      var documentName=postId
-      var field='imageUrl'
-      firebaseSDK.addToStorage(remotePath,localPath,collectionName,documentName,field)
-      var remotePath='iconUrl/'+postId
-      var localPath=iconUrl.toString()
-      var collectionName='Posts'
-      var documentName=postId
-      var field='iconUrl'
-      firebaseSDK.addToStorage(remotePath,localPath,collectionName,documentName,field)
-      closePostCreatorModal()})
-    }*/
-    const getUserPosts=()=>
-    {
-      myPostUnsub= firestore()
-      .collection('Users')
-      .doc(props.uid).onSnapshot(documentSnapshot => {
-        try{
-          var userPosts=documentSnapshot.data().myPosts.map((post, index)=>{
-            return post._documentPath._parts[1]
-          })
-          setMyPosts(userPosts)
-        }
-        catch{}
-        try{
-          var userClaimedCoupons=documentSnapshot.data().claimedCoupons.map((post, index)=>{
-            return(post._documentPath._parts[1])
-          })
-          setClaimedCoupons(userClaimedCoupons)
-        }
-        catch{
-          console.log('didntwork')
-        }
-      });
-    }
-    const mapObjectGrabber=(coordinates)=>
-    {
-      const postgeocollection = GeoFirestore.collection('Posts');
-      const postquery = postgeocollection.near({ center: new firebase.firestore.GeoPoint(coordinates.latitude,coordinates.longitude), radius: 1000000 });
-      postUnsub=postquery.onSnapshot((dog)=>{
-        var centerPoints=dog.docs.map((markerInfo,index)=>{
-          return {latitude:markerInfo.data().coordinates.latitude,longitude:markerInfo.data().coordinates.longitude, id:markerInfo.id,iconUrl:markerInfo.data().iconUrl}
-        })
-        setCircleCenters(centerPoints)
-        if(dog.docs.length==0)
-        {
-          setCircleCenters([])
-        }
-      })
     }
     // Set an initializing state whilst Firebase connects
     function getDistanceFromLatLonInm(lat1, lon1, lat2, lon2) {
@@ -230,112 +203,6 @@ console.log('zzz')
 
       }
 
-      const requestLocationPermission= async () => {
-        try {
-          const granted = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-            {
-              title: "Cool Photo App Camera Permission",
-              message:
-              "Cool Photo App needs access to your camera " +
-              "so you can take awesome pictures.",
-              buttonNeutral: "Ask Me Later",
-              buttonNegative: "Cancel",
-              buttonPositive: "OK"
-            }
-          );
-          if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-            console.log("You can use the camera");
-          } else {
-            console.log("Camera permission denied");
-          }
-        } catch (err) {
-          console.warn(err);
-        }
-      };
-
-useEffect(()=>
-{
-  console.log('THESE ARE COORDINATES',coordinates)
-  mapRef.current.animateCamera(
-    {
-              center: {
-                latitude: coordinates.latitude,
-                longitude: coordinates.longitude,
-              },
-              altitude:1,
-              pitch: 1,
-              heading: deviceHeading,
-              zoom:19
-            }
-  )
-},[coordinates,deviceHeading])
-useEffect(()=>
-{
-        var jsxPostsMarkers=[]
-        var jsxPostMarkersTemp=circleCenters.map((markerInfo,index)=>{
-          return <PostMarker mapViewPressed={mapViewPressed} key={index} iconUrl={markerInfo.iconUrl} coordinate={{latitude:markerInfo.latitude,longitude:markerInfo.longitude}}/>
-        })
-        jsxPostsMarkers=jsxPostMarkersTemp
-        setNearbyPosts(jsxPostsMarkers)
-        if(circleCenters.length==0)
-        {
-          setNearbyPosts([])
-        }
-},[circleCenters])
-      useEffect(()=>
-    {
-    },[props.circleCenters])
-
-      useEffect(()=>
-    {
-    },[props.myPosts])
-
-      useEffect(()=>
-    {
-    },[props.deviceHeading])
-
-      useEffect(()=>
-    {
-    },[props.coordinates])
-
-      useEffect(()=>
-    {
-    },[props.nearbyPosts])
-
-      useEffect(()=>
-    {
-    },[watchId])
-
-      useEffect(()=>{
-        //getUserPosts();
-        updateSelfLocation();
-        return () => {
-          console.log('yaypoo')
-          Geolocation.clearWatch(watchId);
-          if(postUnsub!=undefined)
-          {
-            postUnsub()
-            postUnsub=null;
-          }
-          if(myPostUnsub!=undefined)
-          {
-            myPostUnsub()
-            myPostUnsub=null;
-          }
-        }
-      },[])
-      useEffect(()=>{
-        setClaimedCoupons(props.claimedCoupons)
-      },[props.claimedCoupons])
-      useEffect(()=>
-    {
-      setMyPosts(props.myPosts)
-    },[props.myPosts])
-
-      const onDrag=()=>{
-        console.log('fuck')
-      }
       function _renderItem({item,index}){
         return (
           <View style={{

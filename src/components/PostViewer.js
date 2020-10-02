@@ -73,6 +73,7 @@ return -1;
 
 useEffect(()=>
 {
+  console.log('RRRRR')
   console.log(props.postViewerInfo.expirationDate.toDate().toString())
   var itemIndex=findByKey(props.postViewerInfo.postId, props.activatedCoupons,'postId')
   console.log(itemIndex)
