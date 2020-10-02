@@ -256,6 +256,7 @@ console.log('zzz')
 
 useEffect(()=>
 {
+  console.log('THESE ARE COORDINATES',coordinates)
   mapRef.current.animateCamera(
     {
               center: {
