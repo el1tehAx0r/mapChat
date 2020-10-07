@@ -5,6 +5,7 @@ import auth from '@react-native-firebase/auth';
  import MapPage from './MapScreen.js';
  import ProfilePage from './ProfileScreen';
  import CouponPage from './CouponScreen';
+ import CouponManager from './CouponManagerScreen';
  import firestore from '@react-native-firebase/firestore';
  import firebase from '@react-native-firebase/app';
  import firebaseSDK from '../config/FirebaseSDK';
@@ -19,6 +20,7 @@ function MainNavigator({route, navigation}) {
   const [claimedCoupons,setClaimedCoupons]=useState([])
   const [coordinates,setCoordinates]=useState({latitude:5,longitude:5})
   const [myPosts,setMyPosts]=useState([])
+  const [myHome,setMyHome]=useState({})
   const [circleCenters,setCircleCenters]=useState([])
   const [activatedCoupons,setActivatedCoupons]=useState([])
   const [deviceHeading,setDeviceHeading]=useState(1);
@@ -70,6 +72,7 @@ function MainNavigator({route, navigation}) {
     }
     function getUserPosts()
     {
+
       postUnsub= firestore()
       .collection('Users')
       .doc(user.uid).onSnapshot(documentSnapshot => {
@@ -91,6 +94,13 @@ function MainNavigator({route, navigation}) {
         }
 
         try{
+          setMyHome(documentSnapshot.data().storeGallery)
+        }
+        catch{
+          console.log('didntwork')
+        }
+
+        try{
           var userActivatedCoupons=documentSnapshot.data().activatedCoupons.map((post, index)=>{
           return {postId:post.couponId,timeStamp:post.timeStamp}
           })
@@ -99,16 +109,20 @@ function MainNavigator({route, navigation}) {
         catch{
           console.log('didntwork')
         }
-
+        try{
+          var userClaimedCoupons=documentSnapshot.data().claimedCoupons.map((post, index)=>{
+            return(post._documentPath._parts[1])
+          })
+          setClaimedCoupons(userClaimedCoupons)
+        }
+        catch{
+          console.log('didntwork')
+        }
       });
     }
 const initializeUserInfo=()=>
 {
 firebaseSDK.getCurrentUserInfo().then((user)=>{setUserInfo(user);
-  if(user.PPPathDb!='')
-    {
-    setProfilePic(user.PPPathDb)
-  }
 });
 }
   useEffect(() => {
@@ -138,10 +152,10 @@ firebaseSDK.getCurrentUserInfo().then((user)=>{setUserInfo(user);
        children={()=><MapPage deviceHeading={deviceHeading} coordinates={coordinates} activatedCoupons={activatedCoupons} circleCenters={circleCenters} claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid} />}/>
     <Tab.Screen
     name="ProfilePage"
-    children={()=><ProfilePage  claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid}/>}/>
+    children={()=><ProfilePage myHome={myHome} claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid}/>}/>
     <Tab.Screen
     name="Coupon Screen"
-    children={()=><CouponPage  activatedCoupons={activatedCoupons} claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid}/>}/>
+    children={()=><CouponManager  activatedCoupons={activatedCoupons} claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid}/>}/>
     </Tab.Navigator>
   );
 }

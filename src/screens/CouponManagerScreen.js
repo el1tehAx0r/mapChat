@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import {Button, TouchableHighlight, View,Image, Modal, Text,TextInput,StyleSheet,ScrollView } from 'react-native';
+import {Button, TouchableHighlight, View,Image, Modal, Text,TextInput,StyleSheet,Picker } from 'react-native';
+import ModalContainer from '../components/ModalContainer'
+import CouponCreator from '../components/CouponCreator'
 import auth from '@react-native-firebase/auth';
 import {DisplayName }from '../components/DisplayName.js'
 import ChatScreen from './ChatScreen.js'
@@ -10,13 +12,10 @@ import ChatScreen from './ChatScreen.js'
  import MapPage from './MapScreen.js';
  import TabBar from "@mindinventory/react-native-tab-bar-interaction";
  import CouponContainerComponent from '../components/CouponContainerComponent';
- import HomeCreator from '../components/HomeCreator';
  import storage from '@react-native-firebase/storage';
  import firestore from '@react-native-firebase/firestore';
  import firebase from '@react-native-firebase/app';
  import firebaseSDK from '../config/FirebaseSDK';
- import { Col, Row, Grid } from "react-native-easy-grid";
- import SingleCell from '../components/SingleCell'
  import {
   TextField,
   FilledTextField,
@@ -28,16 +27,11 @@ const Separator = () => (
   <View style={styles.separator} />
 );
 //Geolocation.getCurrentPosition(info => console.log(info));
-function ProfilePage(props,{navigation}) {
-  // Set an initializing state whilst Firebase connects
-  const [displayName,setDisplayName]=useState('userName');
-  const [profilePic,setProfilePic]=useState('https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d');
-  const [profilePicWidth,setProfilePicWidth]=useState(150);
-  const [albumGrid,setAlbumGrid]=useState([]);
-  const [profilePicHeight,setProfilePicHeight]=useState(150);
-  const [userInfo,setUserInfo]=useState({})
+function CouponManager(props,{navigation}) {
+  const [sortFilter,setSortFilter]=useState('Date')
+  const [postCreatorInfo,setPostCreatorInfo]=useState({expirationDate:null,message:'',op:'',imageUrl:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d',iconUrl:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d'});
+  const [postModalVisible,setPostModalVisible]=useState(false)
   const [myPosts,setMyPosts]=useState([])
-  const [change,setChange]=useState(false)
   const [claimedCoupons,setClaimedCoupons]=useState([])
   const requestCameraPermission = async () => {
   try {
@@ -62,72 +56,35 @@ function ProfilePage(props,{navigation}) {
     console.warn(err);
   }
 };
-  const onPPPress = (width,height,path) => {
-  setProfilePicWidth(width);
-  setProfilePicHeight(height);
-  var remotePath='profilePics/'+displayName
-  var localPath=path
-  var collectionName='Users'
-  var documentName=auth().currentUser.uid
-  var field='photoURL'
-firebaseSDK.addToStorage(remotePath,localPath,collectionName,documentName,field).then((url)=>
+const createCoupon=()=>
 {
-  setProfilePic(url)
-})
-  }
+setPostModalVisible(true)
+}
 
-const changed=()=>{
-  setChange(true)
-}
-const onChangeText=(value)=>{
-  setDisplayName(value)
-}
-/*const couponGrabber= async ()=>
-{
-             const subscriber = firestore()
-      .collection('Users')
-      .doc(props.uid).onSnapshot(documentSnapshot => {
-        try{
-        var userPosts=documentSnapshot.data().myPosts.map((post, index)=>{
-       return post._document._documentPath._parts[1];
-      })
-setMyCoupons(userPosts)
+const crtPost=(uid,latitude,longitude,message,shopAddress,iconUrl,expirationDate,imageUrl)=>
+  {
+    firebaseSDK.createPost(uid,latitude,longitude,message,shopAddress,iconUrl,expirationDate,imageUrl).then((post)=>{
+      var postId=post._document._documentPath._parts[1]
+      var remotePath='couponPic/'+postId
+      var localPath=imageUrl.toString()
+      var collectionName='Posts'
+      var documentName=postId
+      var field='imageUrl'
+      firebaseSDK.addToStorage(remotePath,localPath,collectionName,documentName,field)
+      var remotePath='iconUrl/'+postId
+      var localPath=iconUrl.toString()
+      var collectionName='Posts'
+      var documentName=postId
+      var field='iconUrl'
+      firebaseSDK.addToStorage(remotePath,localPath,collectionName,documentName,field)
+      closePostCreatorModal()})
     }
-    catch{//log('didntwork')
-  setMyCoupons([])}
-    try{
-        var userClaimedCoupons=documentSnapshot.data().claimedCoupons.map(async (post, index)=>{
-       return post._document._documentPath._parts[1]
-        })
-        setClaimedCoupons(userClaimedCoupons)
-      }
-      catch{
-        setClaimedCoupons([])
-        //console.log('didntwork')
-      }
 
-      });
-}*/
-const initializeUserInfo=()=>
-{
-firebaseSDK.getCurrentUserInfo().then((user)=>{setDisplayName(user.displayName);
-
-  setUserInfo(user);
-  if(user.photoURL!='')
-    {
-    setProfilePic(user.photoURL)
-  }
-});
-}
-useEffect(()=>{
-})
-
-  useEffect(() => {
-    initializeUserInfo()
-    console.log(props.myHome,'myhome')
-    console.log(change)
-  }, [])
-
+        const closePostCreatorModal=()=>
+        {
+          setPostCreatorInfo({expirationDate:null,message:'',op:'',imageUrl:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d',iconUrl:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d'})
+          setPostModalVisible(false)
+        }
   useEffect(() => {
     setClaimedCoupons(props.claimedCoupons)
   }, [props.claimedCoupons])
@@ -142,35 +99,32 @@ const signOut=()=>
   .then(() => console.log('User signed out!'));
 }
   return (
-    <ScrollView>
     <View style={{flex:1,flexDirection:'column'}}>
          <View style={styles.bottomBorder}>
-        <View style={{flex:1, flexDirection:'column'}}>
-        <PP onPPClicked={onPPPress} PPPath={profilePic}/>
-
-        <DisplayName defaultValue={displayName} onChangeText={onChangeText}/>
-        </View>
-        <View style={{flex:2,flexDirection:'column' }}>
-         <TextInput
-            style={styles.input}
-            value={'profile description'}
-            onChangeText={text=>{}}
-            multiline={true}
-            underlineColorAndroid='transparent'
-    />
-
-{/*<Button title="signout" onPress={signOut}></Button>*/}
-        </View>
+<Button title="createCoupon" onPress={createCoupon}></Button>
+            <Picker
+        selectedValue={'Date'}
+        style={{ height: 50, width: '70%' }}
+        onValueChange={(itemValue, itemIndex) => sortFilter(itemValue)}
+      >
+        <Picker.Item label="Date (Expire first list first)" value="Date" />
+        <Picker.Item label="Distance" value="Distance" />
+      </Picker>
          </View>
          <Separator/>
-        <View style={{flex:5}}>
-        <HomeCreator myHome={props.myHome} uid={props.uid}/>
+        <View style={{flex:5,}}>
+
+          <ModalContainer modalVisible={postModalVisible}>
+            <CouponCreator postCreatorInfo={postCreatorInfo}  uid={props.uid}  createPost={crtPost} closePostCreatorModal={closePostCreatorModal}></CouponCreator>
+            </ModalContainer>
+        {<CouponContainerComponent activatedCoupons={props.activatedCoupons} sortFilter={sortFilter} key={props.uid} uid={props.uid} coupons={myPosts}/>}
+
         </View>
     </View>
-    </ScrollView>
   );
 }
-export default ProfilePage;
+
+export default CouponManager;
 const styles=StyleSheet.create({
   container: {
    ...StyleSheet.absoluteFillObject,
@@ -187,14 +141,9 @@ const styles=StyleSheet.create({
     borderBottomColor: '#737373',
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-   input: {
-    width:200,
-    borderBottomColor:'red',
-    borderBottomWidth:1,
-},
   bottomBorder:
   {
-    flexDirection:'row',flex:2,}
+    flexDirection:'row',flex:1,}
 })
 /*const styles = StyleSheet.create({
   scrollView: {

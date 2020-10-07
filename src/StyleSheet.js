@@ -1,6 +1,4 @@
 import {StyleSheet,Dimensions} from 'react-native'
-
-
 const { width, height } = Dimensions.get("window");
 const CARD_HEIGHT = height*0.25;
 const CARD_WIDTH = width * 0.7;
@@ -10,6 +8,8 @@ const PIN_STRIP_HEIGHT_PIXELS=0.35*height;
 const PIN_STRIP_WIDTH='12%';
 const MARKER_SIZE=width*0.1;
 const styles=StyleSheet.create({
+  width:width,
+  height:height,
   pinStrip: {
     position:'absolute',
     marginTop: Platform.OS === 'ios' ? 40 : 20,

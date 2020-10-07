@@ -13,20 +13,19 @@ export default function PP(props)
 {
   const onPress = () => {
 ImagePicker.openPicker({
-  width: 120,
-  height: 120,
+  width: 90,
+  height: 90,
   cropping: true
 }).then(image => {
 props.onPPClicked(image.width,image.heigt,image.path);
 });
   }
   return (
-<TouchableHighlight onPress={onPress}>
+<TouchableHighlight style={{flex:1}}onPress={onPress}>
    <Image
      style={{
-       paddingVertical: 30,
-       width: 120,
-       height: 120,
+       width: 90,
+       height: 90,
      }}
      resizeMode='cover'
      source={{

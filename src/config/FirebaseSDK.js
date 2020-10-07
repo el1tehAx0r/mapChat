@@ -298,6 +298,19 @@ createUserHardCode=async(phone_number,email,username,password)=>{
                     var docRef = await firestore().collection('Posts').doc(couponId).get();
                   });
                 }
+                createHome=(uid,latitude,longitude,shopAddress,imageArray,iconUrl)=>
+                {
+                  const geocollection=GeoFirestore.collection('CentralNodes').doc(uid);
+                  return new Promise((resolve)=>
+                  {
+                    geocollection.set({op:uid,shopAddress:shopAddress,iconUrl:iconUrl,timestamp:firebase.firestore.FieldValue.serverTimestamp(),imageArray:imageArray,coordinates:new firebase.firestore.GeoPoint(latitude,longitude)}).then((post)=>{
+                      firestore().collection('Users').doc(uid).update({
+                        myStore:post._document,
+                      }).then(()=>{console.log('yayyyy');resolve(post)});
+                    });
+                  })
+                }
+
                 addToStorage=async(storagePath,localPath,collectionName,documentName,field)=>
                 {
                 return new Promise((resolve)=>{
@@ -325,13 +338,34 @@ createUserHardCode=async(phone_number,email,username,password)=>{
 );
 })})
                 }
-                /*          refreshMarkerTimes=(uid)=>
-                {
-                firestore().collection('Users').update({LastMarkerDate:firebase.firestore.FieldValue.serverTimestamp()})
-              }
-              setMarkerStatuses=(uid,markerStatuses)=>{
-              firestore().collection('Users').update({MarkerStatuses:markerStatuses})}*/
 
+                addToPhotoGallery=async(storagePath,localPath,collectionName,documentName,field,galleryArray)=>
+                {
+                return new Promise((resolve)=>{
+  const reference=storage().ref(storagePath)
+    reference.putFile(localPath).then((path)=>{console.log(path)
+ storage()
+  .ref(storagePath)
+  .getDownloadURL().then((url)=>{
+    var urlToString=url+''
+    console.log(urlToString,'lskjdfkls',url)
+    console.log(collectionName,'zzzzzzzz')
+    console.log(documentName,'sdklfjskldjf')
+  firestore().collection(collectionName)
+  .doc(documentName)
+  .update({
+    [field]:galleryArray,
+  })
+  .then(() => {
+    console.log('User updated!');
+    resolve(url)
+  }).catch((err)=>
+{
+  console.log(err)
+});}
+);
+})})
+                }
             }
 
 
