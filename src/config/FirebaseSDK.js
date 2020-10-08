@@ -224,6 +224,44 @@ createUserHardCode=async(phone_number,email,username,password)=>{
                   })
                 }
 
+                createCouponGroup= async (uid,latitude,longitude,message,shopAddress,iconUrl,expirationDate,imageUrl,count,distance,storeAddress)=>
+                {
+                var couponList=[]
+                for (var i in couponList)
+                {
+                currentPost=await createPost(uid,latitude,longitude,message,shopAddress,iconUrl,expirationDate,imageUrl)
+                  couponList.append(currentPost);
+                }
+                  const geocollection=GeoFirestore.collection('CouponGroup');
+                  return new Promise((resolve)=>
+                  {
+                    geocollection.add({op:uid,expirationDate:expirationDate,shopAddress:shopAddress,message:message,iconUrl:iconUrl,uid:uid,timestamp:firebase.firestore.FieldValue.serverTimestamp(),imageUrl:imageUrl,couponList:couponList}).then((post)=>{
+                      firestore().collection('Users').doc(uid).update({
+                        myCouponGroups:firebase.firestore.FieldValue.arrayUnion(post._document),
+                      }).then(()=>{console.log('yayyyy');resolve(post)});
+                    });
+                  })
+
+              }
+                deleteCouponGroup=async (uid,groupId)=>
+                {
+                var postRef=firestore().collection('CouponGroup').doc(groupId).get().then((posts)=>
+              {
+                for (var i in posts)
+                {
+            deletePost(post[i]);
+                }
+                  firestore().collection('Users').doc(uid).update({
+                    myCouponGroups:firebase.firestore.FieldValue.arrayRemove(groupId),
+                  }).then(()=>
+                {
+                  firestore().collection('CouponGroup').doc(groupId).delete().then((checking) => {console.log('postDeleted!');});
+                })
+              }
+    );
+
+                }
+
                 editPost=(postId,message,shopAddress,iconUrl,expirationDate,imageUrl)=>
                 {
                   const geocollection=GeoFirestore.collection('Posts');

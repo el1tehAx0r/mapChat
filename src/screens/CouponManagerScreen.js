@@ -9,6 +9,7 @@ import ChatScreen from './ChatScreen.js'
  import ImagePicker from 'react-native-image-crop-picker';
  import PP from '../components/ProfilePic.js'
  import {GetUserInfo} from '../components/UserInfo.js'
+ import Utility from '../config/Utility'
  import MapPage from './MapScreen.js';
  import TabBar from "@mindinventory/react-native-tab-bar-interaction";
  import CouponContainerComponent from '../components/CouponContainerComponent';
@@ -60,10 +61,13 @@ const createCoupon=()=>
 {
 setPostModalVisible(true)
 }
-
-const crtPost=(uid,latitude,longitude,message,shopAddress,iconUrl,expirationDate,imageUrl)=>
+const randomLocationPlacer=(lat,long,distance)=>
+{
+  for i in
+}
+const crtPost=(uid,latitude,longitude,message,shopAddress,iconUrl,expirationDate,imageUrl,count,distanceFilter)=>
   {
-    firebaseSDK.createPost(uid,latitude,longitude,message,shopAddress,iconUrl,expirationDate,imageUrl).then((post)=>{
+    firebaseSDK.createCouponGroup(uid,latitude,longitude,message,shopAddress,iconUrl,expirationDate,imageUrl,count,distanceFilter).then((post)=>{
       var postId=post._document._documentPath._parts[1]
       var remotePath='couponPic/'+postId
       var localPath=imageUrl.toString()
@@ -79,7 +83,6 @@ const crtPost=(uid,latitude,longitude,message,shopAddress,iconUrl,expirationDate
       firebaseSDK.addToStorage(remotePath,localPath,collectionName,documentName,field)
       closePostCreatorModal()})
     }
-
         const closePostCreatorModal=()=>
         {
           setPostCreatorInfo({expirationDate:null,message:'',op:'',imageUrl:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d',iconUrl:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d'})
@@ -115,10 +118,9 @@ const signOut=()=>
         <View style={{flex:5,}}>
 
           <ModalContainer modalVisible={postModalVisible}>
-            <CouponCreator postCreatorInfo={postCreatorInfo}  uid={props.uid}  createPost={crtPost} closePostCreatorModal={closePostCreatorModal}></CouponCreator>
+            <CouponCreator circleCenters={props.circleCenters} postCreatorInfo={postCreatorInfo}  uid={props.uid}  createPost={crtPost} closePostCreatorModal={closePostCreatorModal}></CouponCreator>
             </ModalContainer>
-        {<CouponContainerComponent activatedCoupons={props.activatedCoupons} sortFilter={sortFilter} key={props.uid} uid={props.uid} coupons={myPosts}/>}
-
+        {<CouponContainerComponent  activatedCoupons={props.activatedCoupons} sortFilter={sortFilter} key={props.uid} uid={props.uid} coupons={myPosts}/>}
         </View>
     </View>
   );

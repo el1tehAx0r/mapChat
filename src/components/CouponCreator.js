@@ -13,6 +13,8 @@ const CouponCreator= (props) => {
 const [postType,setPostType]=useState('');
   const [shopAddress,setShopAddress]=useState(props.postCreatorInfo.shopAddress);
   const [message,setMessage]=useState(props.postCreatorInfo.message);
+  const [count,setCount]=useState(props.postCreatorInfo.count);
+  const [dropRadius,setDropRadius]=useState(props.postCreatorInfo.dropRadius);
   const [iconUrl,setIconUrl]=useState(props.postCreatorInfo.iconUrl);
   const [expirationDay,setExpirationDay]=useState(null);
   const [expirationDate,setExpirationDate]=useState(props.postCreatorInfo.expirationDate);
@@ -84,70 +86,11 @@ ImagePicker.openPicker({
 });
 }
 
-const deletePost=()=>
-{
-firebaseSDK.deletePost(props.uid,props.postCreatorInfo.postId)
-cancelPressed()
-}
-const setFinalButtons=()=>
-{
-  if(props.postCreatorInfo.isEditing){
-  return (
-    <>
-          <TouchableHighlight
-              style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
-              onPress={editPost}
-            >
-              <Text style={styles.textStyle}>Save Edits</Text>
-            </TouchableHighlight>
-            <TouchableHighlight
-              style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
-              onPress={deletePost}
-            >
-              <Text style={styles.textStyle}>Delete</Text>
-            </TouchableHighlight></>
-  )}
-  else{
-  return(
-            <TouchableHighlight
-              style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
-              onPress={createPost}
-            >
-              <Text style={styles.textStyle}>Create Post</Text>
-            </TouchableHighlight>
-  )
-}
-
-}
 
 
 const createPost=()=>
 {
-
-  props.createPost(props.uid,props.postCreatorInfo.latitude,props.postCreatorInfo.longitude,message,shopAddress,iconUrl,expirationDate,imageUrl)
-}
-
-const editPost=()=>
-{
-  firebaseSDK.editPost(props.postCreatorInfo.postId,message,shopAddress,iconUrl,expirationDate,imageUrl).then((post)=>
-{
-      var postId=props.postCreatorInfo.postId
-      var remotePath='couponPic/'+postId
-      var localPath=imageUrl.toString()
-      var collectionName='Posts'
-      var documentName=postId
-      var field='imageUrl'
-      firebaseSDK.addToStorage(remotePath,localPath,collectionName,documentName,field)
-      var remotePath='couponIcon/'+postId
-      var localPath=iconUrl.toString()
-      var collectionName='Posts'
-      var documentName=postId
-      var field='iconUrl'
-      firebaseSDK.addToStorage(remotePath,localPath,collectionName,documentName,field).then(()=>
-    {
-      cancelPressed()
-    })
-})
+  props.createPost(props.uid,props.postCreatorInfo.latitude,props.postCreatorInfo.longitude,message,shopAddress,iconUrl,expirationDate,imageUrl,count,dropRadius)
 }
 
   const onChange = (event, selectedTime) => {
@@ -157,20 +100,6 @@ const editPost=()=>
   };
   return (
     <ScrollView >
-<DropDownPicker
-    items={[{label: 'Coupon Image', value: 'coupon_image', icon: () => <Icon name="flag" size={15} color="#900" />},
-        {label: 'Coupon Video', value: 'coupon_video', icon: () => <Icon name="flag" size={15} color="#900" />},
-        {label: 'Postnot implemented ', value: 'coupon_video', icon: () => <Icon name="flag" size={15} color="#900" />},
-        {label: 'Postnot implemented', value: 'coupon_video', icon: () => <Icon name="flag" size={15} color="#900" />}, ]}
-    defaultValue={null}
-    placeholder={'Expiremental for Multiple sources of Media Do not click yet Will brek program'}
-    containerStyle={{height:'12%'}}
-    style={{backgroundColor: '#fafafa'}}
-    itemStyle={{
-        justifyContent: 'flex-start'
-    }}
-    dropDownStyle={{backgroundColor: '#fafafa'}}
-    onChangeItem={item => setPostType(item)}/>
     <View style={{flexDirection:"row"}}>
       </View>
 <TouchableHighlight onPress={onPressImageUrl}>
@@ -186,7 +115,6 @@ const editPost=()=>
    />
 </TouchableHighlight>
     <View style={{flexDirection:"row"}}>
-
  <DatePicker
         style={{width: '100%'}}
         date={expirationDate}
@@ -221,26 +149,18 @@ const editPost=()=>
 
       <TextInput
         style={{ height: 35, borderColor: 'gray', borderWidth: 1 }}
-        placeholder="Description"
+        placeholder="Count"
         onChangeText={message=> setMessage(message)}
         defaultValue={props.postCreatorInfo.message}
       />
       <TextInput
         style={{ height: 35, borderColor: 'gray', borderWidth: 1 }}
-        placeholder="Description"
-        onChangeText={message=> setMessage(message)}
-        defaultValue={props.postCreatorInfo.message}
-      />
-      <TextInput
-        style={{ height: 35, borderColor: 'gray', borderWidth: 1 }}
-        placeholder="Description"
+        placeholder="Distance From"
         onChangeText={message=> setMessage(message)}
         defaultValue={props.postCreatorInfo.message}
       />
     <View style={{flexDirection:"row"}}>
-
       </View>
-
       <TextInput
         style={{ height: 35, borderColor: 'gray', borderWidth: 1 }}
         placeholder="Address of Store"
@@ -265,7 +185,12 @@ const editPost=()=>
               onPress={cancelPressed}>
               <Text style={styles.textStyle}>Cancel</Text>
             </TouchableHighlight>
-            {setFinalButtons()}
+            <TouchableHighlight
+              style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
+              onPress={createPost}
+            >
+              <Text style={styles.textStyle}>Create Post</Text>
+            </TouchableHighlight>
             </View>
     </ScrollView>
   );

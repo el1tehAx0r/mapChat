@@ -5,7 +5,6 @@ import auth from '@react-native-firebase/auth';
  import MapPage from './MapScreen.js';
  import ProfilePage from './ProfileScreen';
  import CouponPage from './CouponScreen';
- import CouponManager from './CouponManagerScreen';
  import firestore from '@react-native-firebase/firestore';
  import firebase from '@react-native-firebase/app';
  import firebaseSDK from '../config/FirebaseSDK';
@@ -155,7 +154,7 @@ firebaseSDK.getCurrentUserInfo().then((user)=>{setUserInfo(user);
     children={()=><ProfilePage myHome={myHome} claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid}/>}/>
     <Tab.Screen
     name="Coupon Screen"
-    children={()=><CouponManager  activatedCoupons={activatedCoupons} claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid}/>}/>
+    children={()=><CouponPage circleCenters={circleCenters} activatedCoupons={activatedCoupons} claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid}/>}/>
     </Tab.Navigator>
   );
 }
