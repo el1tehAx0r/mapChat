@@ -152,9 +152,6 @@ firebaseSDK.getCurrentUserInfo().then((user)=>{setUserInfo(user);
     <Tab.Screen
     name="ProfilePage"
     children={()=><ProfilePage myHome={myHome} claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid}/>}/>
-    <Tab.Screen
-    name="Coupon Screen"
-    children={()=><CouponPage circleCenters={circleCenters} activatedCoupons={activatedCoupons} claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid}/>}/>
     </Tab.Navigator>
   );
 }

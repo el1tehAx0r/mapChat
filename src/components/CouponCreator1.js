@@ -1,10 +1,7 @@
 import React, { useState,useEffect } from 'react';
-import {Alert, Text,TextInput,View,Button,TouchableHighlight,Image,KeyboardAvoidingView,TouchableOpacity } from 'react-native';
+import { Text,TextInput,View,Button,TouchableHighlight,Image,KeyboardAvoidingView,TouchableOpacity } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import DatePicker from 'react-native-datepicker'
-import PhotoEditor from 'react-native-photo-editor'
-import * as RNFS from 'react-native-fs';
-import CustomDialog from './CustomDialog'
 import RNDateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/Feather';
 import ImagePicker from 'react-native-image-crop-picker'
@@ -15,7 +12,6 @@ import styles from '../StyleSheet';
 const PostCreator= (props) => {
 const [postType,setPostType]=useState('');
   const [shopAddress,setShopAddress]=useState(props.postCreatorInfo.shopAddress);
-  const [customDialogVisible,setCustomDialogVisbile]=useState(false);
   const [message,setMessage]=useState(props.postCreatorInfo.message);
   const [iconUrl,setIconUrl]=useState(props.postCreatorInfo.iconUrl);
   const [expirationDay,setExpirationDay]=useState(null);
@@ -57,63 +53,7 @@ const cancelPressed=()=>
 {
 props.closePostCreatorModal()
 }
-const onPressImageUrl=()=>
-{
-setCustomDialogVisbile(true)
-}
-
-const photoEdit=(image)=>
-{
-PhotoEditor.Edit({
-  onDone:(result)=>{
-  },
-    path:  image.path.replace('file:///',"")
-});
-}
-
-const forLater= () =>
-    Alert.alert(
-      "Alert Title",
-      "Add Imago Profile",
-      [
-        {text: "Cancel", onPress: () => console.log("OK Pressed")},
-        {
-          text:"Add photo from Library",
-          onPress: () =>{
-ImagePicker.openPicker({
-  width:styles.width/3,
-  height: styles.height/4,
-  cropping: true
-}).then((result)=>{photoEdit(result,row,column)});
-    }
-        },
-        {
-          text: "Take Photo from Camera",
-          onPress: () =>
-ImagePicker.openCamera({
-  width: styles.width/3,
-  height: styles.height/4,
-  cropping: true
-}).then(photoEdit),
-        },
-        {
-          text:"Add Video from Library",
-          onPress: () =>{
-ImagePicker.openPicker({
-  mediaType: "video",
-}).then((video) => {
-  console.log(video);
-}).then((result)=>{photoEdit(result,row,column)});
-    }
-        },
-        ],
-      { cancelable: false }
-    );
-useEffect(()=>{
-  console.log(props.myHome)
-},[])
-  const idk= () => {
-
+  const onPressImageUrl = () => {
 ImagePicker.openCamera({
   width: 300,
   height: 200,
@@ -215,59 +155,15 @@ const editPost=()=>
     setTimePicker(null)
     setExpirationTime(selectedTime)
   };
-  const setDialogVisible=()=>
-  {
-  setCustomDialogVisible(false)
-  }
-
-  const photoFromCameraPressed=()=>
-  {
-ImagePicker.openCamera({
-  width: styles.width/3,
-  height: styles.height/4,
-  cropping: true
-}).then((result)=>photoEdit(result))
-  }
-
-  const photoFromLibraryPressed=()=>
-  {
-ImagePicker.openPicker({
-  width:styles.width/3,
-  height: styles.height/4,
-  cropping: true
-}).then((result)=>{photoEdit(result)});
-  }
-
-  const videoFromCameraPressed=()=>
-  {
-ImagePicker.openCamera({
-  mediaType: 'video',
-  cropping:true,
-}).then(image => {
-
-  console.log(image);
-});
-  }
-  const videoFromLibraryPressed=()=>
-  {
-ImagePicker.openPicker({
-  cropping:false,
-  mediaType: "video",
-}).then((video) => {
-  console.log(video);
-});
-  }
   return (
-
     <View style={{padding: 10}}>
-<CustomDialog setDialogVisible={setDialogVisible} photoFromCameraPressed={photoFromCameraPressed} photoFromLibraryPressed={photoFromLibraryPressed} videoFromCameraPressed={videoFromCameraPressed} videoFromLibraryPressed={videoFromLibraryPressed} modalVisible={customDialogVisible} />
 <DropDownPicker
     items={[{label: 'Coupon Image', value: 'coupon_image', icon: () => <Icon name="flag" size={15} color="#900" />},
         {label: 'Coupon Video', value: 'coupon_video', icon: () => <Icon name="flag" size={15} color="#900" />},
         {label: 'Postnot implemented ', value: 'coupon_video', icon: () => <Icon name="flag" size={15} color="#900" />},
         {label: 'Postnot implemented', value: 'coupon_video', icon: () => <Icon name="flag" size={15} color="#900" />}, ]}
     defaultValue={null}
-    placeholder={'Select Media Type'}
+    placeholder={'Expiremental for Multiple sources of Media Do not click yet Will brek program'}
     containerStyle={{height:'12%'}}
     style={{backgroundColor: '#fafafa'}}
     itemStyle={{
@@ -333,6 +229,7 @@ ImagePicker.openPicker({
         defaultValue={props.postCreatorInfo.shopAddress}/>
 
 <View style={{flexDirection:'row'}}>
+
 <TouchableHighlight onPress={onPressIconUrl}>
    <Image
      style={{
@@ -351,7 +248,6 @@ ImagePicker.openPicker({
             </TouchableHighlight>
             {setFinalButtons()}
             </View>
-
     </View>
   );
 }

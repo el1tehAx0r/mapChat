@@ -164,7 +164,7 @@ const signOut=()=>
          </View>
          <Separator/>
         <View style={{flex:5}}>
-        <HomeCreator myHome={props.myHome} uid={props.uid}/>
+        {/*<HomeCreator myHome={props.myHome} uid={props.uid}/>*/}
         </View>
     </View>
     </ScrollView>
