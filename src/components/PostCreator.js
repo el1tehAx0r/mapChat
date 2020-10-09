@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState,useEffect,useRef } from 'react';
 import {Alert, Text,TextInput,View,Button,TouchableHighlight,Image,KeyboardAvoidingView,TouchableOpacity } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import DatePicker from 'react-native-datepicker'
@@ -9,6 +9,9 @@ import RNDateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/Feather';
 import ImagePicker from 'react-native-image-crop-picker'
 import { Form, TextValidator } from 'react-native-validator-form';
+import { VideoPlayer, Trimmer } from 'react-native-video-processing';
+import VideoRecorder from 'react-native-beautiful-video-recorder';
+import VideoEditor from './VideoEditor'
 
 import firebaseSDK from '../config/FirebaseSDK'
 import styles from '../StyleSheet';
@@ -23,6 +26,7 @@ const [postType,setPostType]=useState('');
   const [expirationTime,setExpirationTime]=useState(null);
   const [imageUrl,setImageUrl]=useState(props.postCreatorInfo.imageUrl);
   const [timePicker,setTimePicker]=useState(null)
+  const videoRef= useRef(null);
 useEffect(()=>
 {
   if(props.postCreatorInfo.expirationDate!=null)
@@ -37,8 +41,6 @@ useEffect(()=>
     setExpirationDate(combineDateAndTime(expirationDay,expirationTime))
     }
   },[expirationTime,expirationDay])
-
-
 const combineDateAndTime = function(date, time) {
     var timeString = time.getHours() + ':' + time.getMinutes() + ':00';
     date= new Date(date);
@@ -240,13 +242,7 @@ ImagePicker.openPicker({
 
   const videoFromCameraPressed=()=>
   {
-ImagePicker.openCamera({
-  mediaType: 'video',
-  cropping:true,
-}).then(image => {
-
-  console.log(image);
-});
+start()
   }
   const videoFromLibraryPressed=()=>
   {
@@ -257,6 +253,14 @@ ImagePicker.openPicker({
   console.log(video);
 });
   }
+  const start = () => {
+    // 30 seconds
+    videoRef.current.open({ maxLength: 30 },(data) => {
+
+        console.log('captured data', data);
+    });
+}
+
   return (
 
     <View style={{padding: 10}}>
@@ -277,6 +281,7 @@ ImagePicker.openPicker({
     onChangeItem={item => setPostType(item)}/>
     <View style={{flexDirection:"row"}}>
       </View>
+      <VideoRecorder ref={videoRef} />
 <TouchableHighlight onPress={onPressImageUrl}>
    <Image
      style={{
