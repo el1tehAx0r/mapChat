@@ -227,7 +227,11 @@ ImagePicker.openPicker({
 
   const videoFromCameraPressed=()=>
   {
+    console.log('ummm')
 start()
+  }
+  const closeIconPicker=()=>{
+    setIconPickerVisible(false)
   }
   const videoFromLibraryPressed=async ()=>
   {
@@ -244,6 +248,7 @@ console.log(compressedData,'ZZZZZZZZ')})*/
 });
   }
   const start = () => {
+    console.log('ljskldjf')
     videoRef.current.open({ maxLength: 30 },(data) => {
   console.log(data,'originalsdata')
       data.path=data.uri
@@ -255,16 +260,22 @@ videoprocess.compressVideo(data.path).then((compressedData)=>{setMedia({mime:'vi
 console.log(compressedData,'zzzzz')}
 )*/
       //setMedia(data)
-    });
+    },(err)=>{console.log(err)});
+
+}
+const setIcon=(iconUrl)=>
+{
+  setIconUrl(iconUrl)
 }
   return (
     <View style={{padding: 10}}>
     <Modal visible={iconPickerVisible}>
-    <IconSelectPage videoSource={media.path}/>
+    <IconSelectPage setIcon={setIcon} closeIconPicker={closeIconPicker} videoSource={media.path}/>
     </Modal>
-<CustomDialog setDialogVisible={setDialogVisible} photoFromCameraPressed={photoFromCameraPressed} photoFromLibraryPressed={photoFromLibraryPressed} videoFromCameraPressed={videoFromCameraPressed} videoFromLibraryPressed={videoFromLibraryPressed} modalVisible={customDialogVisible} />
-      <VideoRecorder ref={videoRef} />
 
+<CustomDialog setDialogVisible={setDialogVisible} photoFromCameraPressed={photoFromCameraPressed} photoFromLibraryPressed={photoFromLibraryPressed} videoFromCameraPressed={videoFromCameraPressed} videoFromLibraryPressed={videoFromLibraryPressed} modalVisible={customDialogVisible} />
+
+      <VideoRecorder ref={videoRef} />
       <TextInput
         style={{ height: 35, borderColor: 'gray', borderWidth: 1 }}
         placeholder="Description"

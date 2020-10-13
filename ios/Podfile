@@ -14,6 +14,8 @@ target 'gaialive' do
 
   pod 'RNFS', :path => '../node_modules/react-native-fs'
 
+  pod 'RNImageRotate', :path => '../node_modules/react-native-image-rotate'
+
   target 'gaialiveTests' do
     inherit! :complete
     # Pods for testing

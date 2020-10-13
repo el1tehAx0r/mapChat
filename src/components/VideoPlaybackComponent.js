@@ -52,11 +52,8 @@ componentDidMount(){
           <>
                 <VideoPlayer
                     ref={ref => this.videoPlayerRef = ref}
-                    startTime={0}  // seconds
-                    endTime={20}   // seconds
-                    play={true}     // default false
-                    replay={true}   // should player play video again if it's ended
-                    rotate={true}   // use this prop to rotate video if it captured in landscape mode iOS only
+                    startTime={3}  // seconds
+                    endTime={10}   // seconds
                     source={this.state.videoSource}
                     playerWidth={300} // iOS only
                     playerHeight={500} // iOS only

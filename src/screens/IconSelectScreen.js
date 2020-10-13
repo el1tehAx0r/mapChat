@@ -1,26 +1,17 @@
 import React, { Component } from 'react';
-import { View } from 'react-native';
-import { VideoPlayer} from 'react-native-video-processing';
+import { View,Image,TouchableHighlight,Text } from 'react-native';
+import VideoPlayer from 'react-native-video-player';
 import {IconSelect} from '../components/IconSelect.android';
 import { ProcessingManager } from 'react-native-video-processing';
+import styles from '../StyleSheet'
+import ImagePicker from 'react-native-image-crop-picker';
 export default class IconSelectPage extends Component {
   constructor(props) {
   super(props);
   // Don't call this.setState() here!
-  this.state = { videoSource: this.props.videoSource , currentTime:0};
+  this.videoRef=React.createRef()
+  this.state = { videoSource: this.props.videoSource , currentTime:0,displayImage:null};
 }
-    trimVideo() {
-        const options = {
-            startTime: 0,
-            endTime: 15,
-            quality: VideoPlayer.Constants.quality.QUALITY_1280x720, // iOS only
-            saveToCameraRoll: true, // default is false // iOS only
-            saveWithCurrentDate: true, // default is false // iOS only
-        };
-        this.videoPlayerRef.trim(options)
-            .then((newSource) => console.log(newSource))
-            .catch(console.warn);
-    }
 
     /*compressVideo() {
         this.videoPlayerRef.compress(options)
@@ -33,45 +24,68 @@ export default class IconSelectPage extends Component {
   }
 componentDidMount(){
   this.setState({videoSource:this.props.videoSource})
-  console.log(this.props.videoSource,'vidsourc')
+      const maximumSize = { width: 300, height: 300 };
+    ProcessingManager.getPreviewForSecond(this.state.videoSource,0, maximumSize,'JPEG')
+      .then((data) =>{
+      this.setState({displayImage:data},console.log(this.state.displayImage))
+      })
+        if(this.state.currentTime==0){
+          console.log(this.state.currentTime)
+        setTimeout(()=>{
+this.videoRef.current.seek(0);console.log('three')}
+           , 2000)}
 }
-    getPreviewImageForSecond(second) {
-        const maximumSize = { width: 640, height: 1024 }; // default is { width: 1080, height: 1080 } iOS only
-        this.videoPlayerRef.getPreviewForSecond(second, maximumSize) // maximumSize is iOS only
-        .then((base64String) =>{return(base64String); console.log('This is BASE64 of image', base64String)} )
-        .catch(console.warn);
-    }
-
   timeMarkerChanged=(currentTime)=>{
+var ben=currentTime
     console.log(parseInt(currentTime),'aslkdjfklfjsl')
-    this.setState({currentTime:3},console.log(this.state.currentTime,'sperg'))
+
+    console.log(parseInt(currentTime),'aslkdjfklfjsl')
+    if(!isNaN(ben)){
+  this.videoRef.current.seek(ben)}
   }
+cropSelection=()=>{
 
-    getVideoInfo() {
-        this.videoPlayerRef.getVideoInfo()
-        .then((info) => console.log(info))
-        .catch(console.warn);
-    }
-
+      const maximumSize = { width: 300, height: 300 };
+    ProcessingManager.getPreviewForSecond(this.state.videoSource,0, maximumSize,'JPEG')
+      .then((data) =>{
+      this.setState({displayImage:data},this.crop())
+      })
+  console.log(this.state.displayImage)
+}
+crop=()=>
+{
+        ImagePicker.openCropper({
+      path: this.state.displayImage.uri,
+      width: 200,
+      height: 200,
+    })
+      .then((image) => {
+        console.log(image)
+        this.props.setIcon(image.path)
+        this.cancelPressed()
+      })
+      .catch((e) => {
+        console.log(e);
+      });
+}
+cancelPressed=()=>{
+this.props.closeIconPicker();
+}
     render() {
         return (
           <>
-                <VideoPlayer
-                    ref={ref => this.videoPlayerRef = ref}
-                    startTime={0}  // seconds
-                    endTime={20}   // seconds
-                    play={true}     // default false
-                    replay={true}   // should player play video again if it's ended
-                    rotate={true}   // use this prop to rotate video if it captured in landscape mode iOS only
-                    source={this.state.videoSource}
-                    playerWidth={300} // iOS only
-                    playerHeight={500} // iOS only
-                    currentTime={ parseInt(JSON.stringify(this.state.currentTime))}
-                    height={400}
-                    resizeMode={VideoPlayer.Constants.resizeMode.CONTAIN}
-                    onChange={({ nativeEvent }) =>{this.setState({currentTime:nativeEvent});console.log(this.props.videoSource);console.log({ nativeEvent })
-                  }} // get Current time on every second
-                />
+          <Text> Choose Icon Picture</Text>
+          <VideoPlayer
+ ref={this.videoRef}
+    video={{ uri:this.props.videoSource  }}
+hideControlsOnStart
+    videoWidth={700}
+    muted
+    disableSeek
+    autoplay={true}
+    videoHeight={500}
+    thumbnail={{ uri:'https://www.google.com/url?sa=i&url=http%3A%2F%2Fpickatime.com%2F&psig=AOvVaw2iV63QwHmyugVaEEE3fMIH&ust=1602702549158000&source=images&cd=vfe&ved=2ahUKEwjI0aCyorLsAhUB0awKHUcwCNoQr4kDegUIARCmAQ' }}
+/>
                   <IconSelect
                   timeMarkerChanged={this.timeMarkerChanged}
                     source={this.state.videoSource}
@@ -84,6 +98,18 @@ componentDidMount(){
                     trackerColor={'green'} // iOS only
                     onChange={(e) => console.log(e.startTime, e.endTime)}
                 />
+            <View style={{flexDirection:'row'}} >
+            <TouchableHighlight
+              style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
+              onPress={this.cancelPressed}>
+              <Text style={styles.textStyle}>Cancel</Text>
+            </TouchableHighlight>
+            <TouchableHighlight
+              style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
+              onPress={this.cropSelection}>
+              <Text style={styles.textStyle}>Crop Selection</Text>
+            </TouchableHighlight>
+            </View>
                 </>
         );
     }

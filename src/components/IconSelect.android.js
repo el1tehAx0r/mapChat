@@ -174,7 +174,7 @@ export class IconSelect extends Component {
     this._callOnChange();
     Animated.event([
       null, { dx: this.state.timeMarker}
-     ])(e, gestureState);
+    ],{ useNativeDriver: false })(e, gestureState);
   }
   _handleRightCornerMove(e, gestureState) {
     const { duration, layoutWidth } = this.state;
@@ -188,7 +188,7 @@ export class IconSelect extends Component {
     this._callOnChange();
     Animated.event([
       null, { dx: this.state.rightCorner }
-     ])(e, gestureState);
+    ], { useNativeDriver: false })(e, gestureState);
   }
   _handleLeftCornerMove(e, gestureState) {
     const { duration, layoutWidth } = this.state;
@@ -200,12 +200,10 @@ export class IconSelect extends Component {
     }
     this._startTime = calculateCornerResult(duration, this._leftCornerPos, layoutWidth);
     this._callOnChange();
-    console.log(this._startTime,'ZKZKZZJZK')
-    console.log(this._leftCornerPos,'ZKZKZZJZK')
     Animated.event([
       null,
        { dx: this.state.leftCorner }
-     ])(e, gestureState);
+     ],{ useNativeDriver: false })(e, gestureState);
   }
   _callOnChange() {
     this.props.onChange({
