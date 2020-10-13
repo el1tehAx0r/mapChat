@@ -1,6 +1,5 @@
 import React, { useState,useEffect,useRef } from 'react';
-import {Alert, Text,TextInput,View,Button,TouchableHighlight,Image,KeyboardAvoidingView,TouchableOpacity } from 'react-native';
-import DropDownPicker from 'react-native-dropdown-picker';
+import {Alert, Text,TextInput,View,Button,TouchableHighlight,Image,KeyboardAvoidingView,TouchableOpacity,Modal } from 'react-native';
 import DatePicker from 'react-native-datepicker'
 import PhotoEditor from 'react-native-photo-editor'
 import * as RNFS from 'react-native-fs';
@@ -8,32 +7,46 @@ import CustomDialog from './CustomDialog'
 import RNDateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/Feather';
 import ImagePicker from 'react-native-image-crop-picker'
+import IconSelectPage from '../screens/IconSelectScreen'
 import { Form, TextValidator } from 'react-native-validator-form';
 import { VideoPlayer, Trimmer } from 'react-native-video-processing';
 import VideoRecorder from 'react-native-beautiful-video-recorder';
 import VideoEditor from './VideoEditor'
-
+import VideoPlaybackComponent from './VideoPlaybackComponent'
+import ModalContainer from './ModalContainer'
+import VideoProcessor from './VideoProcessor'
 import firebaseSDK from '../config/FirebaseSDK'
 import styles from '../StyleSheet';
 const PostCreator= (props) => {
 const [postType,setPostType]=useState('');
   const [shopAddress,setShopAddress]=useState(props.postCreatorInfo.shopAddress);
-  const [customDialogVisible,setCustomDialogVisbile]=useState(false);
+  const [customDialogVisible,setCustomDialogVisible]=useState(false);
   const [message,setMessage]=useState(props.postCreatorInfo.message);
   const [iconUrl,setIconUrl]=useState(props.postCreatorInfo.iconUrl);
   const [expirationDay,setExpirationDay]=useState(null);
   const [expirationDate,setExpirationDate]=useState(props.postCreatorInfo.expirationDate);
   const [expirationTime,setExpirationTime]=useState(null);
   const [imageUrl,setImageUrl]=useState(props.postCreatorInfo.imageUrl);
+  const [media,setMedia]=useState(props.postCreatorInfo.media)
+  const [iconPickerVisible,setIconPickerVisible]=useState(false)
   const [timePicker,setTimePicker]=useState(null)
   const videoRef= useRef(null);
+useEffect(()=>
+{
+  console.log(props.postCreatorInfo.media,'zkjdsklfkj')
+  if(props.postCreatorInfo.expirationDate!=null)
+  {
+    setExpirationDate(props.postCreatorInfo.expirationDate.toDate())
+  }
+},[])
+useEffect(()=>{console.log(media,'mismdim')},[media])
 useEffect(()=>
 {
   if(props.postCreatorInfo.expirationDate!=null)
   {
     setExpirationDate(props.postCreatorInfo.expirationDate.toDate())
   }
-},[])
+},[imageUrl])
   useEffect(()=>{
     console.log(expirationDay,expirationTime,'BAGOLO')
     if((expirationDay!==null) &&(expirationTime!=null))
@@ -61,56 +74,20 @@ props.closePostCreatorModal()
 }
 const onPressImageUrl=()=>
 {
-setCustomDialogVisbile(true)
+setCustomDialogVisible(true)
 }
 
 const photoEdit=(image)=>
 {
 PhotoEditor.Edit({
   onDone:(result)=>{
+    setMedia(image)
+  setCustomDialogVisible(false)
   },
     path:  image.path.replace('file:///',"")
 });
 }
 
-const forLater= () =>
-    Alert.alert(
-      "Alert Title",
-      "Add Imago Profile",
-      [
-        {text: "Cancel", onPress: () => console.log("OK Pressed")},
-        {
-          text:"Add photo from Library",
-          onPress: () =>{
-ImagePicker.openPicker({
-  width:styles.width/3,
-  height: styles.height/4,
-  cropping: true
-}).then((result)=>{photoEdit(result,row,column)});
-    }
-        },
-        {
-          text: "Take Photo from Camera",
-          onPress: () =>
-ImagePicker.openCamera({
-  width: styles.width/3,
-  height: styles.height/4,
-  cropping: true
-}).then(photoEdit),
-        },
-        {
-          text:"Add Video from Library",
-          onPress: () =>{
-ImagePicker.openPicker({
-  mediaType: "video",
-}).then((video) => {
-  console.log(video);
-}).then((result)=>{photoEdit(result,row,column)});
-    }
-        },
-        ],
-      { cancelable: false }
-    );
 useEffect(()=>{
   console.log(props.myHome)
 },[])
@@ -144,6 +121,10 @@ ImagePicker.openPicker({
 }).then(image => {
   setIconUrl(image.path)
 });
+}
+
+  const onPressIconUrlVideo= () => {
+  setIconPickerVisible(true)
 }
 
 const deletePost=()=>
@@ -211,7 +192,6 @@ const editPost=()=>
     })
 })
 }
-
   const onChange = (event, selectedTime) => {
     console.log(selectedTime)
     setTimePicker(null)
@@ -225,17 +205,22 @@ const editPost=()=>
   const photoFromCameraPressed=()=>
   {
 ImagePicker.openCamera({
-  width: styles.width/3,
-  height: styles.height/4,
+  width: styles.width/1.5,
+  height: styles.height/1.5,
   cropping: true
-}).then((result)=>photoEdit(result))
+}).then((result)=>{console.log(result);photoEdit(result)})
   }
-
+const changeMediaPath= (value, type,value2,type2) => {
+    let qty = { ... media}; // make a copy
+    qty[type] = value;
+    qty[type2] = value2;
+    setMedia(qty);
+};
   const photoFromLibraryPressed=()=>
   {
 ImagePicker.openPicker({
-  width:styles.width/3,
-  height: styles.height/4,
+  width:styles.width/1.5,
+  height: styles.height/1.5,
   cropping: true
 }).then((result)=>{photoEdit(result)});
   }
@@ -244,103 +229,74 @@ ImagePicker.openPicker({
   {
 start()
   }
-  const videoFromLibraryPressed=()=>
+  const videoFromLibraryPressed=async ()=>
   {
 ImagePicker.openPicker({
   cropping:false,
   mediaType: "video",
-}).then((video) => {
-  console.log(video);
+}).then((data) => {
+  console.log(data,'originalsdata')
+  setMedia({mime:'video/mp4',path:data.path});
+  setIconUrl(data.path)
+/*const videoprocess=new VideoProcessor()
+videoprocess.compressVideo(data.path).then((compressedData)=>{setMedia({mime:'video/mp4',path:compressedData});
+console.log(compressedData,'ZZZZZZZZ')})*/
 });
   }
   const start = () => {
-    // 30 seconds
     videoRef.current.open({ maxLength: 30 },(data) => {
+  console.log(data,'originalsdata')
+      data.path=data.uri
+  setMedia({mime:'video/mp4',path:data.uri});
 
-        console.log('captured data', data);
+  setIconUrl(data.path)
+/*const videoprocess=new VideoProcessor()
+videoprocess.compressVideo(data.path).then((compressedData)=>{setMedia({mime:'video/mp4',path:compressedData});
+console.log(compressedData,'zzzzz')}
+)*/
+      //setMedia(data)
     });
 }
-
   return (
-
     <View style={{padding: 10}}>
+    <Modal visible={iconPickerVisible}>
+    <IconSelectPage videoSource={media.path}/>
+    </Modal>
 <CustomDialog setDialogVisible={setDialogVisible} photoFromCameraPressed={photoFromCameraPressed} photoFromLibraryPressed={photoFromLibraryPressed} videoFromCameraPressed={videoFromCameraPressed} videoFromLibraryPressed={videoFromLibraryPressed} modalVisible={customDialogVisible} />
-<DropDownPicker
-    items={[{label: 'Coupon Image', value: 'coupon_image', icon: () => <Icon name="flag" size={15} color="#900" />},
-        {label: 'Coupon Video', value: 'coupon_video', icon: () => <Icon name="flag" size={15} color="#900" />},
-        {label: 'Postnot implemented ', value: 'coupon_video', icon: () => <Icon name="flag" size={15} color="#900" />},
-        {label: 'Postnot implemented', value: 'coupon_video', icon: () => <Icon name="flag" size={15} color="#900" />}, ]}
-    defaultValue={null}
-    placeholder={'Select Media Type'}
-    containerStyle={{height:'12%'}}
-    style={{backgroundColor: '#fafafa'}}
-    itemStyle={{
-        justifyContent: 'flex-start'
-    }}
-    dropDownStyle={{backgroundColor: '#fafafa'}}
-    onChangeItem={item => setPostType(item)}/>
-    <View style={{flexDirection:"row"}}>
-      </View>
       <VideoRecorder ref={videoRef} />
-<TouchableHighlight onPress={onPressImageUrl}>
-   <Image
-     style={{
-       paddingVertical: 30,
-       width: 300,
-       height: 200,}}
-     resizeMode='cover'
-     source={{
-       uri:imageUrl,
-     }}
-   />
-</TouchableHighlight>
-    <View style={{flexDirection:"row"}}>
 
- <DatePicker
-        style={{width: '100%'}}
-        date={expirationDate}
-        mode="date"
-        placeholder={'pick expiration date'}
-        format="YYYY-MM-DDTHH:MM:SSZ"
-        minDate="2020-05-01"
-        confirmBtnText="Confirm"
-        cancelBtnText="Cancel"
-        customStyles={{
-          dateIcon: {
-            position: 'absolute',
-            left: 0,
-            top: 4,
-            marginLeft: 0
-          },
-          dateInput: {
-            paddingBottom:10,
-            marginLeft: 36,
-            height:30
-          }}}
-        onDateChange={(date) => {setExpirationDay(date);showTimePicker();}}
-      />
-      {timePicker}
-      </View>
       <TextInput
         style={{ height: 35, borderColor: 'gray', borderWidth: 1 }}
         placeholder="Description"
         onChangeText={message=> setMessage(message)}
         defaultValue={props.postCreatorInfo.message}
       />
-    <View style={{flexDirection:"row"}}>
+{media.mime=="image/jpeg"||media.mime=="image/png"||iconPickerVisible?
 
-      </View>
-
-      <TextInput
-        style={{ height: 35, borderColor: 'gray', borderWidth: 1 }}
-        placeholder="Address of Store"
-        onChangeText={shopAddress=> setShopAddress(shopAddress)}
-        defaultValue={props.postCreatorInfo.shopAddress}/>
-
-<View style={{flexDirection:'row'}}>
-<TouchableHighlight onPress={onPressIconUrl}>
+<TouchableHighlight onPress={onPressImageUrl}>
    <Image
      style={{
+       paddingVertical: 30,
+       width: styles.width/1.5,
+       height: styles.height/1.5}}
+     resizeMode='cover'
+     source={{
+       uri:media.path     }}
+   />
+   </TouchableHighlight>
+   :
+
+   <VideoPlaybackComponent
+    videoSource={media.path}/>
+
+}
+<View style={{flexDirection:'row'}}>
+<TouchableHighlight onPress={media.mime=='image/jpeg'||media.mime=='image/png'? onPressIconUrl: onPressIconUrlVideo}>
+   <Image
+     style={{
+       borderWidth: 2,
+       borderColor:'red',
+       borderRadius:100,
        width: 65,height:65,
        }}
      resizeMode='cover'
@@ -356,7 +312,6 @@ ImagePicker.openPicker({
             </TouchableHighlight>
             {setFinalButtons()}
             </View>
-
     </View>
   );
 }

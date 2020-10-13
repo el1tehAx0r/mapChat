@@ -4,6 +4,7 @@ import auth from '@react-native-firebase/auth';
 import LoginPage from './src/screens/LoginScreen';
 import SignupPage from './src/screens/SignupScreen';
 import ProfilePage from './src/screens/ProfileScreen';
+import IconSelectPage from './src/screens/IconSelectScreen';
 import { NavigationContainer } from '@react-navigation/native';
 import SplashPage from './src/screens/SplashScreen'
 import MainNavigator from './src/screens/MainNavigator';
@@ -58,7 +59,9 @@ if (initializing) return null;
 <Stack.Screen name="Login" component={LoginPage}/>
 <Stack.Screen name="Signup" component={SignupPage}/>
    </>) :
-    (<><Stack.Screen name="MainNavigator" component={MainNavigator} initialParams={{user:user}}/></>)}
+    (<><Stack.Screen name="MainNavigator" component={MainNavigator} initialParams={{user:user}}/>
+<Stack.Screen name="IconSelect" component={IconSelectPage} />
+    </>)}
       </Stack.Navigator>
     </NavigationContainer>
   );

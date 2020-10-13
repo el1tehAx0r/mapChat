@@ -77,11 +77,9 @@ bottomBorder:
   },
   modalView: {
     width:'90%',
-    height:'90%',
+    height:'95%',
     margin: 20,
     backgroundColor: "white",
-    borderRadius: 20,
-    padding: 10,
     alignItems: "center",
     shadowColor: "#000",
     shadowOffset: {

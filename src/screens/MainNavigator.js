@@ -148,7 +148,7 @@ firebaseSDK.getCurrentUserInfo().then((user)=>{setUserInfo(user);
 <Tab.Navigator swipeEnabled={false}>
     <Tab.Screen
     name="Map"
-       children={()=><MapPage deviceHeading={deviceHeading} coordinates={coordinates} activatedCoupons={activatedCoupons} circleCenters={circleCenters} claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid} />}/>
+       children={()=><MapPage navigation={navigation} deviceHeading={deviceHeading} coordinates={coordinates} activatedCoupons={activatedCoupons} circleCenters={circleCenters} claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid} />}/>
     <Tab.Screen
     name="ProfilePage"
     children={()=><ProfilePage myHome={myHome} claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid}/>}/>

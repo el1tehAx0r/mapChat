@@ -33,7 +33,7 @@ function MapPage(props,{navigation}) {
   const [modalVisible,setModalVisible]=useState(false)
   const [postModalVisible,setPostModalVisible]=useState(false)
   const [postViewerInfo,setPostViewerInfo]=useStateWithCallbackLazy(false);
-  const [postCreatorInfo,setPostCreatorInfo]=useStateWithCallbackLazy({expirationDate:null,message:'',op:'',imageUrl:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d',iconUrl:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d'});
+  const [postCreatorInfo,setPostCreatorInfo]=useStateWithCallbackLazy({expirationDate:null,message:'',op:'',media:{path: 'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d',mime:'image/jpeg'},iconUrl:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d'});
   const [shownModal,setShownModal]=useState(null)
   const [myPosts,setMyPosts]=useStateWithCallbackLazy([])
   const mapViewRef=useRef(null);
@@ -113,7 +113,7 @@ const crtPost=(uid,latitude,longitude,message,shopAddress,iconUrl,expirationDate
     {
     var postObject={}
     postObject=postCreatorInfo;
-    setPostCreatorInfo({latitude:lat,longitude:long,expirationDate:null,message:'',op:'',imageUrl:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d',iconUrl:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d'}
+    setPostCreatorInfo({latitude:lat,longitude:long,expirationDate:null,message:'',op:'',media:{path: 'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d',mime:'image/jpeg'},iconUrl:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d'}
 ,()=>{console.log('jk');setPostModalVisible(true)})
       }
       const createPost=(point)=>
@@ -161,7 +161,7 @@ console.log('zzz')
         }
         const closePostCreatorModal=()=>
         {
-          setPostCreatorInfo({expirationDate:null,message:'',op:'',imageUrl:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d',iconUrl:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d'})
+          setPostCreatorInfo({expirationDate:null,message:'',op:'',media:{path: 'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d',mime:'image/jpeg'},iconUrl:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d'})
           setPostModalVisible(false)
         }
         const closePostViewerModal=()=>
@@ -196,7 +196,7 @@ console.log('zzz')
             <PostViewer uid={props.uid} activatedCoupons={props.activatedCoupons} closePostViewerModal={closePostViewerModal}   postViewerInfo={postViewerInfo} claimedCoupons={claimedCoupons} />
           </ModalContainer>
           <ModalContainer modalVisible={postModalVisible}>
-            <PostCreator  postCreatorInfo={postCreatorInfo}  uid={props.uid}  createPost={crtPost} closePostCreatorModal={closePostCreatorModal}></PostCreator>
+            <PostCreator  navigation={props.navigation} postCreatorInfo={postCreatorInfo}  uid={props.uid}  createPost={crtPost} closePostCreatorModal={closePostCreatorModal}></PostCreator>
             </ModalContainer>
             </View>
           );

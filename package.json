@@ -66,6 +66,7 @@
     "react-native-phone-input": "^0.2.4",
     "react-native-photo-editor": "^1.0.8",
     "react-native-photo-upload": "^1.3.0",
+    "react-native-progress": "^4.1.2",
     "react-native-reanimated": "^1.13.0",
     "react-native-router-flux": "^4.2.0",
     "react-native-safe-area-context": "^3.1.4",
