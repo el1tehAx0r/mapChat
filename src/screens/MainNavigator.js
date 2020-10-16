@@ -40,7 +40,6 @@ function MainNavigator({route, navigation}) {
     positionHandler(position)
     })
     setWatchId(watch)
-
   }
   const positionHandler=(position)=>
   {
@@ -75,6 +74,14 @@ function MainNavigator({route, navigation}) {
       postUnsub= firestore()
       .collection('Users')
       .doc(user.uid).onSnapshot(documentSnapshot => {
+
+        /*try{
+          await Promise.all(documentSnapshot.data().myPosts.map(async (post, index)=>{
+            var postSnapshot= await post.get()
+          return postSnapshot.data()
+        })).then((data)=>setMyPosts(data))
+        }
+        catch{}*/
         try{
           var userPosts=documentSnapshot.data().myPosts.map((post, index)=>{
             return post._documentPath._parts[1]

@@ -8,6 +8,7 @@ const PIN_STRIP_HEIGHT_PIXELS=0.35*height;
 const PIN_STRIP_WIDTH='12%';
 const MARKER_SIZE=width*0.1;
 const styles=StyleSheet.create({
+  rowView:{flexDirection:'column'},
   width:width,
   height:height,
   pinStrip: {
@@ -69,16 +70,16 @@ bottomBorder:
   flexDirection:'row',flex:2,
   borderBottomColor:'black',
   borderBottomWidth:1  },
-    centeredView: {
+  centeredView: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 22
+    marginTop: 8
   },
   modalView: {
-    width:'90%',
-    height:'95%',
-    margin: 20,
+    width:'93%',
+    height:'98%',
+    margin: 10,
     backgroundColor: "white",
     alignItems: "center",
     shadowColor: "#000",
@@ -99,8 +100,30 @@ bottomBorder:
     padding: 10,
     elevation: 2
   },
+  addButton: {
+    backgroundColor: "#F194FF",
+    width:width/8,
+    height:39,
+    borderRadius: 20,
+    padding: 10,
+    elevation: 2
+  },
+  closeButton: {
+    borderColor:"#000000",
+    borderWidth:1,
+    height:39,
+    marginTop:10,
+    marginRight:-15,
+    padding: 10,
+    elevation: 2
+  },
   textStyle: {
     color: "white",
+    fontWeight: "bold",
+    textAlign: "center"
+  },
+  xTextStyle: {
+    color: "black",
     fontWeight: "bold",
     textAlign: "center"
   },

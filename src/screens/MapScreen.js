@@ -91,15 +91,15 @@ useEffect(()=>
       setMyPosts(props.myPosts)
     },[props.myPosts])
 
-const crtPost=(uid,latitude,longitude,message,shopAddress,iconUrl,expirationDate,imageUrl)=>
+const crtPost=(uid,latitude,longitude,message,iconUrl,media)=>
   {
-    firebaseSDK.createPost(uid,latitude,longitude,message,shopAddress,iconUrl,expirationDate,imageUrl).then((post)=>{
+    firebaseSDK.createPost(uid,latitude,longitude,message,iconUrl,media).then((post)=>{
       var postId=post._document._documentPath._parts[1]
-      var remotePath='couponPic/'+postId
-      var localPath=imageUrl.toString()
+      var remotePath='media/'+postId
+      var localPath=media.path.toString()
       var collectionName='Posts'
       var documentName=postId
-      var field='imageUrl'
+      var field='media.path'
       firebaseSDK.addToStorage(remotePath,localPath,collectionName,documentName,field)
       var remotePath='iconUrl/'+postId
       var localPath=iconUrl.toString()
@@ -142,22 +142,37 @@ console.log('zzz')
         const mapViewPressed=(coordinates)=>
         {
           console.log(myPosts,'tHESE MYPSOIDS')
+
           for (var i in circleCenters)
+          {
+            if (Utility.getDistanceFromLatLonInm(circleCenters[i].latitude,circleCenters[i].longitude,coordinates.latitude,coordinates.longitude)<7)
+            {
+                  firebaseSDK.getPost(circleCenters[i].id).then((postObject)=>{var postObj=postObject.data(); console.log(postObj); postObj.postId=circleCenters[i].id;
+                  setPostViewerInfo(postObj, ()=>{setModalVisible(true)})
+                })
+              break;
+            }
+          }
+        /*  for (var i in circleCenters)
           {
             if (Utility.getDistanceFromLatLonInm(circleCenters[i].latitude,circleCenters[i].longitude,coordinates.latitude,coordinates.longitude)<7)
             {
               if(myPosts.includes(circleCenters[i].id))
               {
                 var circleCenterId=circleCenters[i].id
-                firebaseSDK.getPost(circleCenters[i].id).then((postObject)=>{var postObj=postObject.data();postObj.postId=circleCenters[i].id;postObj.isEditing=true; setPostCreatorInfo(postObj, ()=>{setPostModalVisible(true)})})
+                firebaseSDK.getPost(circleCenters[i].id).then((postObject)=>{var postObj=postObject.data();postObj.postId=circleCenters[i].id;postObj.isEditing=true;
+                  setPostCreatorInfo(postObj, ()=>{setPostModalVisible(true)})
+                })
               }
               else{
                 console.log('tatiyana')
-                firebaseSDK.getPost(circleCenters[i].id).then((postObject)=>{var postObj=postObject.data();postObj.postId=circleCenters[i].id;setPostViewerInfo(postObj, ()=>{setModalVisible(true)})})
+                firebaseSDK.getPost(circleCenters[i].id).then((postObject)=>{var postObj=postObject.data(); console.log(postObj); postObj.postId=circleCenters[i].id;
+                  setPostViewerInfo(postObj, ()=>{setModalVisible(true)})
+                })
               }
               break;
             }
-          }
+          }*/
         }
         const closePostCreatorModal=()=>
         {
@@ -193,10 +208,10 @@ console.log('zzz')
   />
             </MapView>
           <ModalContainer modalVisible={modalVisible}>
-            <PostViewer uid={props.uid} activatedCoupons={props.activatedCoupons} closePostViewerModal={closePostViewerModal}   postViewerInfo={postViewerInfo} claimedCoupons={claimedCoupons} />
+            <PostViewer uid={props.uid}  closePostViewerModal={closePostViewerModal} postViewerInfo={postViewerInfo}  />
           </ModalContainer>
           <ModalContainer modalVisible={postModalVisible}>
-            <PostCreator  navigation={props.navigation} postCreatorInfo={postCreatorInfo}  uid={props.uid}  createPost={crtPost} closePostCreatorModal={closePostCreatorModal}></PostCreator>
+            <PostCreator  navigation={props.navigation} postCreatorInfo={postCreatorInfo} uid={props.uid}  createPost={crtPost} closePostCreatorModal={closePostCreatorModal}></PostCreator>
             </ModalContainer>
             </View>
           );

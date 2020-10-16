@@ -55,10 +55,7 @@ class FirebaseSDK {
       return false
     }
   }
-
-
   createUser=async(email,username,password)=>{
-
     const geocollection = GeoFirestore.collection('Users');
     auth().createUserWithEmailAndPassword(email,password)
     .then(() => {
@@ -211,12 +208,13 @@ createUserHardCode=async(phone_number,email,username,password)=>{
                   })})
                 }
 
-                createPost=(uid,latitude,longitude,message,shopAddress,iconUrl,expirationDate,imageUrl)=>
+                createPost=(uid,latitude,longitude,message,iconUrl,media)=>
                 {
+                  const userReference=firestore().collection('Users').doc(uid)
                   const geocollection=GeoFirestore.collection('Posts');
                   return new Promise((resolve)=>
                   {
-                    geocollection.add({op:uid,expirationDate:expirationDate,shopAddress:shopAddress,message:message,iconUrl:iconUrl,uid:uid,timestamp:firebase.firestore.FieldValue.serverTimestamp(),imageUrl:imageUrl,coordinates:new firebase.firestore.GeoPoint(latitude,longitude)}).then((post)=>{
+                    geocollection.add({userReference:userReference,message:message,iconUrl:iconUrl,uid:uid,timestamp:firebase.firestore.FieldValue.serverTimestamp(),media:media,coordinates:new firebase.firestore.GeoPoint(latitude,longitude)}).then((post)=>{
                       firestore().collection('Users').doc(uid).update({
                         myPosts:firebase.firestore.FieldValue.arrayUnion(post._document),
                       }).then(()=>{console.log('yayyyy');resolve(post)});
@@ -282,7 +280,10 @@ createUserHardCode=async(phone_number,email,username,password)=>{
                 })
               });
                 }
-
+getPostByReference =async(docRef)=>{
+                  var docSnapshot = docRef.get();
+                  return docSnapshot.data();
+}
                 getPost=async (pid)=>
                 {
                   var docRef = await firestore().collection('Posts').doc(pid).get();
@@ -349,18 +350,15 @@ createUserHardCode=async(phone_number,email,username,password)=>{
                   })
                 }
 
-                addToStorage=async(storagePath,localPath,collectionName,documentName,field)=>
+                addToStorage=async(remotePath,localPath,collectionName,documentName,field)=>
                 {
                 return new Promise((resolve)=>{
-  const reference=storage().ref(storagePath)
+  const reference=storage().ref(remotePath)
     reference.putFile(localPath).then((path)=>{console.log(path)
  storage()
-  .ref(storagePath)
+  .ref(remotePath)
   .getDownloadURL().then((url)=>{
     var urlToString=url+''
-    console.log(urlToString,'lskjdfkls',url)
-    console.log(collectionName,'zzzzzzzz')
-    console.log(documentName,'sdklfjskldjf')
   firestore().collection(collectionName)
   .doc(documentName)
   .update({

@@ -202,6 +202,7 @@ const editPost=()=>
   {
   setCustomDialogVisible(false)
   }
+
   const photoFromCameraPressed=()=>
   {
 ImagePicker.openCamera({
