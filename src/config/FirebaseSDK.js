@@ -214,14 +214,13 @@ createUserHardCode=async(phone_number,email,username,password)=>{
                   const geocollection=GeoFirestore.collection('Posts');
                   return new Promise((resolve)=>
                   {
-                    geocollection.add({userReference:userReference,message:message,iconUrl:iconUrl,uid:uid,timestamp:firebase.firestore.FieldValue.serverTimestamp(),media:media,coordinates:new firebase.firestore.GeoPoint(latitude,longitude)}).then((post)=>{
+                    geocollection.add({userReference:userReference,message:message,iconUrl:iconUrl,uid:uid,timestamp:firebase.firestore.FieldValue.serverTimestamp(),coordinates:new firebase.firestore.GeoPoint(latitude,longitude)}).then((post)=>{
                       firestore().collection('Users').doc(uid).update({
                         myPosts:firebase.firestore.FieldValue.arrayUnion(post._document),
                       }).then(()=>{console.log('yayyyy');resolve(post)});
                     });
                   })
                 }
-
                 createCouponGroup= async (uid,latitude,longitude,message,shopAddress,iconUrl,expirationDate,imageUrl,count,distance,storeAddress)=>
                 {
                 var couponList=[]
@@ -281,8 +280,9 @@ createUserHardCode=async(phone_number,email,username,password)=>{
               });
                 }
 getPostByReference =async(docRef)=>{
-                  var docSnapshot = docRef.get();
-                  return docSnapshot.data();
+  return new Promise((resolve)=>{
+                  var docSnapshot = docRef.get().then((snapshot)=>console.log(resolve(snapshot.data()),'zzzz'))
+                  })
 }
                 getPost=async (pid)=>
                 {
@@ -337,15 +337,21 @@ getPostByReference =async(docRef)=>{
                     var docRef = await firestore().collection('Posts').doc(couponId).get();
                   });
                 }
-                createHome=(uid,latitude,longitude,shopAddress,imageArray,iconUrl)=>
+                createBoardPost=async (uid,message,media,postId)=>
                 {
-                  const geocollection=GeoFirestore.collection('CentralNodes').doc(uid);
+                  const userReference=firestore().collection('Users').doc(uid.toString())
+                  const postReference=firestore().collection('Posts').doc(postId.toString())
+                  const boardpostcollection=firestore().collection('BoardPosts');
                   return new Promise((resolve)=>
                   {
-                    geocollection.set({op:uid,shopAddress:shopAddress,iconUrl:iconUrl,timestamp:firebase.firestore.FieldValue.serverTimestamp(),imageArray:imageArray,coordinates:new firebase.firestore.GeoPoint(latitude,longitude)}).then((post)=>{
-                      firestore().collection('Users').doc(uid).update({
-                        myStore:post._document,
-                      }).then(()=>{console.log('yayyyy');resolve(post)});
+                    boardpostcollection.add({userReference:userReference,message:message,uid:uid,timestamp:firebase.firestore.FieldValue.serverTimestamp(),media:media,postReference:postReference}).then((boardPost)=>{
+                      firestore().collection('Posts').doc(postId.toString()).update({
+                        boardPosts:firebase.firestore.FieldValue.arrayUnion(boardPost),
+                      }).then(()=>{console.log('yayyyyPostid');});
+                   firestore().collection('Users').doc(uid.toString()).update({
+                        myBoardPosts:firebase.firestore.FieldValue.arrayUnion(boardPost),
+                      }).then(()=>{console.log('yayyyy')});
+                      resolve(boardPost)
                     });
                   })
                 }

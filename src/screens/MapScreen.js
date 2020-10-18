@@ -33,7 +33,7 @@ function MapPage(props,{navigation}) {
   const [modalVisible,setModalVisible]=useState(false)
   const [postModalVisible,setPostModalVisible]=useState(false)
   const [postViewerInfo,setPostViewerInfo]=useStateWithCallbackLazy(false);
-  const [postCreatorInfo,setPostCreatorInfo]=useStateWithCallbackLazy({expirationDate:null,message:'',op:'',media:{path: 'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d',mime:'image/jpeg'},iconUrl:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d'});
+  const [postCreatorInfo,setPostCreatorInfo]=useStateWithCallbackLazy({expirationDate:null,message:'',op:'',media:{path: 'file:///storage/emulated/0/Android/data/com.gaialive/files/Pictures/fc6e1d81-41b4-4dec-af83-70c3663d6369.jpg',mime:'image/jpeg'},iconUrl:'file:///storage/emulated/0/Android/data/com.gaialive/files/Pictures/fc6e1d81-41b4-4dec-af83-70c3663d6369.jpg'});
   const [shownModal,setShownModal]=useState(null)
   const [myPosts,setMyPosts]=useStateWithCallbackLazy([])
   const mapViewRef=useRef(null);
@@ -42,6 +42,14 @@ function MapPage(props,{navigation}) {
  const mapRef = useRef(null);
   let postUnsub;
   let postUnsub2;
+  useEffect(()=>{
+      return ()=>{  if(postUnsub!=undefined)
+          {
+            postUnsub()
+            postUnsub=null;
+          }
+        }
+  })
 useEffect(()=>
 {
   mapRef.current.animateCamera(
@@ -78,7 +86,6 @@ useEffect(()=>
     {
       setDeviceHeading(props.deviceHeading)
     },[props.deviceHeading])
-
       useEffect(()=>
     {
       setCoordinates(props.coordinates)
@@ -90,21 +97,29 @@ useEffect(()=>
     {
       setMyPosts(props.myPosts)
     },[props.myPosts])
-
-const crtPost=(uid,latitude,longitude,message,iconUrl,media)=>
-  {
-    firebaseSDK.createPost(uid,latitude,longitude,message,iconUrl,media).then((post)=>{
-      var postId=post._document._documentPath._parts[1]
-      var remotePath='media/'+postId
-      var localPath=media.path.toString()
-      var collectionName='Posts'
-      var documentName=postId
+const createBoardPost=(uid,message,media,postId)=>
+{
+  console.log(uid,'sldkjfklsdj',media,'THISISIATEST')
+firebaseSDK.createBoardPost(uid,message,media,postId).then((boardPost)=>{
+      var boardPostId=boardPost._documentPath._parts[1]
+      var remotePath='media/'+boardPostId
+      var localPath=media.path
+      var collectionName='BoardPosts'
+      var documentName=boardPostId
       var field='media.path'
       firebaseSDK.addToStorage(remotePath,localPath,collectionName,documentName,field)
-      var remotePath='iconUrl/'+postId
+      setPostModalVisible(false)})
+}
+const crtPost= async (uid,latitude,longitude,message,iconUrl,media)=>
+  {
+    console.log(media,'wtf')
+    firebaseSDK.createPost(uid,latitude,longitude,message,iconUrl).then((post)=>{
+      var postId=post._document._documentPath._parts[1]
+  createBoardPost(uid.toString(),message,media,postId.toString())
+      var remotePath='iconUrl/'+postId.toString()
       var localPath=iconUrl.toString()
       var collectionName='Posts'
-      var documentName=postId
+      var documentName=postId.toString()
       var field='iconUrl'
       firebaseSDK.addToStorage(remotePath,localPath,collectionName,documentName,field)
       closePostCreatorModal()})
@@ -113,7 +128,7 @@ const crtPost=(uid,latitude,longitude,message,iconUrl,media)=>
     {
     var postObject={}
     postObject=postCreatorInfo;
-    setPostCreatorInfo({latitude:lat,longitude:long,expirationDate:null,message:'',op:'',media:{path: 'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d',mime:'image/jpeg'},iconUrl:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d'}
+    setPostCreatorInfo({latitude:lat,longitude:long,expirationDate:null,message:'',op:'',media:{path: 'file:///storage/emulated/0/Android/data/com.gaialive/files/Pictures/fc6e1d81-41b4-4dec-af83-70c3663d6369.jpg',mime:'image/jpeg'},iconUrl:'file:///storage/emulated/0/Android/data/com.gaialive/files/Pictures/fc6e1d81-41b4-4dec-af83-70c3663d6369.jpg'}
 ,()=>{console.log('jk');setPostModalVisible(true)})
       }
       const createPost=(point)=>
@@ -147,7 +162,7 @@ console.log('zzz')
           {
             if (Utility.getDistanceFromLatLonInm(circleCenters[i].latitude,circleCenters[i].longitude,coordinates.latitude,coordinates.longitude)<7)
             {
-                  firebaseSDK.getPost(circleCenters[i].id).then((postObject)=>{var postObj=postObject.data(); console.log(postObj); postObj.postId=circleCenters[i].id;
+                  getPostUnsub=firestore().collection('Posts').doc(circleCenters[i].id).onSnapshot((postObject)=>{var postObj=postObject.data(); console.log(postObj,'CHANGESSSSSSSS'); postObj.postId=circleCenters[i].id;
                   setPostViewerInfo(postObj, ()=>{setModalVisible(true)})
                 })
               break;
@@ -181,6 +196,11 @@ console.log('zzz')
         }
         const closePostViewerModal=()=>
         {
+          if(postUnsub!=undefined)
+          {
+            postUnsub()
+            postUnsub=null;
+          }
           setModalVisible(!modalVisible);
         }
         return (

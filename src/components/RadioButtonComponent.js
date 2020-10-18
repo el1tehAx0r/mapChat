@@ -19,7 +19,6 @@ class RadioButtonComponent extends React.Component {
 	_renderRadioBtn() {
 		let { example } = this.state;
 		if (example === 1) {
-        this.props.sortByDate()
 		}
 		else if (example === 2) {
       this.props.sortByLikes()
@@ -37,7 +36,7 @@ class RadioButtonComponent extends React.Component {
 					<TouchableOpacity
 						activeOpacity={1}
 						style={{ ...styles.openButton,  backgroundColor: example === 1 ? '#ccc' : '#fff' }}
-						onPress={() => this.setState({ example: 1 })}
+						onPress={() =>{this.props.sortByDate();this.setState({ example: 1 })}}
 					>
 						<Text>
             By Date
@@ -47,17 +46,15 @@ class RadioButtonComponent extends React.Component {
 					<TouchableOpacity
 						activeOpacity={1}
 						style={{ ...styles.openButton,  backgroundColor: example === 2 ? '#ccc' : '#fff' }}
-						onPress={() => this.setState({ example: 2 })}
-					>
+						onPress={() =>{ this.props.sortByLikes(); this.setState({ example: 2 })}}>
 						<Text>
             By Likes
 						</Text>
 					</TouchableOpacity>
-
 					<TouchableOpacity
 						activeOpacity={1}
 						style={{ ...styles.openButton,  backgroundColor: example === 3 ? '#ccc' : '#fff' }}
-						onPress={() => this.setState({ example: 3 })}
+						onPress={() =>{this.props.sortByFeaturedPosts();this.setState({ example: 3 })}}
 					>
 						<Text>
             View OP Post

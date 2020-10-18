@@ -60,7 +60,7 @@ props.videoFromLibraryPressed()
 
             <TouchableHighlight
               style={{ ...styles.openButton  }}
-              onPress={() => {props.setDialogVisible(false);}}
+              onPress={() => {props.setDialogVisible();}}
             >
               <Text style={styles.textStyle}>Cancel</Text>
             </TouchableHighlight>

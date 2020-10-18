@@ -1,14 +1,12 @@
 import * as React from 'react';
+import VideoPlaybackComponent from './VideoPlaybackComponent'
 import {
-  Text,
+  Text,Image,
   View,
   SafeAreaView } from 'react-native';
-
+  import styles from '../StyleSheet'
 import Carousel from 'react-native-snap-carousel';
-
 export default class CarouselComponent extends React.Component {
-
-
     constructor(props){
         super(props);
         this.state = {
@@ -38,35 +36,48 @@ export default class CarouselComponent extends React.Component {
       }
     }
 componentDidMount(){
-  if (this.props.posts!=null)
+  if (this.props.boardPosts!=null)
   {
-    console.log(this.props.posts)
+    console.log(this.props.boardPosts)
+    console.log(this.props.boardPosts.length,'sjdlkjslpenisPENISZZZZZZZZZZZZ')
   }
 }
-
+componentDidUpdate(prevProps) {
+  // Typical usage (don't forget to compare props):
+  console.log(this.props.boardPosts.length,'YAYAYY')
+  console.log(prevProps.boardPosts.length,'OMG')
+  if (this.props.boardPosts!== prevProps.boardPost) {
+    //this.fetchData(this.props.userID);
+  }
+}
     _renderItem({item,index}){
         return (
-
-          <View style={{
-              backgroundColor:'floralwhite',
+          <View style={{backgroundColor:'floralwhite',
               borderRadius: 5,
-              height: 250,
-              padding: 50,
-              marginLeft: 25,
-              marginRight: 25, }}>
-            <Text style={{fontSize: 30}}>{item.title}</Text>
-            <Text>{item.text}</Text>
+              padding: 50}}>
+{item.media.mime=="image/jpeg"||item.media.mime=="image/png"?
+   <Image
+     style={{
+       paddingVertical: 30,
+       width: styles.width/1.8,
+       height: styles.height/1.8}}
+     resizeMode='cover'
+     source={{
+       uri:item.media.path}}
+   />
+   :
+   <VideoPlaybackComponent
+    videoSource={item.media.path}/>
+}
           </View>
-
         )
     }
-
     render() {
         return (
                 <Carousel
                   layout={"default"}
                   ref={ref => this.carousel = ref}
-                  data={this.state.carouselItems}
+                  data={this.props.boardPosts}
                   sliderWidth={300}
                   itemWidth={300}
                   renderItem={this._renderItem}

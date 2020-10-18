@@ -16,7 +16,6 @@ import VideoPlaybackComponent from './VideoPlaybackComponent'
 import ModalContainer from './ModalContainer'
 import VideoProcessor from './VideoProcessor'
 import { ProcessingManager } from 'react-native-video-processing';
-import BoardPostCreator from './BoardPostCreator'
 import firebaseSDK from '../config/FirebaseSDK'
 import styles from '../StyleSheet';
 const PostCreator= (props) => {
@@ -24,12 +23,12 @@ const [postType,setPostType]=useState('');
   const [shopAddress,setShopAddress]=useState(props.postCreatorInfo.shopAddress);
   const [customDialogVisible,setCustomDialogVisible]=useState(false);
   const [message,setMessage]=useState(props.postCreatorInfo.message);
-  const [iconUrl,setIconUrl]=useState('https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/iconUrl%2F0J2xo0x0BDesWW0mrpEp?alt=media&token=06941aa1-0746-4308-a4d2-9b752b3b534a')
+  const [iconUrl,setIconUrl]=useState(props.postCreatorInfo.iconUrl);
   const [expirationDay,setExpirationDay]=useState(null);
   const [expirationDate,setExpirationDate]=useState(props.postCreatorInfo.expirationDate);
   const [expirationTime,setExpirationTime]=useState(null);
   //const [imageUrl,setImageUrl]=useState(props.postCreatorInfo.imageUrl);
-  const [media,setMedia]=useState({path: 'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d',mime:'image/jpeg'})
+  const [media,setMedia]=useState(props.postCreatorInfo.media)
   const [iconPickerVisible,setIconPickerVisible]=useState(false)
   const [timePicker,setTimePicker]=useState(null)
   const videoRef= useRef(null);
@@ -67,6 +66,29 @@ props.closePostCreatorModal()
 const onPressImageUrl=()=>
 {
 setCustomDialogVisible(true)
+}
+const photoEdit=(image)=>
+{
+PhotoEditor.Edit({
+  onDone:(result)=>{
+    setMedia(image)
+    setIconUrl(image.path)
+  setCustomDialogVisible(false)
+  },
+    path:  image.path.replace('file:///',"")
+});
+}
+useEffect(()=>{
+  console.log(props.myHome)
+},[])
+  const idk= () => {
+ImagePicker.openCamera({
+  width: 300,
+  height: 200,
+  cropping: true
+}).then(image => {console.log(image)
+  setImageUrl(image.path)
+});
 }
 const showTimePicker =()=>
 {
@@ -134,9 +156,11 @@ const setFinalButtons=()=>
 }
 
 }
-const createPost=(uid,message,media)=>
+
+
+const createPost=()=>
 {
-  console.log(media,'test123')
+
   props.createPost(props.uid,props.postCreatorInfo.latitude,props.postCreatorInfo.longitude,message,iconUrl,media)
 }
 
@@ -180,6 +204,21 @@ ImagePicker.openCamera({
   cropping: true
 }).then((result)=>{console.log(result);photoEdit(result)})
   }
+const changeMediaPath= (value, type,value2,type2) => {
+    let qty = { ... media}; // make a copy
+    qty[type] = value;
+    qty[type2] = value2;
+    setMedia(qty);
+};
+  const photoFromLibraryPressed=()=>
+  {
+ImagePicker.openPicker({
+  width:styles.width/1.5,
+  height: styles.height/1.5,
+  cropping: true
+}).then((result)=>{photoEdit(result)});
+  }
+
   const videoFromCameraPressed=()=>
   {
     console.log('ummm')
@@ -188,7 +227,44 @@ start()
   const closeIconPicker=()=>{
     setIconPickerVisible(false)
   }
+  const videoFromLibraryPressed=async ()=>
+  {
+ImagePicker.openPicker({
+  cropping:false,
+  mediaType: "video",
+}).then((data) => {
+  console.log(data,'originalsdata')
+  setMedia({mime:'video/mp4',path:data.path});
 
+      const maximumSize = { width: 300, height: 300 };
+    ProcessingManager.getPreviewForSecond(data.path,0, maximumSize,'JPEG')
+      .then((image) =>{
+  setIconUrl(image.uri)
+      })
+/*const videoprocess=new VideoProcessor()
+videoprocess.compressVideo(data.path).then((compressedData)=>{setMedia({mime:'video/mp4',path:compressedData});
+console.log(compressedData,'ZZZZZZZZ')})*/
+});
+  }
+  const start = () => {
+    console.log('ljskldjf')
+    videoRef.current.open({ maxLength: 30 },(data) => {
+  console.log(data,'originalsdata')
+      data.path=data.uri
+  setMedia({mime:'video/mp4',path:data.uri});
+      const maximumSize = { width: 300, height: 300 };
+    ProcessingManager.getPreviewForSecond(data.path,0, maximumSize,'JPEG')
+      .then((image) =>{
+  setIconUrl(image.uri)
+      })
+/*const videoprocess=new VideoProcessor()
+videoprocess.compressVideo(data.path).then((compressedData)=>{setMedia({mime:'video/mp4',path:compressedData});
+console.log(compressedData,'zzzzz')}
+)*/
+      //setMedia(data)
+    },(err)=>{console.log(err)});
+
+}
 const setIcon=(iconUrl)=>
 {
   setIconUrl(iconUrl)
@@ -198,8 +274,38 @@ const setIcon=(iconUrl)=>
     <Modal visible={iconPickerVisible}>
     <IconSelectPage setIcon={setIcon} closeIconPicker={closeIconPicker} videoSource={media.path}/>
     </Modal>
-        <BoardPostCreator uid={props.uid} postViewerInfo={props.postViewerInfo} createBoardPost={createPost} closeBoardPostCreatorModal={cancelPressed} mediaChanged={(media)=>{setMedia(media);setIconUrl(media.path)}}>
-<View style={{paddingTop:10, flexDirection:'column'}}>
+
+<CustomDialog setDialogVisible={setDialogVisible} photoFromCameraPressed={photoFromCameraPressed} photoFromLibraryPressed={photoFromLibraryPressed} videoFromCameraPressed={videoFromCameraPressed} videoFromLibraryPressed={videoFromLibraryPressed} modalVisible={customDialogVisible} />
+
+      <VideoRecorder ref={videoRef} />
+      <TextInput
+        style={{ height: 35, borderColor: 'gray', borderWidth: 1 }}
+        placeholder="Add A Message"
+        onChangeText={message=> setMessage(message)}
+        defaultValue={props.postCreatorInfo.message}
+      />
+{media.mime=="image/jpeg"||media.mime=="image/png"||iconPickerVisible?
+
+<TouchableHighlight onPress={onPressImageUrl}>
+   <Image
+     style={{
+       paddingVertical: 30,
+       width: styles.width/1.5,
+       height: styles.height/1.5}}
+     resizeMode='cover'
+     source={{
+       uri:media.path     }}
+   />
+   </TouchableHighlight>
+   :
+
+   <VideoPlaybackComponent
+    videoSource={media.path}/>
+
+}
+
+<Text>Press to Change Image</Text>
+<View style={{paddingTop:10, flexDirection:'row'}}>
 <TouchableHighlight onPress={media.mime=='image/jpeg'||media.mime=='image/png'? onPressIconUrl: onPressIconUrlVideo}>
    <Image
      style={{
@@ -214,9 +320,15 @@ const setIcon=(iconUrl)=>
      }}
    />
 </TouchableHighlight>
+            <TouchableHighlight
+              style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
+              onPress={cancelPressed}>
+              <Text style={styles.textStyle}>Cancel</Text>
+            </TouchableHighlight>
+            {setFinalButtons()}
             </View>
-        </BoardPostCreator>
 
+<Text>Press to crop map Icon</Text>
     </View>
   );
 }
