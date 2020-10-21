@@ -7,7 +7,43 @@ const PIN_STRIP_HEIGHT='20%';
 const PIN_STRIP_HEIGHT_PIXELS=0.35*height;
 const PIN_STRIP_WIDTH='12%';
 const MARKER_SIZE=width*0.1;
+
+const draggableGridStyles = StyleSheet.create({
+  button:{
+    width:150,
+    height:100,
+    backgroundColor:'blue',
+  },
+  wrapper:{
+    paddingTop:30,
+    width:'100%',
+    height:'100%',
+    justifyContent:'center',
+  },
+  item:{
+    width:100,
+    height:100,
+    borderRadius:8,
+    backgroundColor:'red',
+    justifyContent:'center',
+    alignItems:'center',
+  },
+  item_text:{
+    fontSize:40,
+    color:'#FFFFFF',
+  },
+});
 const styles=StyleSheet.create({
+   input: {
+    width:200,
+    borderBottomColor:'red',
+    borderBottomWidth:1,
+},
+  separator: {
+    marginVertical: 8,
+    borderBottomColor: '#737373',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
   rowView:{flexDirection:'column'},
   width:width,
   height:height,
@@ -132,4 +168,5 @@ bottomBorder:
     textAlign: "center"
   }
 })
+export {draggableGridStyles}
 export default styles;

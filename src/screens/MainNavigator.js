@@ -9,6 +9,7 @@ import auth from '@react-native-firebase/auth';
  import firebase from '@react-native-firebase/app';
  import firebaseSDK from '../config/FirebaseSDK';
 import RNDeviceHeading from 'react-native-device-heading'
+import StorePage from './StoreScreen'
 import Geolocation from '@react-native-community/geolocation';
 import * as geofirestore from 'geofirestore';
 const GeoFirestore=geofirestore.initializeApp(firestore());
@@ -70,7 +71,6 @@ function MainNavigator({route, navigation}) {
     }
     function getUserPosts()
     {
-
       postUnsub= firestore()
       .collection('Users')
       .doc(user.uid).onSnapshot(documentSnapshot => {
@@ -157,8 +157,15 @@ firebaseSDK.getCurrentUserInfo().then((user)=>{setUserInfo(user);
     name="Map"
        children={()=><MapPage navigation={navigation} deviceHeading={deviceHeading} coordinates={coordinates} activatedCoupons={activatedCoupons} circleCenters={circleCenters} claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid} />}/>
     <Tab.Screen
-    name="ProfilePage"
+    name="Profile Page"
     children={()=><ProfilePage myHome={myHome} claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid}/>}/>
+    <Tab.Screen
+    name="Coupon Page"
+    children={()=><CouponPage claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid}/>}/>
+    <Tab.Screen
+    name="Store Page"
+    children={()=><StorePage uid={user.uid}/>}
+    />
     </Tab.Navigator>
   );
 }

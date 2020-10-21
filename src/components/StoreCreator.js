@@ -19,7 +19,7 @@ import { ProcessingManager } from 'react-native-video-processing';
 import BoardPostCreator from './BoardPostCreator'
 import firebaseSDK from '../config/FirebaseSDK'
 import styles from '../StyleSheet';
-const PostCreator= (props) => {
+const StoreCreator= (props) => {
 const [postType,setPostType]=useState('');
   const [shopAddress,setShopAddress]=useState(props.postCreatorInfo.shopAddress);
   const [customDialogVisible,setCustomDialogVisible]=useState(false);
@@ -231,4 +231,4 @@ const setIcon=(iconUrl)=>
     </View>
   );
 }
-export default PostCreator;
+export default StoreCreator;

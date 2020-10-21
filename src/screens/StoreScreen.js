@@ -5,12 +5,14 @@ import {DisplayName }from '../components/DisplayName.js'
 import ChatScreen from './ChatScreen.js'
  import PhotoUpload from 'react-native-photo-upload'
  import ImagePicker from 'react-native-image-crop-picker';
- import PP from '../components/ProfilePic.js'
+ import StoreProfilePic from '../components/StoreProfilePic'
  import {GetUserInfo} from '../components/UserInfo.js'
  import MapPage from './MapScreen.js';
+import DraggableGridComponent from '../components/DraggableGrid'
  import TabBar from "@mindinventory/react-native-tab-bar-interaction";
  import CouponContainerComponent from '../components/CouponContainerComponent';
- import HomeCreator from '../components/HomeCreator';
+ import ModalContainer from '../components/ModalContainer'
+ import BoardPostCreator from '../components/BoardPostCreator.js'
  import storage from '@react-native-firebase/storage';
  import firestore from '@react-native-firebase/firestore';
  import firebase from '@react-native-firebase/app';
@@ -28,17 +30,20 @@ const Separator = () => (
   <View style={styles.separator} />
 );
 //Geolocation.getCurrentPosition(info => console.log(info));
-function ProfilePage(props,{navigation}) {
+function StorePage(props,{navigation}) {
   // Set an initializing state whilst Firebase connects
   const [displayName,setDisplayName]=useState('userName');
   const [profilePic,setProfilePic]=useState('https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/iconUrl%2F4xIN27RXy3bFf8kbIv6W?alt=media&token=58db0a7f-9f54-4afa-8e01-dac307774cdc');
   const [profilePicWidth,setProfilePicWidth]=useState(150);
   const [albumGrid,setAlbumGrid]=useState([]);
   const [profilePicHeight,setProfilePicHeight]=useState(150);
+  const [modalVisible, setModalVisible]=useState(false);
   const [userInfo,setUserInfo]=useState({})
   const [myPosts,setMyPosts]=useState([])
   const [change,setChange]=useState(false)
+  const [showSaveState,setShowSaveState]=useState(false);
   const [claimedCoupons,setClaimedCoupons]=useState([])
+  const [gridData,setGridData]=useState([])
   const requestCameraPermission = async () => {
   try {
     const granted = await PermissionsAndroid.request(
@@ -62,7 +67,7 @@ function ProfilePage(props,{navigation}) {
     console.warn(err);
   }
 };
-  const onPPPress = (width,height,path) => {
+  const onPress= (width,height,path) => {
   setProfilePicWidth(width);
   setProfilePicHeight(height);
   var remotePath='profilePics/'+displayName
@@ -116,6 +121,23 @@ firebaseSDK.getCurrentUserInfo().then((user)=>{setDisplayName(user.displayName);
   }
 });
 }
+const createPost=(uid,message,media)=>
+{
+
+const savedState= gridData.map((data) => {
+  return data;
+  }
+)
+var keyLen=(savedState.length+1).toString()
+  savedState.push({media:media,key:keyLen,message:message})
+setGridData(savedState)
+  setShowSaveState(true);
+  setModalVisible(false);
+ }
+const cancelPressed=()=>
+{
+  setModalVisible(false)
+}
 useEffect(()=>{
 })
   useEffect(() => {
@@ -129,46 +151,48 @@ useEffect(()=>{
   useEffect(() => {
     setMyPosts(props.myPosts)
   }, [props.myPosts])
-const signOut=()=>
-{
-  auth()
-  .signOut()
-  .then(() => console.log('User signed out!'));
-}
   return (
     <>
     <ScrollView>
     <View style={{flex:1,flexDirection:'column'}}>
          <View style={styles.bottomBorder}>
-        <View style={{flex:1, flexDirection:'column'}}>
-        <DisplayName defaultValue={displayName} onChangeText={onChangeText}/>
+        <View style={{flex:1,marginTop:10, flexDirection:'column',alignItems:'center',}}>
+        <StoreProfilePic onPress={onPress} profilePic={profilePic}/>
         </View>
         <View style={{flex:2,flexDirection:'column' }}>
+        <DisplayName defaultValue={displayName} onChangeText={onChangeText}/>
          <TextInput
             style={styles.input}
             value={'profile description'}
             onChangeText={text=>{}}
             multiline={true}
             underlineColorAndroid='transparent'/>
-{/*<Button title="signout" onPress={signOut}></Button>*/}
         </View>
          </View>
+    <DraggableGridComponent gridData={gridData}/>
          <Separator/>
-        <View style={{flex:5}}>
-        {/*<HomeCreator myHome={props.myHome} uid={props.uid}/>*/}
-        </View>
     </View>
     </ScrollView>
+          <ModalContainer modalVisible={modalVisible}>
+        <BoardPostCreator uid={props.uid} createBoardPost={createPost} closeBoardPostCreatorModal={cancelPressed} mediaChanged={(media)=>{}}/>
+            </ModalContainer>
 <View style={{justifyContent:'center',flexDirection:'row'}}>
             <TouchableHighlight
-              style={{ ...styles.addButton, backgroundColor: "#2196F3" }}
+              style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
               onPress={()=>setModalVisible(!modalVisible)}>
-              <Text style={styles.textStyle}>+</Text>
+              <Text style={styles.textStyle}>Add to Store </Text>
             </TouchableHighlight>
-            </View></>
+
+{showSaveState?   <TouchableHighlight
+              style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
+              onPress={()=>setModalVisible(!modalVisible)}>
+              <Text style={styles.textStyle}>Save State</Text>
+            </TouchableHighlight>:null}
+            </View>
+            </>
   );
 }
-export default ProfilePage;
+export default StorePage;
 /*const styles=StyleSheet.create({
   container: {
    ...StyleSheet.absoluteFillObject,

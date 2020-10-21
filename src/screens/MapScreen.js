@@ -157,7 +157,6 @@ console.log('zzz')
         const mapViewPressed=(coordinates)=>
         {
           console.log(myPosts,'tHESE MYPSOIDS')
-
           for (var i in circleCenters)
           {
             if (Utility.getDistanceFromLatLonInm(circleCenters[i].latitude,circleCenters[i].longitude,coordinates.latitude,coordinates.longitude)<7)

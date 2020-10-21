@@ -10,17 +10,18 @@ import ChatScreen from './ChatScreen.js'
  import MapPage from './MapScreen.js';
  import TabBar from "@mindinventory/react-native-tab-bar-interaction";
  import CouponContainerComponent from '../components/CouponContainerComponent';
+ import styles from '../StyleSheet';
  import storage from '@react-native-firebase/storage';
  import firestore from '@react-native-firebase/firestore';
  import firebase from '@react-native-firebase/app';
  import firebaseSDK from '../config/FirebaseSDK';
+
  import {
   TextField,
   FilledTextField,
   OutlinedTextField2,
 } from 'react-native-material-textfield';
 import Geolocation from '@react-native-community/geolocation';
-
 const Separator = () => (
   <View style={styles.separator} />
 );
@@ -86,12 +87,19 @@ const signOut=()=>
         <View style={{flex:5,}}>
         {<CouponContainerComponent activatedCoupons={props.activatedCoupons} sortFilter={sortFilter} key={props.uid} uid={props.uid} coupons={claimedCoupons}/>}
         </View>
+<View style={{justifyContent:'center',flexDirection:'row'}}>
+            <TouchableHighlight
+              style={{ ...styles.addButton, backgroundColor: "#2196F3" }}
+              onPress={()=>setModalVisible(!modalVisible)}>
+              <Text style={styles.textStyle}>+</Text>
+            </TouchableHighlight>
+            </View>
     </View>
   );
 }
 
 export default CouponPage;
-const styles=StyleSheet.create({
+/*const styles=StyleSheet.create({
   container: {
    ...StyleSheet.absoluteFillObject,
    height: 400,

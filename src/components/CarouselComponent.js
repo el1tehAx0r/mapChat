@@ -4,8 +4,40 @@ import {
   Text,Image,
   View,
   SafeAreaView } from 'react-native';
+import VideoPlayer from 'react-native-video-player';
   import styles from '../StyleSheet'
 import Carousel from 'react-native-snap-carousel';
+class MyListItem extends React.PureComponent {
+  render() {
+    return (
+          <View style={{backgroundColor:'floralwhite',
+              borderRadius: 5,
+              padding: 50}}>
+{this.props.media.mime=="image/jpeg"||this.props.media.mime=="image/png"?
+   <Image
+     style={{
+       paddingVertical: 30,
+       width: styles.width/1.8,
+       height: styles.height/1.8}}
+     resizeMode='cover'
+     source={{
+       uri:this.props.media.path}}
+   />
+   :
+
+          <VideoPlayer
+ ref={this.videoRef}
+    video={{ uri:this.props.media.path  }}
+    videoWidth={700}
+    autoplay={true}
+    videoHeight={500}
+    thumbnail={{ uri:'https://www.google.com/url?sa=i&url=http%3A%2F%2Fpickatime.com%2F&psig=AOvVaw2iV63QwHmyugVaEEE3fMIH&ust=1602702549158000&source=images&cd=vfe&ved=2ahUKEwjI0aCyorLsAhUB0awKHUcwCNoQr4kDegUIARCmAQ' }}
+/>
+}
+          </View>
+    )
+  }
+}
 export default class CarouselComponent extends React.Component {
     constructor(props){
         super(props);
@@ -44,32 +76,15 @@ componentDidMount(){
 }
 componentDidUpdate(prevProps) {
   // Typical usage (don't forget to compare props):
-  console.log(this.props.boardPosts.length,'YAYAYY')
-  console.log(prevProps.boardPosts.length,'OMG')
-  if (this.props.boardPosts!== prevProps.boardPost) {
+//  console.log(this.props.boardPosts.length,'YAYAYY')
+ // console.log(prevProps.boardPosts.length,'OMG')
+/*  if (this.props.boardPosts!== prevProps.boardPost) {
     //this.fetchData(this.props.userID);
-  }
+  }*/
 }
     _renderItem({item,index}){
         return (
-          <View style={{backgroundColor:'floralwhite',
-              borderRadius: 5,
-              padding: 50}}>
-{item.media.mime=="image/jpeg"||item.media.mime=="image/png"?
-   <Image
-     style={{
-       paddingVertical: 30,
-       width: styles.width/1.8,
-       height: styles.height/1.8}}
-     resizeMode='cover'
-     source={{
-       uri:item.media.path}}
-   />
-   :
-   <VideoPlaybackComponent
-    videoSource={item.media.path}/>
-}
-          </View>
+          <MyListItem media={item.media}/>
         )
     }
     render() {

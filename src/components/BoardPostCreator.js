@@ -22,7 +22,7 @@ const BoardPostCreator= (props) => {
 const [postType,setPostType]=useState('');
   const [customDialogVisible,setCustomDialogVisible]=useState(false);
   const [message,setMessage]=useState('')
-  const [media,setMedia]=useState({path: 'file:///storage/emulated/0/Android/data/com.gaialive/files/Pictures/fc6e1d81-41b4-4dec-af83-70c3663d6369.jpg',mime:'image/jpeg'})
+  const [media,setMedia]=useState({path:'file:///storage/emulated/0/Android/data/com.gaialive/files/Pictures/fc6e1d81-41b4-4dec-af83-70c3663d6369.jpg',mime:'image/jpeg'})
   const videoRef= useRef(null);
 const combineDateAndTime = function(date, time) {
     var timeString = time.getHours() + ':' + time.getMinutes() + ':00';
@@ -143,13 +143,12 @@ console.log(compressedData,'zzzzz')}
        height: styles.height/1.8}}
      resizeMode='cover'
      source={{
-       uri:media.path     }}
+       uri:media.path}}
    />
    :
    <VideoPlaybackComponent
     videoSource={media.path}/>
 }
-
    </TouchableHighlight>
 <Text>Press to Change Image</Text>
 <View style={{paddingTop:10, flexDirection:'row'}}>

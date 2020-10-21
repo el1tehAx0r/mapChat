@@ -16,7 +16,7 @@ import RadioButtonComponent from './RadioButtonComponent'
 import BoardPostCreator from './BoardPostCreator'
 const PostViewer= (props) => {
 const [boardPosts,setBoardPosts]=useState([]);
-const [selectedFilter,setSelectedFilter]=useState(null);
+const [selectedFilter,setSelectedFilter]=useState('byDate');
 const [modalVisible,setModalVisible]=useState(false)
 const [featuredPosts,setFeaturedPosts]=useState([])
 const getSnapShotData=async ()=>
@@ -28,8 +28,10 @@ var tempReferenceList=[]
   const snapshotData=await firebaseSDK.getPostByReference(docReference)
   tempReferenceList.push(snapshotData);
 }))
-
+if(selectedFilter=="byDate")
+{
   setBoardPosts(tempReferenceList)
+}
 }
 catch{}
 try{
@@ -39,17 +41,11 @@ var tempReferenceList1=[]
   const snapshotData1=await firebaseSDK.getPostByReference(docReference)
   tempReferenceList1.push(snapshotData1);
 }))
-  setFeaturedPosts(tempReferenceList1)
+if(selectedFilter=="featuredPosts")
+  {setBoardPosts(tempReferenceList1)}
 }
 catch{}
 }
-useEffect(()=>{
-console.log(boardPosts.length,'WORKKDD')
-},[boardPosts])
-
-useEffect(()=>{
-
-},[featuredPosts])
 useEffect(()=>{
 getSnapShotData()
 return () => {
@@ -62,13 +58,10 @@ const getPostData=async (docReference)=>
   await firebaseSDK.getPostByReference(docReference)
 }
 const sortByDate=()=>{
-setSelectedFilter(<CarouselComponent  boardPosts={boardPosts}/>)
 }
 const sortByLikes=()=>{
-setSelectedFilter(<CarouselComponent  boardPosts={boardPosts}/>)
 }
 const sortByFeaturedPosts=()=>{
-setSelectedFilter(<CarouselComponent boardPosts={featuredPosts}/>)
 }
 const cancelPressed=()=>
 {
@@ -101,7 +94,7 @@ firebaseSDK.createBoardPost(uid,message,media,props.postViewerInfo.postId).then(
               onPress={cancelPressed}>
               <Text style={styles.xTextStyle}>X</Text>
             </TouchableHighlight>
-<RadioButtonComponent sortByDate={sortByDate} sortByLikes={sortByLikes} sortByFeaturedPosts={sortByFeaturedPosts}/>
+<RadioButtonComponent sortByDate={()=>{setSelectedFilter('byDate')}} sortByLikes={()=>setSelectedFilter('byLikes')} sortByFeaturedPosts={()=>setSelectedFilter('featuredPosts')}/>
             <ScrollView>
       <Text style={{ height: 35 }}>
       {props.postViewerInfo.message}

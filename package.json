@@ -45,6 +45,8 @@
     "react-native-datepicker": "^1.7.2",
     "react-native-device-heading": "^1.1.0",
     "react-native-draggable": "^3.3.0",
+    "react-native-draggable-grid": "^2.1.2",
+    "react-native-draggable-gridview": "^1.0.3",
     "react-native-dropdown-picker": "^3.6.8",
     "react-native-dynamic-vector-icons": "^1.0.0",
     "react-native-easy-grid": "^0.2.2",
