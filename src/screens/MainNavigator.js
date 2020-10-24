@@ -20,11 +20,12 @@ function MainNavigator({route, navigation}) {
   const [claimedCoupons,setClaimedCoupons]=useState([])
   const [coordinates,setCoordinates]=useState({latitude:5,longitude:5})
   const [myPosts,setMyPosts]=useState([])
-  const [myHome,setMyHome]=useState({})
   const [circleCenters,setCircleCenters]=useState([])
   const [activatedCoupons,setActivatedCoupons]=useState([])
   const [deviceHeading,setDeviceHeading]=useState(1);
   const [watchId,setWatchId]=useState(null)
+  const [myStore,setMyStore]=useState(null)
+  const [storeId,setStoreId]=useState(null)
   let postUnsub;
   let postUnsub1;
   const updateSelfLocation=()=>
@@ -74,14 +75,6 @@ function MainNavigator({route, navigation}) {
       postUnsub= firestore()
       .collection('Users')
       .doc(user.uid).onSnapshot(documentSnapshot => {
-
-        /*try{
-          await Promise.all(documentSnapshot.data().myPosts.map(async (post, index)=>{
-            var postSnapshot= await post.get()
-          return postSnapshot.data()
-        })).then((data)=>setMyPosts(data))
-        }
-        catch{}*/
         try{
           var userPosts=documentSnapshot.data().myPosts.map((post, index)=>{
             return post._documentPath._parts[1]
@@ -98,14 +91,6 @@ function MainNavigator({route, navigation}) {
         catch{
           console.log('didntwork')
         }
-
-        try{
-          setMyHome(documentSnapshot.data().storeGallery)
-        }
-        catch{
-          console.log('didntwork')
-        }
-
         try{
           var userActivatedCoupons=documentSnapshot.data().activatedCoupons.map((post, index)=>{
           return {postId:post.couponId,timeStamp:post.timeStamp}
@@ -120,6 +105,12 @@ function MainNavigator({route, navigation}) {
             return(post._documentPath._parts[1])
           })
           setClaimedCoupons(userClaimedCoupons)
+        }
+        catch{
+          console.log('didntwork')
+        }
+        try{
+          var userStore=documentSnapshot.data().myStorePosts.get().then((documentSnapshot)=>{console.log(documentSnapshot.data());setMyStore(documentSnapshot.data())})
         }
         catch{
           console.log('didntwork')
@@ -155,16 +146,16 @@ firebaseSDK.getCurrentUserInfo().then((user)=>{setUserInfo(user);
 <Tab.Navigator swipeEnabled={false}>
     <Tab.Screen
     name="Map"
-       children={()=><MapPage navigation={navigation} deviceHeading={deviceHeading} coordinates={coordinates} activatedCoupons={activatedCoupons} circleCenters={circleCenters} claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid} />}/>
+       children={()=><MapPage storeId={storeId} navigation={navigation} deviceHeading={deviceHeading} coordinates={coordinates} activatedCoupons={activatedCoupons} circleCenters={circleCenters} claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid} />}/>
     <Tab.Screen
     name="Profile Page"
-    children={()=><ProfilePage myHome={myHome} claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid}/>}/>
+    children={()=><ProfilePage claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid}/>}/>
     <Tab.Screen
     name="Coupon Page"
     children={()=><CouponPage claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid}/>}/>
     <Tab.Screen
     name="Store Page"
-    children={()=><StorePage uid={user.uid}/>}
+    children={()=><StorePage storeId={storeId} myStore={myStore} uid={user.uid}/>}
     />
     </Tab.Navigator>
   );

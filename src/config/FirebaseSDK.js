@@ -3,7 +3,7 @@ import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import * as geofirestore from 'geofirestore';
 import Geolocation from '@react-native-community/geolocation';
- import storage from '@react-native-firebase/storage';
+import storage from '@react-native-firebase/storage';
 const GeoFirestore=geofirestore.initializeApp(firestore());
 class FirebaseSDK {
   constructor() {
@@ -12,32 +12,32 @@ class FirebaseSDK {
   login = async (email,password) => {
     return new Promise((resolve)=>
     {
-    auth()
-    .signInWithEmailAndPassword(email, password)
-    .then(() => {
-      console.log('User account created & signed in!');
-      resolve(true)
-    })
-    .catch(error => {
-      if (error.code === 'auth/email-already-in-use') {
-        console.log('That email address is already in use!');
-      }
+      auth()
+      .signInWithEmailAndPassword(email, password)
+      .then(() => {
+        console.log('User account created & signed in!');
+        resolve(true)
+      })
+      .catch(error => {
+        if (error.code === 'auth/email-already-in-use') {
+          console.log('That email address is already in use!');
+        }
 
-      if (error.code === 'auth/invalid-email') {
-        console.log('That email address is invalid!');
-      }
-      resolve(false)
-      console.error(error);
-    });
-  })
+        if (error.code === 'auth/invalid-email') {
+          console.log('That email address is invalid!');
+        }
+        resolve(false)
+        console.error(error);
+      });
+    })
   };
   userExist=async(email,username) =>{
     var doesUsernameExist=await this.variableExist('Users','displayName',username);
     var doesEmailExist= await this.variableExist('Users','email',email);
     if(!doesUsernameExist){
-        if(!doesEmailExist){
-          return false
-        }
+      if(!doesEmailExist){
+        return false
+      }
     }
     return true
   }
@@ -63,7 +63,7 @@ class FirebaseSDK {
       if (user) {
         geocollection.doc(user.uid).set({
           displayName: username,
-        coordinates:new firebase.firestore.GeoPoint(2.5,2.3),
+          coordinates:new firebase.firestore.GeoPoint(2.5,2.3),
           email: email,
           photoURL:"",
         }).then(() => {
@@ -191,225 +191,288 @@ createUserHardCode=async(phone_number,email,username,password)=>{
         resolve(coordinates)
       },(err)=>{console.log(err)},{distanceFilter:5, enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 })
     })
+  }
+
+  sendMessage=(senderId,recieverId,chatId,message)=>
+  {
+    firestore().collection('Messages').add({senderUid:senderUid,recieverUid:recieverUid,message:message,timestamp:firestore().FieldValue.serverTimestamp()}).then((messageId)=>{
+      firestore().collection('Chats').doc(chatId).update({messages:firestore().FieldValue.arrayUnion(messageId)})})
+    }
+    createChat=(senderUid,recieverUid,message)=>
+    {
+      firestore().collection('Messages').add({senderUid:senderUid,recieverUid:recieverUid,message:message}).then((messageId)=>{
+        firestore().collection('Chats').add({participants:[senderUid,recieverUid],messages:[messageId]}).then((chatId)=>
+        {
+          firestore.collection('Users').doc(senderUid).update({chats:firestore().FieldValue.arrayUnion(chatId)})
+          firestore.collection('Users').doc(recieverUid).update({chats:firestore().FieldValue.arrayUnion(chatId)})
+        })})
+      }
+
+      createPost=(uid,latitude,longitude,message,iconUrl,media)=>
+      {
+        const userReference=firestore().collection('Users').doc(uid)
+        const geocollection=GeoFirestore.collection('Posts');
+        return new Promise((resolve)=>
+        {
+          geocollection.add({userReference:userReference,message:message,iconUrl:iconUrl,uid:uid,timestamp:firebase.firestore.FieldValue.serverTimestamp(),coordinates:new firebase.firestore.GeoPoint(latitude,longitude)}).then((post)=>{
+            firestore().collection('Users').doc(uid).update({
+              myPosts:firebase.firestore.FieldValue.arrayUnion(post._document),
+            }).then(()=>{console.log('yayyyy');resolve(post)});
+          });
+        })
+      }
+      createCouponGroup= async (uid,latitude,longitude,message,shopAddress,iconUrl,expirationDate,imageUrl,count,distance,storeAddress)=>
+      {
+        var couponList=[]
+        for (var i in couponList)
+        {
+          currentPost=await createPost(uid,latitude,longitude,message,shopAddress,iconUrl,expirationDate,imageUrl)
+          couponList.append(currentPost);
+        }
+        const geocollection=GeoFirestore.collection('CouponGroup');
+        return new Promise((resolve)=>
+        {
+          geocollection.add({op:uid,expirationDate:expirationDate,shopAddress:shopAddress,message:message,iconUrl:iconUrl,uid:uid,timestamp:firebase.firestore.FieldValue.serverTimestamp(),imageUrl:imageUrl,couponList:couponList}).then((post)=>{
+            firestore().collection('Users').doc(uid).update({
+              myCouponGroups:firebase.firestore.FieldValue.arrayUnion(post._document),
+            }).then(()=>{console.log('yayyyy');resolve(post)});
+          });
+        })
+
+      }
+      deleteCouponGroup=async (uid,groupId)=>
+      {
+        var postRef=firestore().collection('CouponGroup').doc(groupId).get().then((posts)=>
+        {
+          for (var i in posts)
+          {
+            deletePost(post[i]);
+          }
+          firestore().collection('Users').doc(uid).update({
+            myCouponGroups:firebase.firestore.FieldValue.arrayRemove(groupId),
+          }).then(()=>
+          {
+            firestore().collection('CouponGroup').doc(groupId).delete().then((checking) => {console.log('postDeleted!');});
+          })
+        }
+      );
+
     }
 
-            sendMessage=(senderId,recieverId,chatId,message)=>
+    editPost=(postId,message,shopAddress,iconUrl,expirationDate,imageUrl)=>
+    {
+      const geocollection=GeoFirestore.collection('Posts');
+      return new Promise((resolve)=>
+      {
+        geocollection.doc(postId).update({expirationDate:expirationDate,shopAddress:shopAddress,message:message,iconUrl:iconUrl,timestamp:firebase.firestore.FieldValue.serverTimestamp(),imageUrl:imageUrl}).then((post)=>{console.log(post,'this is post'); resolve(post)});
+      })
+    }
+    deletePost=(uid,postId)=>
+    {
+      var postRef=firestore().collection('Posts').doc(postId).get().then((post)=>
+      {
+        firestore().collection('Users').doc(uid).update({
+          myPosts:firebase.firestore.FieldValue.arrayRemove(post._ref),
+        }).then(()=>
+        {
+          firestore().collection('Posts').doc(postId).delete().then((checking) => {console.log('postDeleted!');});
+        })
+      });
+    }
+    getPostByReference =async(docRef)=>{
+      return new Promise((resolve)=>{
+        var docSnapshot = docRef.get().then((snapshot)=>console.log(resolve(snapshot.data()),'zzzz'))
+      })
+    }
+    getPost=async (pid)=>
+    {
+      var docRef = await firestore().collection('Posts').doc(pid).get();
+      return docRef;
+    }
+
+    unclaimCoupon=async(uid,couponId)=>
+    {
+      var docRefCoupon = await firestore().collection('Posts').doc(couponId);
+      var docRefUser = await firestore().collection('User').doc(uid);
+      firestore().collection('Users').doc(uid).update({
+        claimedCoupons: firebase.firestore.FieldValue.arrayRemove(docRefCoupon),
+      })
+      firestore().collection('Posts').doc(couponId).update({
+        usersClaimed: firebase.firestore.FieldValue.arrayRemove(docRefUser),
+      })
+    }
+    claimCoupon=async(uid,couponId)=>
+    {
+      var docRefCoupon = await firestore().collection('Posts').doc(couponId);
+      var docRefUser = await firestore().collection('User').doc(uid);
+      firestore().collection('Users').doc(uid).update({
+
+        claimedCoupons:firebase.firestore.FieldValue.arrayUnion(docRefCoupon),
+      })
+      firestore().collection('Posts').doc(couponId).update({
+        usersClaimed:firebase.firestore.FieldValue.arrayUnion(docRefUser),
+      })
+    }
+
+    activateCoupon=async(uid,couponId,timeStamp)=>
+    {
+      var docRefUser = await firestore().collection('User').doc(uid);
+      firestore().collection('Users').doc(uid).update({
+
+        activatedCoupons:firebase.firestore.FieldValue.arrayUnion({couponId:couponId,timeStamp:timeStamp}),
+      })
+    }
+    getCreatedCoupons=async(uid,couponIds)=>
+    {
+      var coupons=[]
+      var docRef = await firestore().collection('Posts').doc(pid).get();
+      await couponIds.forEach(async(couponId)=> {
+        var docRef = await firestore().collection('Posts').doc(couponId).get();
+      });
+    }
+    getClaimedCoupons=async(uid,couponIds)=>
+    {
+      var coupons=[]
+      await couponIds.forEach(async (couponId)=> {
+        var docRef = await firestore().collection('Posts').doc(couponId).get();
+      });
+    }
+    createBoardPost=async (uid,message,media,postId)=>
+    {
+      const userReference=firestore().collection('Users').doc(uid.toString())
+      const postReference=firestore().collection('Posts').doc(postId.toString())
+      const boardpostcollection=firestore().collection('BoardPosts');
+      return new Promise((resolve)=>
+      {
+        boardpostcollection.add({userReference:userReference,message:message,uid:uid,timestamp:firebase.firestore.FieldValue.serverTimestamp(),media:media,postReference:postReference}).then((boardPost)=>{
+          firestore().collection('Posts').doc(postId.toString()).update({
+            boardPosts:firebase.firestore.FieldValue.arrayUnion(boardPost),
+          }).then(()=>{console.log('yayyyyPostid');});
+          firestore().collection('Users').doc(uid.toString()).update({
+            myBoardPosts:firebase.firestore.FieldValue.arrayUnion(boardPost),
+          }).then(()=>{console.log('yayyyy')});
+          resolve(boardPost)
+        });
+      })
+    }
+    setStore=async(uid,storeId,gridData)=>
+    {
+      if(storeId!=null)
+      {
+        firestore().collection('StorePosts').doc(storeId.toString()).update({gridData:gridData}).then((storePost)=>{
+          this.storageUpdatedGridData(gridData,storePost.id,'StorePosts').then((newGridData)=>{
+console.log(newGridData,'newGridData')
+        firestore().collection('StorePosts').doc(storeId.toString()).update({gridData:newGridData}).then((storePost)=>{})
+          })
+        })
+      }
+      else
+      {
+        firestore().collection('StorePosts').add({gridData:gridData}).then((storePost)=>{
+          this.storageUpdatedGridData(gridData,storePost.id,'StorePosts').then((newGridData)=>{
+console.log(newGridData,'newGridData')
+        firestore().collection('StorePosts').doc(storePost.id.toString()).update({gridData:newGridData}).then((storePost)=>{})
+          })
+          firestore().collection('Users').doc(uid).update({
+            myStorePosts:storePost
+          })
+        })
+      }
+    }
+    storageUpdatedGridData=async (gridData,storeId,collectionName)=>
+    {
+      console.log(gridData,'asdklfjsdlk')
+      return new Promise(async (resolve)=>
+      {
+      const remotePathArray=await  Promise.all(
+        gridData.map(async (data) => {
+          console.log(data,'DAN')
+            var remotePath='storePhotos/'+data.key
+          var firebaseStorageUrl=await this.addtoStorageNoDbUpdate(remotePath,data.media.path,collectionName)
+          console.log(firebaseStorageUrl,'ksdjkldjlkaaaaaaa')
+          return firebaseStorageUrl}))
+      console.log(remotePathArray,'REMOTEPATHS');
+      const tempGridData= gridData.map((a) =>{var tempObject=Object.assign({}, a)
+      tempObject.media=Object.assign({},tempObject.media); return tempObject;
+    });
+      console.log(tempGridData,'asdlkjflAAAAAAAtinietempah')
+      for(var i in tempGridData){
+        if (!(tempGridData[i].media.path.includes('firebasestorage.googleapis.com'))){
+        tempGridData[i].media.path=remotePathArray[i];
+        }
+      }
+      console.log(tempGridData,'tinietempah')
+     resolve(tempGridData)
+    })
+      }
+
+      addtoStorageNoDbUpdate=async(remotePath,localPath,collectionName)=>{
+        console.log(remotePath,localPath,collectionName,'YooOOOOOo')
+        return new Promise((resolve)=>{
+          const reference=storage().ref(remotePath)
+          reference.putFile(localPath).then((path)=>{console.log(path)
+            storage()
+            .ref(remotePath)
+            .getDownloadURL().then((url)=>{console.log('theurlforthing is',url);resolve(url)}).catch((err)=>{console.log(err)})
+          }
+        )
+      }
+    )
+    }
+    addToStorage=async(remotePath,localPath,collectionName,documentName,field)=>
+    {
+      return new Promise((resolve)=>{
+        const reference=storage().ref(remotePath)
+        reference.putFile(localPath).then((path)=>{console.log(path)
+          storage()
+          .ref(remotePath)
+          .getDownloadURL().then((url)=>{
+            var urlToString=url+''
+            firestore().collection(collectionName)
+            .doc(documentName)
+            .update({
+              [field]:url,
+            })
+            .then(() => {
+              console.log('User updated!');
+              resolve(url)
+            }).catch((err)=>
             {
-              firestore().collection('Messages').add({senderUid:senderUid,recieverUid:recieverUid,message:message,timestamp:firestore().FieldValue.serverTimestamp()}).then((messageId)=>{
-                firestore().collection('Chats').doc(chatId).update({messages:firestore().FieldValue.arrayUnion(messageId)})})
-              }
-              createChat=(senderUid,recieverUid,message)=>
+              console.log(err)
+            });}
+          );
+        })})
+      }
+
+      addToPhotoGallery=async(storagePath,localPath,collectionName,documentName,field,galleryArray)=>
+      {
+        return new Promise((resolve)=>{
+          const reference=storage().ref(storagePath)
+          reference.putFile(localPath).then((path)=>{console.log(path)
+            storage()
+            .ref(storagePath)
+            .getDownloadURL().then((url)=>{
+              var urlToString=url+''
+              console.log(urlToString,'lskjdfkls',url)
+              console.log(collectionName,'zzzzzzzz')
+              console.log(documentName,'sdklfjskldjf')
+              firestore().collection(collectionName)
+              .doc(documentName)
+              .update({
+                [field]:galleryArray,
+              })
+              .then(() => {
+                console.log('User updated!');
+                resolve(url)
+              }).catch((err)=>
               {
-                firestore().collection('Messages').add({senderUid:senderUid,recieverUid:recieverUid,message:message}).then((messageId)=>{
-                  firestore().collection('Chats').add({participants:[senderUid,recieverUid],messages:[messageId]}).then((chatId)=>
-                  {
-                    firestore.collection('Users').doc(senderUid).update({chats:firestore().FieldValue.arrayUnion(chatId)})
-                    firestore.collection('Users').doc(recieverUid).update({chats:firestore().FieldValue.arrayUnion(chatId)})
-                  })})
-                }
-
-                createPost=(uid,latitude,longitude,message,iconUrl,media)=>
-                {
-                  const userReference=firestore().collection('Users').doc(uid)
-                  const geocollection=GeoFirestore.collection('Posts');
-                  return new Promise((resolve)=>
-                  {
-                    geocollection.add({userReference:userReference,message:message,iconUrl:iconUrl,uid:uid,timestamp:firebase.firestore.FieldValue.serverTimestamp(),coordinates:new firebase.firestore.GeoPoint(latitude,longitude)}).then((post)=>{
-                      firestore().collection('Users').doc(uid).update({
-                        myPosts:firebase.firestore.FieldValue.arrayUnion(post._document),
-                      }).then(()=>{console.log('yayyyy');resolve(post)});
-                    });
-                  })
-                }
-                createCouponGroup= async (uid,latitude,longitude,message,shopAddress,iconUrl,expirationDate,imageUrl,count,distance,storeAddress)=>
-                {
-                var couponList=[]
-                for (var i in couponList)
-                {
-                currentPost=await createPost(uid,latitude,longitude,message,shopAddress,iconUrl,expirationDate,imageUrl)
-                  couponList.append(currentPost);
-                }
-                  const geocollection=GeoFirestore.collection('CouponGroup');
-                  return new Promise((resolve)=>
-                  {
-                    geocollection.add({op:uid,expirationDate:expirationDate,shopAddress:shopAddress,message:message,iconUrl:iconUrl,uid:uid,timestamp:firebase.firestore.FieldValue.serverTimestamp(),imageUrl:imageUrl,couponList:couponList}).then((post)=>{
-                      firestore().collection('Users').doc(uid).update({
-                        myCouponGroups:firebase.firestore.FieldValue.arrayUnion(post._document),
-                      }).then(()=>{console.log('yayyyy');resolve(post)});
-                    });
-                  })
-
-              }
-                deleteCouponGroup=async (uid,groupId)=>
-                {
-                var postRef=firestore().collection('CouponGroup').doc(groupId).get().then((posts)=>
-              {
-                for (var i in posts)
-                {
-            deletePost(post[i]);
-                }
-                  firestore().collection('Users').doc(uid).update({
-                    myCouponGroups:firebase.firestore.FieldValue.arrayRemove(groupId),
-                  }).then(()=>
-                {
-                  firestore().collection('CouponGroup').doc(groupId).delete().then((checking) => {console.log('postDeleted!');});
-                })
-              }
-    );
-
-                }
-
-                editPost=(postId,message,shopAddress,iconUrl,expirationDate,imageUrl)=>
-                {
-                  const geocollection=GeoFirestore.collection('Posts');
-                  return new Promise((resolve)=>
-                  {
-                    geocollection.doc(postId).update({expirationDate:expirationDate,shopAddress:shopAddress,message:message,iconUrl:iconUrl,timestamp:firebase.firestore.FieldValue.serverTimestamp(),imageUrl:imageUrl}).then((post)=>{console.log(post,'this is post'); resolve(post)});
-                  })
-                }
-                deletePost=(uid,postId)=>
-                {
-                var postRef=firestore().collection('Posts').doc(postId).get().then((post)=>
-              {
-                  firestore().collection('Users').doc(uid).update({
-                    myPosts:firebase.firestore.FieldValue.arrayRemove(post._ref),
-                  }).then(()=>
-                {
-                  firestore().collection('Posts').doc(postId).delete().then((checking) => {console.log('postDeleted!');});
-                })
-              });
-                }
-getPostByReference =async(docRef)=>{
-  return new Promise((resolve)=>{
-                  var docSnapshot = docRef.get().then((snapshot)=>console.log(resolve(snapshot.data()),'zzzz'))
-                  })
-}
-                getPost=async (pid)=>
-                {
-                  var docRef = await firestore().collection('Posts').doc(pid).get();
-                  return docRef;
-                }
-
-                unclaimCoupon=async(uid,couponId)=>
-                {
-                  var docRefCoupon = await firestore().collection('Posts').doc(couponId);
-                  var docRefUser = await firestore().collection('User').doc(uid);
-                  firestore().collection('Users').doc(uid).update({
-                    claimedCoupons: firebase.firestore.FieldValue.arrayRemove(docRefCoupon),
-                  })
-                  firestore().collection('Posts').doc(couponId).update({
-                    usersClaimed: firebase.firestore.FieldValue.arrayRemove(docRefUser),
-                  })
-                }
-                claimCoupon=async(uid,couponId)=>
-                {
-                  var docRefCoupon = await firestore().collection('Posts').doc(couponId);
-                  var docRefUser = await firestore().collection('User').doc(uid);
-                  firestore().collection('Users').doc(uid).update({
-
-                    claimedCoupons:firebase.firestore.FieldValue.arrayUnion(docRefCoupon),
-                  })
-                  firestore().collection('Posts').doc(couponId).update({
-                    usersClaimed:firebase.firestore.FieldValue.arrayUnion(docRefUser),
-                  })
-                }
-
-                activateCoupon=async(uid,couponId,timeStamp)=>
-                {
-                  var docRefUser = await firestore().collection('User').doc(uid);
-                  firestore().collection('Users').doc(uid).update({
-
-                    activatedCoupons:firebase.firestore.FieldValue.arrayUnion({couponId:couponId,timeStamp:timeStamp}),
-                  })
-                }
-                getCreatedCoupons=async(uid,couponIds)=>
-                {
-                  var coupons=[]
-                  var docRef = await firestore().collection('Posts').doc(pid).get();
-                  await couponIds.forEach(async(couponId)=> {
-                    var docRef = await firestore().collection('Posts').doc(couponId).get();
-                  });
-                }
-                getClaimedCoupons=async(uid,couponIds)=>
-                {
-                  var coupons=[]
-                  await couponIds.forEach(async (couponId)=> {
-                    var docRef = await firestore().collection('Posts').doc(couponId).get();
-                  });
-                }
-                createBoardPost=async (uid,message,media,postId)=>
-                {
-                  const userReference=firestore().collection('Users').doc(uid.toString())
-                  const postReference=firestore().collection('Posts').doc(postId.toString())
-                  const boardpostcollection=firestore().collection('BoardPosts');
-                  return new Promise((resolve)=>
-                  {
-                    boardpostcollection.add({userReference:userReference,message:message,uid:uid,timestamp:firebase.firestore.FieldValue.serverTimestamp(),media:media,postReference:postReference}).then((boardPost)=>{
-                      firestore().collection('Posts').doc(postId.toString()).update({
-                        boardPosts:firebase.firestore.FieldValue.arrayUnion(boardPost),
-                      }).then(()=>{console.log('yayyyyPostid');});
-                   firestore().collection('Users').doc(uid.toString()).update({
-                        myBoardPosts:firebase.firestore.FieldValue.arrayUnion(boardPost),
-                      }).then(()=>{console.log('yayyyy')});
-                      resolve(boardPost)
-                    });
-                  })
-                }
-
-                addToStorage=async(remotePath,localPath,collectionName,documentName,field)=>
-                {
-                return new Promise((resolve)=>{
-  const reference=storage().ref(remotePath)
-    reference.putFile(localPath).then((path)=>{console.log(path)
- storage()
-  .ref(remotePath)
-  .getDownloadURL().then((url)=>{
-    var urlToString=url+''
-  firestore().collection(collectionName)
-  .doc(documentName)
-  .update({
-    [field]:url,
-  })
-  .then(() => {
-    console.log('User updated!');
-    resolve(url)
-  }).catch((err)=>
-{
-  console.log(err)
-});}
-);
-})})
-                }
-
-                addToPhotoGallery=async(storagePath,localPath,collectionName,documentName,field,galleryArray)=>
-                {
-                return new Promise((resolve)=>{
-  const reference=storage().ref(storagePath)
-    reference.putFile(localPath).then((path)=>{console.log(path)
- storage()
-  .ref(storagePath)
-  .getDownloadURL().then((url)=>{
-    var urlToString=url+''
-    console.log(urlToString,'lskjdfkls',url)
-    console.log(collectionName,'zzzzzzzz')
-    console.log(documentName,'sdklfjskldjf')
-  firestore().collection(collectionName)
-  .doc(documentName)
-  .update({
-    [field]:galleryArray,
-  })
-  .then(() => {
-    console.log('User updated!');
-    resolve(url)
-  }).catch((err)=>
-{
-  console.log(err)
-});}
-);
-})})
-                }
-            }
+                console.log(err)
+              });}
+            );
+          })})
+        }
+      }
 
 
-            const firebaseSDK = new FirebaseSDK();
-            export default firebaseSDK;
+      const firebaseSDK = new FirebaseSDK();
+      export default firebaseSDK;

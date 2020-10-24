@@ -34,6 +34,15 @@ const draggableGridStyles = StyleSheet.create({
   },
 });
 const styles=StyleSheet.create({
+    close: {
+    margin: 5,
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: 25,
+    height: 25,
+    color: "tomato"
+  },
    input: {
     width:200,
     borderBottomColor:'red',

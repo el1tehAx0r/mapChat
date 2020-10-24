@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {Button, TouchableHighlight, View,Image, Modal, Text,TextInput,StyleSheet,ScrollView } from 'react-native';
+import {Button, TouchableHighlight, View,Image, Modal, Text,TextInput,StyleSheet,ScrollView,TouchableOpacity,ImageBackground } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import {DisplayName }from '../components/DisplayName.js'
 import ChatScreen from './ChatScreen.js'
@@ -17,15 +17,18 @@ import DraggableGridComponent from '../components/DraggableGrid'
  import firestore from '@react-native-firebase/firestore';
  import firebase from '@react-native-firebase/app';
  import firebaseSDK from '../config/FirebaseSDK';
- import styles from '../StyleSheet';
  import { Col, Row, Grid } from "react-native-easy-grid";
  import SingleCell from '../components/SingleCell'
+import VideoPlayer from 'react-native-video-player';
+import { DraggableGrid } from 'react-native-draggable-grid';
+import styles,{draggableGridStyles} from '../StyleSheet'
+import { Ionicons } from 'react-native-vector-icons/Ionicons';
+import RedXButton from '../components/RedXButton'
  import {
   TextField,
   FilledTextField,
   OutlinedTextField2,
 } from 'react-native-material-textfield';
-import Geolocation from '@react-native-community/geolocation';
 const Separator = () => (
   <View style={styles.separator} />
 );
@@ -42,31 +45,73 @@ function StorePage(props,{navigation}) {
   const [myPosts,setMyPosts]=useState([])
   const [change,setChange]=useState(false)
   const [showSaveState,setShowSaveState]=useState(false);
+  const [editMode,setEditMode]=useState(false);
   const [claimedCoupons,setClaimedCoupons]=useState([])
-  const [gridData,setGridData]=useState([])
-  const requestCameraPermission = async () => {
-  try {
-    const granted = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-      {
-        title: "Cool Photo App Camera Permission",
-        message:
-          "Cool Photo App needs access to your camera " +
-          "so you can take awesome pictures.",
-        buttonNeutral: "Ask Me Later",
-        buttonNegative: "Cancel",
-        buttonPositive: "OK"
-      }
-    );
-    if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-      console.log("You can use the cfamera");
-    } else {
-      console.log("Camera permission denied");
-    }
-  } catch (err) {
-    console.warn(err);
+  const [oldGridData,setOldGridData]=useState([])
+  const [showSave,setShowSave]=useState(false)
+  const [gridData,setGridData]=useState([]);
+  const [storeId,setStoreId]=useState(props.storeId);
+class MyListItem extends React.PureComponent {
+  render() {
+    return (
+          <View
+     style={{
+              borderRadius: 5,
+       width: styles.width/5,
+       height: styles.height/5}}
+              >
+{this.props.media.mime=="image/jpeg"||this.props.media.mime=="image/png"?
+<ImageBackground
+     style={{
+       width: styles.width/5,
+       height: styles.height/5}}
+     resizeMode='cover'
+     source={{
+       uri:this.props.media.path}}
+>
+</ImageBackground>
+   :
+   <View pointerEvents="none">
+          <VideoPlayer
+
+    repeat
+    videoHeight={styles.height/.3}
+ ref={this.videoRef}
+    video={{ uri:this.props.media.path  }}
+    autoplay={true}
+/>
+
+</View>
+}
+
+          </View>
+    )
   }
-};
+}
+const render_item=(item:{media:object, key:string,message:string}) =>{
+    return (
+<View
+        key={item.key}
+      >
+{editMode?
+    <View >
+    <RedXButton  code={item.key} redXPressed={redXPressed} />
+    </View>:null
+  }
+      <MyListItem media={item.media}/>
+        <Text>{item.message}</Text>
+      </View>
+    );
+  }
+  function makeid(length) {
+   var result           = '';
+   var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+   var charactersLength = characters.length;
+   for ( var i = 0; i < length; i++ ) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+   }
+   return result;
+}
   const onPress= (width,height,path) => {
   setProfilePicWidth(width);
   setProfilePicHeight(height);
@@ -80,37 +125,23 @@ firebaseSDK.addToStorage(remotePath,localPath,collectionName,documentName,field)
   setProfilePic(url)
 })
   }
+  const redXPressed=(key)=>{
+var condensedArray=deleteDataByKey(key)
+setShowSave(true)
+setGridData(condensedArray)
+  }
+  const deleteDataByKey=(key)=>{
+var condensedGridData= gridData.filter(function(obj) {
+    return obj.key!== key;
+});
+return condensedGridData;
+  }
 const changed=()=>{
   setChange(true)
 }
 const onChangeText=(value)=>{
   setDisplayName(value)
 }
-/*const couponGrabber= async ()=>
-{
-             const subscriber = firestore()
-      .collection('Users')
-      .doc(props.uid).onSnapshot(documentSnapshot => {
-        try{
-        var userPosts=documentSnapshot.data().myPosts.map((post, index)=>{
-       return post._document._documentPath._parts[1];
-      })
-setMyCoupons(userPosts)
-    }
-    catch{//log('didntwork')
-  setMyCoupons([])}
-    try{
-        var userClaimedCoupons=documentSnapshot.data().claimedCoupons.map(async (post, index)=>{
-       return post._document._documentPath._parts[1]
-        })
-        setClaimedCoupons(userClaimedCoupons)
-      }
-      catch{
-        setClaimedCoupons([])
-        //console.log('didntwork')
-      }
-      });
-}*/
 const initializeUserInfo=()=>
 {
 firebaseSDK.getCurrentUserInfo().then((user)=>{setDisplayName(user.displayName);
@@ -121,17 +152,17 @@ firebaseSDK.getCurrentUserInfo().then((user)=>{setDisplayName(user.displayName);
   }
 });
 }
+
 const createPost=(uid,message,media)=>
 {
-
 const savedState= gridData.map((data) => {
   return data;
   }
 )
-var keyLen=(savedState.length+1).toString()
-  savedState.push({media:media,key:keyLen,message:message})
+var key=makeid(5)
+  savedState.push({media:media,key:key,message:message})
 setGridData(savedState)
-  setShowSaveState(true);
+  setShowSave(true);
   setModalVisible(false);
  }
 const cancelPressed=()=>
@@ -146,11 +177,48 @@ useEffect(()=>{
     console.log(change)
   }, [])
   useEffect(() => {
+    if (props.myStore!=null){
+      if (props.myStore!=null){
+      setOldGridData(props.myStore.gridData);
+    }
+    else{
+      setOldGridData([])
+    }
+    }
+  }, [props.myStore])
+  useEffect(() => {
+      setStoreId(props.storeId)
+  }, [props.storeId])
+  useEffect(() => {
     setClaimedCoupons(props.claimedCoupons)
   }, [props.claimedCoupons])
   useEffect(() => {
     setMyPosts(props.myPosts)
   }, [props.myPosts])
+  useEffect(()=>{
+    if(!shallowCompare(gridData,oldGridData)){
+      console.log(gridData)
+      console.log(oldGridData,'AZEEWWEZEN')
+    resetState()
+  }
+  },[oldGridData])
+  function shallowCompare(newObj, prevObj){
+    for (var key in newObj){
+        if(newObj[key] !== prevObj[key]) return true;
+    }
+    return false;
+}
+    const setStore=()=>
+    {
+var gridDataCopy= [...gridData];
+setOldGridData(gridDataCopy);
+firebaseSDK.setStore(props.uid,storeId,gridData);
+    }
+  var resetState=()=>
+  {
+  setShowSave(false);setEditMode(false);
+  setGridData(oldGridData)
+  }
   return (
     <>
     <ScrollView>
@@ -169,7 +237,17 @@ useEffect(()=>{
             underlineColorAndroid='transparent'/>
         </View>
          </View>
-    <DraggableGridComponent gridData={gridData}/>
+      <View style={draggableGridStyles.wrapper}>
+        <DraggableGrid
+        itemHeight={styles.height/4}
+          numColumns={4}
+          renderItem={render_item}
+          data={gridData}
+          onDragRelease={(data) => {
+            setGridData(data);// need reset the props data sort after drag release
+          }}
+        />
+      </View>
          <Separator/>
     </View>
     </ScrollView>
@@ -177,82 +255,58 @@ useEffect(()=>{
         <BoardPostCreator uid={props.uid} createBoardPost={createPost} closeBoardPostCreatorModal={cancelPressed} mediaChanged={(media)=>{}}/>
             </ModalContainer>
 <View style={{justifyContent:'center',flexDirection:'row'}}>
-            <TouchableHighlight
+
+{
+   (() => {
+       if (!editMode){
+          return             <TouchableHighlight
+              style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
+              onPress={()=>{setEditMode(!editMode)}}>
+              <Text style={styles.textStyle}>EDIT STORE</Text>
+            </TouchableHighlight>}
+        else {
+          if (showSave)
+          {
+            return(
+  <>
+   <TouchableHighlight
               style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
               onPress={()=>setModalVisible(!modalVisible)}>
               <Text style={styles.textStyle}>Add to Store </Text>
             </TouchableHighlight>
+            <TouchableHighlight
+              style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
+              onPress={()=>{setStore()}}>
+              <Text style={styles.textStyle}>Save State</Text>
+            </TouchableHighlight>
+    <TouchableHighlight
+              style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
+              onPress={()=>{resetState()}}>
+              <Text style={styles.textStyle}>Cancel</Text>
+            </TouchableHighlight>
+            </>
 
-{showSaveState?   <TouchableHighlight
+          )
+          }
+          else{
+            return(
+<><TouchableHighlight
               style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
               onPress={()=>setModalVisible(!modalVisible)}>
-              <Text style={styles.textStyle}>Save State</Text>
-            </TouchableHighlight>:null}
+              <Text style={styles.textStyle}>Add to Store </Text>
+            </TouchableHighlight>
+    <TouchableHighlight
+              style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
+              onPress={()=>resetState()}>
+              <Text style={styles.textStyle}>Cancel</Text>
+            </TouchableHighlight></>
+          )
+          }
+        }
+   })()
+}
             </View>
             </>
   );
 }
 export default StorePage;
-/*const styles=StyleSheet.create({
-  container: {
-   ...StyleSheet.absoluteFillObject,
-   height: 400,
-   width: 400,
-   justifyContent: 'flex-end',
-   alignItems: 'center',
- },
- map: {
-   ...StyleSheet.absoluteFillObject,
- },
-  separator: {
-    marginVertical: 8,
-    borderBottomColor: '#737373',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-   input: {
-    width:200,
-    borderBottomColor:'red',
-    borderBottomWidth:1,
-},
-  bottomBorder:
-  {
-    flexDirection:'row',flex:2,}
-})*/
-/*const styles = StyleSheet.create({
-  scrollView: {
-    backgroundColor: Colors.lighter,
-  },
-  engine: {
-    position: 'absolute',
-    right: 0,
-  },
-  body: {
-    backgroundColor: Colors.white,
-  },
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: Colors.black,
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-    color: Colors.dark,
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-  footer: {
-    color: Colors.dark,
-    fontSize: 12,
-    fontWeight: '600',
-    padding: 4,
-    paddingRight: 12,
-    textAlign: 'right',
-  },
-});*/

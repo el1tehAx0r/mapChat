@@ -49,7 +49,6 @@ catch{}
 useEffect(()=>{
 getSnapShotData()
 return () => {
-
 getSnapShotData()
   }
 },[props.postViewerInfo])
