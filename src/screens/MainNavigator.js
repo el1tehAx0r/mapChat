@@ -9,7 +9,8 @@ import auth from '@react-native-firebase/auth';
  import firebase from '@react-native-firebase/app';
  import firebaseSDK from '../config/FirebaseSDK';
 import RNDeviceHeading from 'react-native-device-heading'
-import StorePage from './StoreScreen'
+import StoreEditorPage from './StoreEditorScreen'
+import CouponManager from './CouponManagerScreen'
 import Geolocation from '@react-native-community/geolocation';
 import * as geofirestore from 'geofirestore';
 const GeoFirestore=geofirestore.initializeApp(firestore());
@@ -18,14 +19,16 @@ function MainNavigator({route, navigation}) {
   const {user}=route.params;
   const [userInfo,setUserInfo]=useState({})
   const [claimedCoupons,setClaimedCoupons]=useState([])
+  const [myCreatedCoupons,setMyCreatedCoupons]=useState([])
   const [coordinates,setCoordinates]=useState({latitude:5,longitude:5})
   const [myPosts,setMyPosts]=useState([])
   const [circleCenters,setCircleCenters]=useState([])
   const [activatedCoupons,setActivatedCoupons]=useState([])
-  const [deviceHeading,setDeviceHeading]=useState(1);
+  const [deviceHeading,setDeviceHeading]=useState(1)
   const [watchId,setWatchId]=useState(null)
   const [myStore,setMyStore]=useState(null)
   const [storeId,setStoreId]=useState(null)
+  const [postIdStore,setPostIdStore]=useState(null)
   let postUnsub;
   let postUnsub1;
   const updateSelfLocation=()=>
@@ -110,7 +113,9 @@ function MainNavigator({route, navigation}) {
           console.log('didntwork')
         }
         try{
-          var userStore=documentSnapshot.data().myStorePosts.get().then((documentSnapshot)=>{console.log(documentSnapshot.data());setMyStore(documentSnapshot.data())})
+          var userStore=documentSnapshot.data().myStorePosts.get().then((documentSnapshot)=>{console.log(documentSnapshot,"DOCUMENTNNTNTNN");setStoreId(documentSnapshot.id);setMyStore(documentSnapshot.data())
+setPostIdStore(documentSnapshot.data().postReference.id)
+        })
         }
         catch{
           console.log('didntwork')
@@ -146,16 +151,19 @@ firebaseSDK.getCurrentUserInfo().then((user)=>{setUserInfo(user);
 <Tab.Navigator swipeEnabled={false}>
     <Tab.Screen
     name="Map"
-       children={()=><MapPage storeId={storeId} navigation={navigation} deviceHeading={deviceHeading} coordinates={coordinates} activatedCoupons={activatedCoupons} circleCenters={circleCenters} claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid} />}/>
-    <Tab.Screen
+       children={()=><MapPage postIdStore={postIdStore} storeId={storeId} navigation={navigation} deviceHeading={deviceHeading} coordinates={coordinates} activatedCoupons={activatedCoupons} circleCenters={circleCenters} claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid} />}/>
+  {/*  <Tab.Screen
     name="Profile Page"
-    children={()=><ProfilePage claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid}/>}/>
+    children={()=><ProfilePage claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid}/>}/>*/}
     <Tab.Screen
     name="Coupon Page"
     children={()=><CouponPage claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid}/>}/>
     <Tab.Screen
+    name="Coupon Creator"
+    children={()=><CouponManager myCreatedCoupons={myCreatedCoupons} uid={user.uid}/>}/>
+    <Tab.Screen
     name="Store Page"
-    children={()=><StorePage storeId={storeId} myStore={myStore} uid={user.uid}/>}
+    children={()=><StoreEditorPage storeId={storeId} myStore={myStore} uid={user.uid} postIdStore={postIdStore}/>}
     />
     </Tab.Navigator>
   );

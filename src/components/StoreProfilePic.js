@@ -21,7 +21,7 @@ props.onPress(image.width,image.heigt,image.path);
 });
   }
   return (
-<TouchableHighlight style={{flex:1}}onPress={onPress}>
+<TouchableHighlight style={{flex:1}}onPress={()=>{if(props.editable){onPress()}}}>
    <Image
      style={{
        borderWidth: 1,

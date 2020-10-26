@@ -1,5 +1,5 @@
 import React, { useState,useEffect,useRef } from 'react';
-import {Alert, ScrollView,Text,TextInput,View,Button,TouchableHighlight,Image,KeyboardAvoidingView,TouchableOpacity,Modal } from 'react-native';
+import {Alert, Text,TextInput,View,Button,TouchableHighlight,Image,KeyboardAvoidingView,TouchableOpacity,Modal } from 'react-native';
 import DatePicker from 'react-native-datepicker'
 import PhotoEditor from 'react-native-photo-editor'
 import * as RNFS from 'react-native-fs';
@@ -16,10 +16,10 @@ import VideoPlaybackComponent from './VideoPlaybackComponent'
 import ModalContainer from './ModalContainer'
 import VideoProcessor from './VideoProcessor'
 import { ProcessingManager } from 'react-native-video-processing';
-import CouponPostCreator from './CouponPostCreator'
+import BoardPostCreator from './BoardPostCreator'
 import firebaseSDK from '../config/FirebaseSDK'
 import styles from '../StyleSheet';
-const PostCreator= (props) => {
+const CouponPostCreator= (props) => {
 const [postType,setPostType]=useState('');
   const [shopAddress,setShopAddress]=useState(props.postCreatorInfo.shopAddress);
   const [customDialogVisible,setCustomDialogVisible]=useState(false);
@@ -147,7 +147,8 @@ const setFinalButtons=()=>
 }
 const createPost=(uid,message,media)=>
 {
-  props.createCoupons(props.uid,message,media,expirationDate,radius,{latitude,longitude},iconUrl)
+  console.log(media,'test123')
+  props.createPost(props.uid,props.postCreatorInfo.latitude,props.postCreatorInfo.longitude,message,iconUrl,media)
 }
 
 /*const editPost=()=>
@@ -204,12 +205,11 @@ const setIcon=(iconUrl)=>
   setIconUrl(iconUrl)
 }
   return (
-    <ScrollView>
     <View style={{padding: 10}}>
     <Modal visible={iconPickerVisible}>
     <IconSelectPage setIcon={setIcon} closeIconPicker={closeIconPicker} videoSource={media.path}/>
     </Modal>
-        <CouponPostCreator uid={props.uid} postViewerInfo={props.postViewerInfo} createBoardPost={createPost} closeBoardPostCreatorModal={cancelPressed} mediaChanged={(media)=>{console.log(media,'SDJFLSKJF');setMedia(media);setIconUrl(media.path)}}>
+        <BoardPostCreator uid={props.uid} postViewerInfo={props.postViewerInfo} createBoardPost={createPost} closeBoardPostCreatorModal={cancelPressed} mediaChanged={(media)=>{console.log(media,'SDJFLSKJF');setMedia(media);setIconUrl(media.path)}}>
 <View style={{paddingTop:10, flexDirection:'column'}}>
 <TouchableHighlight onPress={media.mime=='image/jpeg'||media.mime=='image/png'? onPressIconUrl: onPressIconUrlVideo}>
    <Image
@@ -226,10 +226,9 @@ const setIcon=(iconUrl)=>
    />
 </TouchableHighlight>
             </View>
-        </CouponPostCreator>
+        </BoardPostCreator>
 
     </View>
-    </ScrollView>
   );
 }
-export default PostCreator;
+export default PostPostCreator;

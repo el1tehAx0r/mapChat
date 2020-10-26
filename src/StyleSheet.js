@@ -44,7 +44,7 @@ const styles=StyleSheet.create({
     color: "tomato"
   },
    input: {
-    width:200,
+    width:'85%',
     borderBottomColor:'red',
     borderBottomWidth:1,
 },
@@ -114,6 +114,14 @@ bottomBorder:
 {
   flexDirection:'row',flex:2,
   borderBottomColor:'black',
+  paddingBottom:10,
+  marginBottom:10,
+  borderBottomWidth:1  },
+
+separation:
+{
+  flexDirection:'row',flex:1,
+  borderBottomColor:'black',
   borderBottomWidth:1  },
   centeredView: {
     flex: 1,
@@ -125,8 +133,9 @@ bottomBorder:
     width:'93%',
     height:'98%',
     margin: 10,
+    padding:10,
     backgroundColor: "white",
-    alignItems: "center",
+    alignItems: "stretch",
     shadowColor: "#000",
     shadowOffset: {
       width: 0,

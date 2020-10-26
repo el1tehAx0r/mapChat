@@ -57,7 +57,7 @@ componentDidMount(){
                     source={this.state.videoSource}
                     playerWidth={300} // iOS only
                     playerHeight={500} // iOS only
-                    height={400}
+                    height={300}
                     resizeMode={VideoPlayer.Constants.resizeMode.CONTAIN}
                     onChange={({ nativeEvent }) =>{this.setState({currentTime:nativeEvent});console.log(this.props.videoSource);console.log({ nativeEvent })
                   }} // get Current time on every second

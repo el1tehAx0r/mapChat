@@ -98,7 +98,7 @@ firebaseSDK.createBoardPost(uid,message,media,props.postViewerInfo.postId).then(
       <Text style={{ height: 35 }}>
       {props.postViewerInfo.message}
         </Text>
-        <CarouselComponent boardPosts={boardPosts}/>
+      {/*  <CarouselComponent boardPosts={boardPosts}/>*/}
     <View style={{flexDirection:"row"}}>
       </View>
         </ScrollView>

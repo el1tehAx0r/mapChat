@@ -24,6 +24,7 @@ import { DraggableGrid } from 'react-native-draggable-grid';
 import styles,{draggableGridStyles} from '../StyleSheet'
 import { Ionicons } from 'react-native-vector-icons/Ionicons';
 import RedXButton from '../components/RedXButton'
+import EditButtonSet from '../components/EditButtonSet'
  import {
   TextField,
   FilledTextField,
@@ -35,8 +36,6 @@ const Separator = () => (
 //Geolocation.getCurrentPosition(info => console.log(info));
 function StorePage(props,{navigation}) {
   // Set an initializing state whilst Firebase connects
-  const [displayName,setDisplayName]=useState('userName');
-  const [profilePic,setProfilePic]=useState('https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/iconUrl%2F4xIN27RXy3bFf8kbIv6W?alt=media&token=58db0a7f-9f54-4afa-8e01-dac307774cdc');
   const [profilePicWidth,setProfilePicWidth]=useState(150);
   const [albumGrid,setAlbumGrid]=useState([]);
   const [profilePicHeight,setProfilePicHeight]=useState(150);
@@ -50,7 +49,14 @@ function StorePage(props,{navigation}) {
   const [oldGridData,setOldGridData]=useState([])
   const [showSave,setShowSave]=useState(false)
   const [gridData,setGridData]=useState([]);
+  const [storeProfilePic,setStoreProfilePic]=useState('https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2FtestPhoto.png?alt=media&token=ba3d315b-5255-4403-8bf9-b7006ee9ba0c');
+  const [oldStoreProfilePic,setOldStoreProfilePic]=useState('https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2FtestPhoto.png?alt=media&token=ba3d315b-5255-4403-8bf9-b7006ee9ba0c');
+  const [storeName,setStoreName]=useState('Default name edit store to change');
+  const [oldStoreName,setOldStoreName]=useState('Default name edit store to change');
+  const [storeDescription,setStoreDescription]=useState('Default store description edit store to change');
+  const [oldStoreDescription,setOldStoreDescription]=useState('Default store descriptiion edit store to change')
   const [storeId,setStoreId]=useState(props.storeId);
+  const [registered,setRegistered]=useState(false)
 class MyListItem extends React.PureComponent {
   render() {
     return (
@@ -112,18 +118,36 @@ const render_item=(item:{media:object, key:string,message:string}) =>{
    }
    return result;
 }
+function checkDifferent(){
+ var newStates=[storeProfilePic,storeDescription,storeName,gridData]
+ var oldStates=[oldStoreProfilePic,oldStoreDescription,oldStoreName,oldGridData]
+ for (var i in newStates)
+ {var oldObj=oldStates[i]; var newObj=newStates[i];
+   try {
+if (JSON.stringify(oldObj)!=JSON.stringify(newObj)){
+  console.log('slkdjfklsj')
+  setShowSave(true)
+  return
+}
+   }
+   catch{
+    if(oldObj!=newObj)
+    {
+
+  console.log('slkdjfkAAAAAAlsj')
+  setShowSave(true)
+  return
+    }
+   }
+
+ }
+ setShowSave(false)
+}
   const onPress= (width,height,path) => {
+    console.log(path,'dkjdslkjdfl')
   setProfilePicWidth(width);
   setProfilePicHeight(height);
-  var remotePath='profilePics/'+displayName
-  var localPath=path
-  var collectionName='Users'
-  var documentName=auth().currentUser.uid
-  var field='photoURL'
-firebaseSDK.addToStorage(remotePath,localPath,collectionName,documentName,field).then((url)=>
-{
-  setProfilePic(url)
-})
+  setStoreProfilePic(path)
   }
   const redXPressed=(key)=>{
 var condensedArray=deleteDataByKey(key)
@@ -141,16 +165,6 @@ const changed=()=>{
 }
 const onChangeText=(value)=>{
   setDisplayName(value)
-}
-const initializeUserInfo=()=>
-{
-firebaseSDK.getCurrentUserInfo().then((user)=>{setDisplayName(user.displayName);
-  setUserInfo(user);
-  if(user.photoURL!='')
-    {
-    setProfilePic(user.photoURL)
-  }
-});
 }
 
 const createPost=(uid,message,media)=>
@@ -172,18 +186,20 @@ const cancelPressed=()=>
 useEffect(()=>{
 })
   useEffect(() => {
-    initializeUserInfo()
-    console.log(props.myHome,'myhome')
+    console.log(props.myStore,'aSJDLFKSJDJLKKKKKKKKKKKKK')
     console.log(change)
   }, [])
   useEffect(() => {
+    console.log(props.myStore,'ZZZZZZZLKJSDKLFJLD')
     if (props.myStore!=null){
-      if (props.myStore!=null){
+    console.log(props.myStore,'ARIZA')
       setOldGridData(props.myStore.gridData);
+      setOldStoreProfilePic(props.myStore.storeProfilePic)
+      setOldStoreName(props.myStore.storeName)
+      setOldStoreDescription(props.myStore.storeDescription)
     }
     else{
       setOldGridData([])
-    }
     }
   }, [props.myStore])
   useEffect(() => {
@@ -202,6 +218,10 @@ useEffect(()=>{
     resetState()
   }
   },[oldGridData])
+  useEffect(()=>
+{
+checkDifferent()
+},[storeProfilePic,storeDescription,gridData,storeName])
   function shallowCompare(newObj, prevObj){
     for (var key in newObj){
         if(newObj[key] !== prevObj[key]) return true;
@@ -212,32 +232,55 @@ useEffect(()=>{
     {
 var gridDataCopy= [...gridData];
 setOldGridData(gridDataCopy);
-firebaseSDK.setStore(props.uid,storeId,gridData);
+setOldStoreName(storeName);
+setOldStoreProfilePic(storeProfilePic);
+setOldStoreDescription(storeDescription);
+console.log('THIS IS STORE ID',storeId)
+      var remotePath='iconUrl/'+storeId
+      var localPath=storeProfilePic.toString()
+    if(!storeProfilePic.includes('firebasestorage.googleapis.com')){
+firebaseSDK.addtoStorageNoDbUpdate(remotePath,localPath).then((storeProfilePicFirebase)=>
+{
+firebaseSDK.setStore(props.uid,storeId,props.postIdStore,gridData,storeProfilePicFirebase,storeDescription,storeName).then();
+})
+}
+else{
+firebaseSDK.setStore(props.uid,storeId,props.postIdStore,gridData,storeProfilePic,storeDescription,storeName).then();
+}
     }
   var resetState=()=>
   {
   setShowSave(false);setEditMode(false);
-  setGridData(oldGridData)
+  setGridData(oldGridData);
+  setStoreDescription(oldStoreDescription);
+  setStoreName(oldStoreName);
+  setStoreProfilePic(oldStoreProfilePic);
   }
   return (
     <>
-    <ScrollView>
-    <View style={{flex:1,flexDirection:'column'}}>
+    <ScrollView style={{borderTopWidth:0.5, borderLeftWidth:0.5, borderRightWidth:0.5}} >
+    <View style={{flex:1,flexDirection:'column',padding:10,paddingTop:3}}>
          <View style={styles.bottomBorder}>
-        <View style={{flex:1,marginTop:10, flexDirection:'column',alignItems:'center',}}>
-        <StoreProfilePic onPress={onPress} profilePic={profilePic}/>
+        <View style={{flex:1,marginTop:"8%", flexDirection:'column',alignItems:'center',justifyContent:'center'}}>
+        <StoreProfilePic editable={editMode} onPress={(width,height,path)=>{onPress(width,height,path)}} profilePic={storeProfilePic}/>
         </View>
         <View style={{flex:2,flexDirection:'column' }}>
-        <DisplayName defaultValue={displayName} onChangeText={onChangeText}/>
          <TextInput
+         editable={editMode}
             style={styles.input}
-            value={'profile description'}
-            onChangeText={text=>{}}
+            value={storeName}
+            onChangeText={text=>{setStoreName(text)}}
+            multiline={true}
+            underlineColorAndroid='transparent'/>
+         <TextInput
+         editable={editMode}
+            style={styles.input}
+            value={storeDescription}
+            onChangeText={text=>{setStoreDescription(text)}}
             multiline={true}
             underlineColorAndroid='transparent'/>
         </View>
          </View>
-      <View style={draggableGridStyles.wrapper}>
         <DraggableGrid
         itemHeight={styles.height/4}
           numColumns={4}
@@ -247,65 +290,13 @@ firebaseSDK.setStore(props.uid,storeId,gridData);
             setGridData(data);// need reset the props data sort after drag release
           }}
         />
-      </View>
-         <Separator/>
     </View>
     </ScrollView>
           <ModalContainer modalVisible={modalVisible}>
         <BoardPostCreator uid={props.uid} createBoardPost={createPost} closeBoardPostCreatorModal={cancelPressed} mediaChanged={(media)=>{}}/>
             </ModalContainer>
-<View style={{justifyContent:'center',flexDirection:'row'}}>
-
-{
-   (() => {
-       if (!editMode){
-          return             <TouchableHighlight
-              style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
-              onPress={()=>{setEditMode(!editMode)}}>
-              <Text style={styles.textStyle}>EDIT STORE</Text>
-            </TouchableHighlight>}
-        else {
-          if (showSave)
-          {
-            return(
-  <>
-   <TouchableHighlight
-              style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
-              onPress={()=>setModalVisible(!modalVisible)}>
-              <Text style={styles.textStyle}>Add to Store </Text>
-            </TouchableHighlight>
-            <TouchableHighlight
-              style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
-              onPress={()=>{setStore()}}>
-              <Text style={styles.textStyle}>Save State</Text>
-            </TouchableHighlight>
-    <TouchableHighlight
-              style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
-              onPress={()=>{resetState()}}>
-              <Text style={styles.textStyle}>Cancel</Text>
-            </TouchableHighlight>
-            </>
-
-          )
-          }
-          else{
-            return(
-<><TouchableHighlight
-              style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
-              onPress={()=>setModalVisible(!modalVisible)}>
-              <Text style={styles.textStyle}>Add to Store </Text>
-            </TouchableHighlight>
-    <TouchableHighlight
-              style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
-              onPress={()=>resetState()}>
-              <Text style={styles.textStyle}>Cancel</Text>
-            </TouchableHighlight></>
-          )
-          }
-        }
-   })()
-}
-            </View>
+                        {React.cloneElement(props.children, { editMode:editMode,setEditMode:setEditMode,setModalVisible:setModalVisible,setStore:setStore,resetState:resetState,showSave:showSave })}
+{/*<EditButtonSet editMode={editMode} setEditMode={setEditMode} setModalVisible={setModalVisible} modalVisible={modalVisible} setStore={setStore} resetState={resetState} showSave={showSave}/>*/}
             </>
   );
 }

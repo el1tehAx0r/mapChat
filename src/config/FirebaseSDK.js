@@ -57,6 +57,8 @@ class FirebaseSDK {
   }
   createUser=async(email,username,password)=>{
     const geocollection = GeoFirestore.collection('Users');
+    const postgeocollection= GeoFirestore.collection('Posts');
+    const storegeocollection= GeoFirestore.collection('StorePosts');
     auth().createUserWithEmailAndPassword(email,password)
     .then(() => {
       var user = auth().currentUser;
@@ -67,7 +69,13 @@ class FirebaseSDK {
           email: email,
           photoURL:"",
         }).then(() => {
-          console.log('User added!');
+        postgeocollection.add({userReference:geocollection.doc(user.uid)._document,coordinates:new firebase.firestore.GeoPoint(0,0)}).then((post)=>{
+        storegeocollection.add({userReference:geocollection.doc(user.uid)._document,postReference:post._document, coordinates:new firebase.firestore.GeoPoint(0,0),storeProfilePic:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/storePhotos%2F2EEmr?alt=media&token=956bc3e7-a81e-4d4b-8410-b0e4c0d5bb3d',gridData:[],storeDescription:'',storeName:''}).then((storePost)=>{
+          console.log('OMGGGG');
+        post.update({storeReference:storePost._document})
+        geocollection.doc(user.uid).update({myStorePosts:storePost._document,myPosts:firestore().FieldValue.arrayUnion(post._document)}).then(()=>{console.log('zZZZZ')}).catch((err)=>{console.log(err)})
+})
+}).catch((err)=>{console.log(err)})
         }).catch((err)=>console.log(err))
       } else {
       }
@@ -84,45 +92,20 @@ class FirebaseSDK {
 
       console.error(error);
     });}
-
-    /*  createUser=async(phone_number,email,username,password)=>{
-    auth().createUser({
-    email: email,
-    emailVerified: false,
-    phoneNumber: phone_number,
-    password: password,
-    displayName: username,
-    photoURL: '',
-    disabled: false
-  }).then(() => {
-  var user = auth().currentUser;
-  if (user) {
-  console.log(user)
-  geocollection.doc(user.uid).set({
-  DisplayName: username,
-  Email: email,
-  PPPathDb:"",
-  PhoneNumber:password,
-  Username:username,
-}).then(() => {
-console.log('User added!');
-}).catch((err)=>console.log(err))
-} else {
+placeStore=async(postId,coordinates)=>
+{
+              firestore().collection('Posts')
+              .doc(postId.toString())
+              .update({
+                coordinates:new firebase.firestore.GeoPoint(coordinates.latitude,coordinates.longitude)
+              })
+              .then(() => {
+                console.log('User updated!');
+              }).catch((err)=>
+              {
+                console.log(err)
+              })
 }
-console.log('User account created & signed in!');
-})
-.catch(error => {
-if (error.code === 'auth/email-already-in-use') {
-console.log('That email address is already in use!');
-}
-
-if (error.code === 'auth/invalid-email') {
-console.log('That email address is invalid!');
-}
-
-console.error(error);
-});}*/
-
 createUserHardCode=async(phone_number,email,username,password)=>{
   const geocollection = GeoFirestore.collection('Users');
   auth().createUserWithEmailAndPassword('bennyz5@gmail.com','Littledude1!')
@@ -355,29 +338,16 @@ createUserHardCode=async(phone_number,email,username,password)=>{
         });
       })
     }
-    setStore=async(uid,storeId,gridData)=>
+
+    setStore=async(uid,storeId,postId,gridData,profilePic,description,name)=>
     {
-      if(storeId!=null)
-      {
-        firestore().collection('StorePosts').doc(storeId.toString()).update({gridData:gridData}).then((storePost)=>{
-          this.storageUpdatedGridData(gridData,storePost.id,'StorePosts').then((newGridData)=>{
-console.log(newGridData,'newGridData')
+      firestore().collection('Posts').doc(postId.toString()).update({iconUrl:profilePic});
+        firestore().collection('StorePosts').doc(storeId.toString()).update({gridData:gridData,storeProfilePic:profilePic,storeDescription:description,storeName:name}).then((storePost)=>{
+          this.storageUpdatedGridData(gridData,storeId.toString(),'StorePosts').then((newGridData)=>{
+          console.log(newGridData,'newGridData')
         firestore().collection('StorePosts').doc(storeId.toString()).update({gridData:newGridData}).then((storePost)=>{})
           })
         })
-      }
-      else
-      {
-        firestore().collection('StorePosts').add({gridData:gridData}).then((storePost)=>{
-          this.storageUpdatedGridData(gridData,storePost.id,'StorePosts').then((newGridData)=>{
-console.log(newGridData,'newGridData')
-        firestore().collection('StorePosts').doc(storePost.id.toString()).update({gridData:newGridData}).then((storePost)=>{})
-          })
-          firestore().collection('Users').doc(uid).update({
-            myStorePosts:storePost
-          })
-        })
-      }
     }
     storageUpdatedGridData=async (gridData,storeId,collectionName)=>
     {
@@ -388,9 +358,14 @@ console.log(newGridData,'newGridData')
         gridData.map(async (data) => {
           console.log(data,'DAN')
             var remotePath='storePhotos/'+data.key
-          var firebaseStorageUrl=await this.addtoStorageNoDbUpdate(remotePath,data.media.path,collectionName)
+        if (!(data.media.path.includes('firebasestorage.googleapis.com'))){
+          var firebaseStorageUrl=await this.addtoStorageNoDbUpdate(remotePath,data.media.path)
           console.log(firebaseStorageUrl,'ksdjkldjlkaaaaaaa')
-          return firebaseStorageUrl}))
+          return firebaseStorageUrl}
+          else{
+            return data.media.path
+          }
+        }))
       console.log(remotePathArray,'REMOTEPATHS');
       const tempGridData= gridData.map((a) =>{var tempObject=Object.assign({}, a)
       tempObject.media=Object.assign({},tempObject.media); return tempObject;
@@ -406,8 +381,7 @@ console.log(newGridData,'newGridData')
     })
       }
 
-      addtoStorageNoDbUpdate=async(remotePath,localPath,collectionName)=>{
-        console.log(remotePath,localPath,collectionName,'YooOOOOOo')
+      addtoStorageNoDbUpdate=async(remotePath,localPath)=>{
         return new Promise((resolve)=>{
           const reference=storage().ref(remotePath)
           reference.putFile(localPath).then((path)=>{console.log(path)

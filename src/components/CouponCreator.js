@@ -86,8 +86,6 @@ ImagePicker.openPicker({
 });
 }
 
-
-
 const createPost=()=>
 {
   props.createPost(props.uid,props.postCreatorInfo.latitude,props.postCreatorInfo.longitude,message,shopAddress,iconUrl,expirationDate,imageUrl,count,dropRadius)

@@ -15,6 +15,8 @@ import PostViewer from '../components/PostViewer'
 import ModalContainer from '../components/ModalContainer'
 import Utility from '../config/Utility'
 import Geolocation from '@react-native-community/geolocation';
+import TwoButtonModal from '../components/TwoButtonModal'
+import StorePage from './StoreScreen'
 const { width, height } = Dimensions.get("window");
 const CARD_HEIGHT = height*0.25;
 const CARD_WIDTH = width * 0.7;
@@ -36,17 +38,31 @@ function MapPage(props,{navigation}) {
   const [postCreatorInfo,setPostCreatorInfo]=useStateWithCallbackLazy({expirationDate:null,message:'',op:'',media:{path: 'file:///storage/emulated/0/Android/data/com.gaialive/files/Pictures/fc6e1d81-41b4-4dec-af83-70c3663d6369.jpg',mime:'image/jpeg'},iconUrl:'file:///storage/emulated/0/Android/data/com.gaialive/files/Pictures/fc6e1d81-41b4-4dec-af83-70c3663d6369.jpg'});
   const [shownModal,setShownModal]=useState(null)
   const [myPosts,setMyPosts]=useStateWithCallbackLazy([])
+  const [showStoreModal,setShowStoreModal]=useState(false);
   const mapViewRef=useRef(null);
   const [deviceHeading,setDeviceHeading]=useState(1);
   const [watchId,setWatchId]=useState()
+  const [tempStorePoint,setTempStorePoint]=useState(null)
+  const [storeModalVisible,setStoreModalVisible]=useState(false);
+  const [storeViewerInfo,setStoreViewerInfo]=useStateWithCallbackLazy({});
+  const [myStore,setMyStore]=useState({})
  const mapRef = useRef(null);
   let postUnsub;
   let postUnsub2;
+  let getPostUnsub;
+  let getStorePostUnsub;
   useEffect(()=>{
       return ()=>{  if(postUnsub!=undefined)
           {
             postUnsub()
             postUnsub=null;
+          }
+        }
+
+      return ()=>{  if(getPostUnsub!=undefined)
+          {
+            getPostUnsub()
+            getPostUnsub=null;
           }
         }
   })
@@ -96,7 +112,11 @@ useEffect(()=>
       useEffect(()=>
     {
       setMyPosts(props.myPosts)
+      console.log(props.myPosts,'aSDLFJLKD')
     },[props.myPosts])
+    useEffect(()=>{
+      setMyStore(props.myStore)
+    },[props.myStore])
 const createBoardPost=(uid,message,media,postId)=>
 {
   console.log(uid,'sldkjfklsdj',media,'THISISIATEST')
@@ -154,7 +174,7 @@ console.log('zzz')
                 openCreatePostModal(point.coordinate.latitude,point.coordinate.longitude)
         }
       }
-        const mapViewPressed=(coordinates)=>
+      /*  const mapViewPressed=(coordinates)=>
         {
           console.log(myPosts,'tHESE MYPSOIDS')
           for (var i in circleCenters)
@@ -167,27 +187,38 @@ console.log('zzz')
               break;
             }
           }
-        /*  for (var i in circleCenters)
+        }*/
+          const mapViewPressed=(coordinates)=>
+        {
+          console.log(myPosts,'tHESE MYPSOIDS')
+          for (var i in circleCenters)
           {
             if (Utility.getDistanceFromLatLonInm(circleCenters[i].latitude,circleCenters[i].longitude,coordinates.latitude,coordinates.longitude)<7)
             {
-              if(myPosts.includes(circleCenters[i].id))
-              {
-                var circleCenterId=circleCenters[i].id
-                firebaseSDK.getPost(circleCenters[i].id).then((postObject)=>{var postObj=postObject.data();postObj.postId=circleCenters[i].id;postObj.isEditing=true;
-                  setPostCreatorInfo(postObj, ()=>{setPostModalVisible(true)})
-                })
-              }
-              else{
-                console.log('tatiyana')
-                firebaseSDK.getPost(circleCenters[i].id).then((postObject)=>{var postObj=postObject.data(); console.log(postObj); postObj.postId=circleCenters[i].id;
-                  setPostViewerInfo(postObj, ()=>{setModalVisible(true)})
-                })
-              }
+                  getPostUnsub=firestore().collection('Posts').doc(circleCenters[i].id).onSnapshot((postObject)=>{var postObj=postObject.data(); console.log(postObj,'CHANGESSSSSSSS'); postObj.postId=circleCenters[i].id;
+                  if (postObj.boardReference!=null)
+                  {
+                  console.log('zzzzj')
+                  }
+                  else if (postObj.storeReference!=null)
+                  {
+
+                    getStorePostUnsub=postObj.storeReference.onSnapshot((documentSnapshot)=>{
+                      var storeObj=documentSnapshot.data(); storeObj.storeId=postObj.storeReference.id;
+                      storeObj.postId=postObj.postId;
+                      setStoreViewerInfo(storeObj,()=>{
+                    setStoreModalVisible(true)
+                      }
+                    )
+                  })
+                  //setPostViewerInfo(postObj, ()=>{setModalVisible(true)})
+                }
+                }
+              )
               break;
             }
-          }*/
-        }
+          }
+      }
         const closePostCreatorModal=()=>
         {
           setPostCreatorInfo({expirationDate:null,message:'',op:'',media:{path: 'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d',mime:'image/jpeg'},iconUrl:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d'})
@@ -201,6 +232,32 @@ console.log('zzz')
             postUnsub=null;
           }
           setModalVisible(!modalVisible);
+        }
+      const placeStore=()=>
+      {
+        if (circleCenters.length!=0)
+        {
+          for( var i in circleCenters)
+          {
+            if (Utility.getDistanceFromLatLonInm(circleCenters[i].latitude,circleCenters[i].longitude,tempStorePoint.coordinate.latitude,tempStorePoint.coordinate.longitude)>20)
+            {
+              if ((i==(circleCenters.length-1)))
+              {
+                firebaseSDK.placeStore(props.postIdStore, tempStorePoint.coordinate);
+              }
+            }
+            else{
+              break;
+            }
+          }
+        }
+        else{
+                firebaseSDK.placeStore(props.postIdStore, tempStorePoint.coordinate);
+        }
+      }
+        const cancelStorePlacement=()=>
+        {
+          setShowStoreModal(false);
         }
         return (
           <View style={styles.container}>
@@ -216,7 +273,8 @@ console.log('zzz')
           onDoublePress={(e)=>
             {
               console.log('longpress')
-              createPost(e.nativeEvent)
+              setTempStorePoint(e.nativeEvent)
+              setShowStoreModal(true)
             }}
             provider={PROVIDER_GOOGLE} // remove if not using Google Maps
             style={styles.container}
@@ -229,9 +287,21 @@ console.log('zzz')
           <ModalContainer modalVisible={modalVisible}>
             <PostViewer uid={props.uid}  closePostViewerModal={closePostViewerModal} postViewerInfo={postViewerInfo}  />
           </ModalContainer>
+          <ModalContainer modalVisible={storeModalVisible}>
+ <StorePage storeId={storeViewerInfo.storeId} myStore={storeViewerInfo} uid={props.uid} postIdStore={storeViewerInfo.postId}>
+<View style={{justifyContent:'center',flexDirection:'row'}}>
+            <TouchableHighlight
+              style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
+              onPress={()=>setStoreModalVisible(false)}>
+              <Text style={styles.textStyle}>Close</Text>
+            </TouchableHighlight>
+</View>
+</StorePage>
+          </ModalContainer>
           <ModalContainer modalVisible={postModalVisible}>
             <PostCreator  navigation={props.navigation} postCreatorInfo={postCreatorInfo} uid={props.uid}  createPost={crtPost} closePostCreatorModal={closePostCreatorModal}></PostCreator>
             </ModalContainer>
+            <TwoButtonModal visible={showStoreModal} text={'Do you want to set your store here? You only get one. Note, it can be moved anytime by double pressing anywhere else on the map again'} option1Text={'Place'} option2Text={'Cancel'} option1={placeStore} option2={cancelStorePlacement}/>
             </View>
           );
         }
