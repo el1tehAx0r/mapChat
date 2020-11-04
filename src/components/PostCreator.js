@@ -145,9 +145,11 @@ const setFinalButtons=()=>
   )
 }
 }
-const createPost=(uid,message,media)=>
+
+const createCouponPost=(uid,message,media,count,expirationDate,radius,coordinates)=>
 {
-  props.createCoupons(props.uid,message,media,expirationDate,radius,{latitude,longitude},iconUrl)
+  console.log(media,'SJDFKLSJDLKJFKL')
+  firebaseSDK.createcoupon(props.uid,message,media,count,expirationDate,radius,coordinates,iconUrl)
 }
 
 /*const editPost=()=>
@@ -209,7 +211,7 @@ const setIcon=(iconUrl)=>
     <Modal visible={iconPickerVisible}>
     <IconSelectPage setIcon={setIcon} closeIconPicker={closeIconPicker} videoSource={media.path}/>
     </Modal>
-        <CouponPostCreator uid={props.uid} postViewerInfo={props.postViewerInfo} createBoardPost={createPost} closeBoardPostCreatorModal={cancelPressed} mediaChanged={(media)=>{console.log(media,'SDJFLSKJF');setMedia(media);setIconUrl(media.path)}}>
+        <CouponPostCreator uid={props.uid} postViewerInfo={props.postViewerInfo} createCouponPost={createCouponPost} closeCouponPostCreatorModal={cancelPressed} mediaChanged={(media)=>{console.log(media,'SDJFLSKJF');setMedia(media);setIconUrl(media.path)}}>
 <View style={{paddingTop:10, flexDirection:'column'}}>
 <TouchableHighlight onPress={media.mime=='image/jpeg'||media.mime=='image/png'? onPressIconUrl: onPressIconUrlVideo}>
    <Image

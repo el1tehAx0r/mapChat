@@ -144,7 +144,6 @@ if (JSON.stringify(oldObj)!=JSON.stringify(newObj)){
  setShowSave(false)
 }
   const onPress= (width,height,path) => {
-    console.log(path,'dkjdslkjdfl')
   setProfilePicWidth(width);
   setProfilePicHeight(height);
   setStoreProfilePic(path)
@@ -186,13 +185,9 @@ const cancelPressed=()=>
 useEffect(()=>{
 })
   useEffect(() => {
-    console.log(props.myStore,'aSJDLFKSJDJLKKKKKKKKKKKKK')
-    console.log(change)
   }, [])
   useEffect(() => {
-    console.log(props.myStore,'ZZZZZZZLKJSDKLFJLD')
     if (props.myStore!=null){
-    console.log(props.myStore,'ARIZA')
       setOldGridData(props.myStore.gridData);
       setOldStoreProfilePic(props.myStore.storeProfilePic)
       setOldStoreName(props.myStore.storeName)
@@ -213,8 +208,6 @@ useEffect(()=>{
   }, [props.myPosts])
   useEffect(()=>{
     if(!shallowCompare(gridData,oldGridData)){
-      console.log(gridData)
-      console.log(oldGridData,'AZEEWWEZEN')
     resetState()
   }
   },[oldGridData])

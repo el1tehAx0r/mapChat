@@ -33,7 +33,7 @@ function CouponManager(props,{navigation}) {
   const [sortFilter,setSortFilter]=useState('Date')
   const [postCreatorInfo,setPostCreatorInfo]=useState({expirationDate:null,message:'',op:'',imageUrl:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d',iconUrl:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d'});
   const [postModalVisible,setPostModalVisible]=useState(false)
-  const [myPosts,setMyPosts]=useState([])
+  const [myCoupons,setMyCoupons]=useState([])
   const [claimedCoupons,setClaimedCoupons]=useState([])
   const requestCameraPermission = async () => {
   try {
@@ -93,8 +93,9 @@ const crtPost=(uid,latitude,longitude,message,shopAddress,iconUrl,expirationDate
   }, [props.claimedCoupons])
 
   useEffect(() => {
-    setMyPosts(props.myPosts)
-  }, [props.myPosts])
+    setMyCoupons(props.myCoupons)
+    console.log(props.myCoupons,'ZKLSJDLKFJDKLJJAAZZZZZZZJJJ')
+  }, [props.myCoupons])
 const signOut=()=>
 {
   auth()
@@ -120,7 +121,7 @@ const signOut=()=>
           <ModalContainer modalVisible={postModalVisible}>
         <PostCreator circleCenters={props.circleCenters} postCreatorInfo={postCreatorInfo} uid={props.uid} createPost={crtPost} closePostCreatorModal={closePostCreatorModal} ></PostCreator>
             </ModalContainer>
-        {<CouponContainerComponent  activatedCoupons={props.activatedCoupons} sortFilter={sortFilter} key={props.uid} uid={props.uid} coupons={myPosts}/>}
+        {<CouponContainerComponent  activatedCoupons={props.activatedCoupons} sortFilter={sortFilter} key={props.uid} uid={props.uid} coupons={myCoupons}/>}
         </View>
     </View>
   );

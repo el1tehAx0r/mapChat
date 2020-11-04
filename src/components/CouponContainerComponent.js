@@ -36,14 +36,17 @@ function compareExpirationDate(a,b)
 
 useEffect(()=>
 {
+  console.log(props.coupons,'JAYSOGN')
  async function fetchCoupons() {
       var theCouponArrays=[]
+      console.log(props.coupons,'DA CROUSPONS')
   for (var i in props.coupons)
   {
-    var couponRefs=await FirebaseSDK.getPost(props.coupons[i])
+    var couponRefs=await FirebaseSDK.getCouponPost(props.coupons[i])
     var holder=couponRefs.data()
+    console.log(holder.iconUrl,'JAXSONRUUU')
     holder.postId=props.coupons[i]
-    theCouponArrays.push({uid:props.coupons[i],message:couponRefs.data().message,expirationDate:couponRefs.data().expirationDate.toDate(),imageUrl:couponRefs.data().imageUrl, postViewerInfo:holder,claimedCoupons:props.coupons})
+    theCouponArrays.push({uid:props.coupons[i],message:couponRefs.data().message,expirationDate:couponRefs.data().expirationDate.toDate(),imageUrl:couponRefs.data().iconUrl, postViewerInfo:holder,claimedCoupons:[]})
   }
   theCouponArrays.sort(compare)
 const theCoupons= theCouponArrays.map(x => renderCoupon(x.uid,x.message,x.expirationDate,x.imageUrl,x.postViewerInfo,x.claimedCoupons));

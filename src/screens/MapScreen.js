@@ -17,6 +17,7 @@ import Utility from '../config/Utility'
 import Geolocation from '@react-native-community/geolocation';
 import TwoButtonModal from '../components/TwoButtonModal'
 import StorePage from './StoreScreen'
+import ChatViewer from '../components/ChatViewer'
 const { width, height } = Dimensions.get("window");
 const CARD_HEIGHT = height*0.25;
 const CARD_WIDTH = width * 0.7;
@@ -44,8 +45,10 @@ function MapPage(props,{navigation}) {
   const [watchId,setWatchId]=useState()
   const [tempStorePoint,setTempStorePoint]=useState(null)
   const [storeModalVisible,setStoreModalVisible]=useState(false);
-  const [storeViewerInfo,setStoreViewerInfo]=useStateWithCallbackLazy({});
+  const [messengerModalVisible,setMessengerModalVisible]=useState(false);
+  const [storeViewerInfo,setStoreViewerInfo]=useStateWithCallbackLazy({userReference:{id:null}});
   const [myStore,setMyStore]=useState({})
+  const [messages,setMessages]=useStateWithCallbackLazy([])
  const mapRef = useRef(null);
   let postUnsub;
   let postUnsub2;
@@ -108,6 +111,7 @@ useEffect(()=>
     },[props.coordinates])
       useEffect(()=>{
         setClaimedCoupons(props.claimedCoupons)
+        console.log(props.claimedCoupons,'AAAAA')
       },[props.claimedCoupons])
       useEffect(()=>
     {
@@ -161,7 +165,7 @@ const crtPost= async (uid,latitude,longitude,message,iconUrl,media)=>
             {
               if ((i==(circleCenters.length-1)))
               {
-console.log('zzz')
+                console.log('zzz')
                 openCreatePostModal(point.coordinate.latitude,point.coordinate.longitude)
               }
             }
@@ -196,13 +200,16 @@ console.log('zzz')
             if (Utility.getDistanceFromLatLonInm(circleCenters[i].latitude,circleCenters[i].longitude,coordinates.latitude,coordinates.longitude)<7)
             {
                   getPostUnsub=firestore().collection('Posts').doc(circleCenters[i].id).onSnapshot((postObject)=>{var postObj=postObject.data(); console.log(postObj,'CHANGESSSSSSSS'); postObj.postId=circleCenters[i].id;
-                  if (postObj.boardReference!=null)
+                  if (postObj.couponReference!=null)
                   {
-                  console.log('zzzzj')
+                  postObj.couponReference.get().then((couponObject)=>{
+                    console.log(couponObject.data(),'DATA')
+                  setPostViewerInfo(couponObject.data(), ()=>{setModalVisible(true)})
+                  }
+                )
                   }
                   else if (postObj.storeReference!=null)
                   {
-
                     getStorePostUnsub=postObj.storeReference.onSnapshot((documentSnapshot)=>{
                       var storeObj=documentSnapshot.data(); storeObj.storeId=postObj.storeReference.id;
                       storeObj.postId=postObj.postId;
@@ -219,6 +226,19 @@ console.log('zzz')
             }
           }
       }
+      const messageButtonPressed= async ()=>{
+      try{firebaseSDK.getMessages((messageList)=>{console.log('zabboom',messageList);
+      setMessages(messageList,()=>{
+      setMessengerModalVisible(true)
+      })
+    },props.uid,storeViewerInfo.userReference.id)}
+catch(exception){
+console.log(exception,'NOOOO')
+}}
+      useEffect(()=>{},[messages])
+      const sendMessages=(messages,userId,storeId)=>{
+    firebaseSDK.sendMessages(messages,userId,storeId)
+       }
         const closePostCreatorModal=()=>
         {
           setPostCreatorInfo({expirationDate:null,message:'',op:'',media:{path: 'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d',mime:'image/jpeg'},iconUrl:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d'})
@@ -255,6 +275,10 @@ console.log('zzz')
                 firebaseSDK.placeStore(props.postIdStore, tempStorePoint.coordinate);
         }
       }
+
+      const unsubMessages=()=>{
+        firebaseSDK.unsubMessages()
+      }
         const cancelStorePlacement=()=>
         {
           setShowStoreModal(false);
@@ -285,7 +309,10 @@ console.log('zzz')
   />
             </MapView>
           <ModalContainer modalVisible={modalVisible}>
-            <PostViewer uid={props.uid}  closePostViewerModal={closePostViewerModal} postViewerInfo={postViewerInfo}  />
+            <PostViewer uid={props.uid} claimedCoupons={claimedCoupons}  closePostViewerModal={closePostViewerModal} postViewerInfo={postViewerInfo}  />
+          </ModalContainer>
+          <ModalContainer modalVisible={messengerModalVisible}>
+          <ChatViewer uid={props.uid} storeUid={storeViewerInfo.userReference.id} sendMessages={sendMessages} messages={messages} close={()=>{unsubMessages(); setMessengerModalVisible(false)}}></ChatViewer>
           </ModalContainer>
           <ModalContainer modalVisible={storeModalVisible}>
  <StorePage storeId={storeViewerInfo.storeId} myStore={storeViewerInfo} uid={props.uid} postIdStore={storeViewerInfo.postId}>
@@ -294,6 +321,12 @@ console.log('zzz')
               style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
               onPress={()=>setStoreModalVisible(false)}>
               <Text style={styles.textStyle}>Close</Text>
+            </TouchableHighlight>
+
+            <TouchableHighlight
+              style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
+              onPress={messageButtonPressed}>
+              <Text style={styles.textStyle}>Message</Text>
             </TouchableHighlight>
 </View>
 </StorePage>

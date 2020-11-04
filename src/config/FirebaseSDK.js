@@ -4,7 +4,9 @@ import firestore from '@react-native-firebase/firestore';
 import * as geofirestore from 'geofirestore';
 import Geolocation from '@react-native-community/geolocation';
 import storage from '@react-native-firebase/storage';
+import Utility from './Utility'
 const GeoFirestore=geofirestore.initializeApp(firestore());
+let messageUnsub;
 class FirebaseSDK {
   constructor() {
   }
@@ -22,7 +24,6 @@ class FirebaseSDK {
         if (error.code === 'auth/email-already-in-use') {
           console.log('That email address is already in use!');
         }
-
         if (error.code === 'auth/invalid-email') {
           console.log('That email address is invalid!');
         }
@@ -73,7 +74,7 @@ class FirebaseSDK {
         storegeocollection.add({userReference:geocollection.doc(user.uid)._document,postReference:post._document, coordinates:new firebase.firestore.GeoPoint(0,0),storeProfilePic:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/storePhotos%2F2EEmr?alt=media&token=956bc3e7-a81e-4d4b-8410-b0e4c0d5bb3d',gridData:[],storeDescription:'',storeName:''}).then((storePost)=>{
           console.log('OMGGGG');
         post.update({storeReference:storePost._document})
-        geocollection.doc(user.uid).update({myStorePosts:storePost._document,myPosts:firestore().FieldValue.arrayUnion(post._document)}).then(()=>{console.log('zZZZZ')}).catch((err)=>{console.log(err)})
+        geocollection.doc(user.uid).update({myStorePosts:storePost._document,myPosts:[post._document]}).then(()=>{console.log('zZZZZ')}).catch((err)=>{console.log(err)})
 })
 }).catch((err)=>{console.log(err)})
         }).catch((err)=>console.log(err))
@@ -94,7 +95,7 @@ class FirebaseSDK {
     });}
 placeStore=async(postId,coordinates)=>
 {
-              firestore().collection('Posts')
+   firestore().collection('Posts')
               .doc(postId.toString())
               .update({
                 coordinates:new firebase.firestore.GeoPoint(coordinates.latitude,coordinates.longitude)
@@ -142,7 +143,56 @@ createUserHardCode=async(phone_number,email,username,password)=>{
 
     console.error(error);
   });}
+getMessages=(callback,userId,storeUid)=>{
+  var chatId=Utility.concatTwoStrings(userId,storeUid);
+  messageUnsub=firestore().collection('Chats').doc(chatId).collection('Messages').orderBy('createdAt','asc').limitToLast(20).onSnapshot(documentSnapshot=>
+  {
+    var messages=[];
+  try{
+  documentSnapshot.forEach((querySnapshot,index)=>{
+    querySnapshot.data().createdAt=querySnapshot.data().createdAt.toDate()
+  messages.push(querySnapshot.data())
+  });
+  callback(messages)
+  }
+  catch{
+    console.log('didnt work')
+  }
+  })
+}
+sendMessages=(messages,userId,storeUid)=>{
+var chatId=Utility.concatTwoStrings(userId,storeUid);
+for (var i in messages)
+{
+firestore().collection('Chats').doc(chatId).collection('Messages').add(messages[i])
+}
+}
+unsubMessages=()=>
+{
+  if(messageUnsub)
+  {
+  messageUnsub();
+}
+}
 
+/*sendMessages=async (messages,userId,storeId)=>{
+  try{
+var messageGroup=firestore().collection('Chats').where('users', 'array-contains', storeId+userId).collection('Messages')
+    for (var i in messages)
+    {
+    messageGroup.add({messages[i]})
+    }
+  }
+  catch{
+  firestore().collection('Chats').set({users:[storeId+userId,userId+storeId]}).then(()=>{
+var messageGroup= firestore().collection('Chats').where('users', 'array-contains', storeId+userId).collection('Messages')
+    for (var i in messages)
+    {
+    messageGroup.add({messages[i]})
+    }
+  })
+  }
+}*/
   getCurrentUserInfo=async()=>
   {
     var user = auth().currentUser;
@@ -191,38 +241,76 @@ createUserHardCode=async(phone_number,email,username,password)=>{
         })})
       }
 
-      createPost=(uid,latitude,longitude,message,iconUrl,media)=>
+      createpost=(uid,latitude,longitude,message,iconurl,media)=>
       {
         const userReference=firestore().collection('Users').doc(uid)
         const geocollection=GeoFirestore.collection('Posts');
         return new Promise((resolve)=>
         {
-          geocollection.add({userReference:userReference,message:message,iconUrl:iconUrl,uid:uid,timestamp:firebase.firestore.FieldValue.serverTimestamp(),coordinates:new firebase.firestore.GeoPoint(latitude,longitude)}).then((post)=>{
+          console.log(latitude,longitude,'YASAASS')
+          geocollection.add({userReference:userReference,message:message,iconUrl:iconurl,uid:uid,timestamp:firebase.firestore.FieldValue.serverTimestamp(),coordinates:new firebase.firestore.GeoPoint(latitude,longitude)}).then((post)=>{
             firestore().collection('Users').doc(uid).update({
               myPosts:firebase.firestore.FieldValue.arrayUnion(post._document),
             }).then(()=>{console.log('yayyyy');resolve(post)});
           });
         })
       }
-      createCouponGroup= async (uid,latitude,longitude,message,shopAddress,iconUrl,expirationDate,imageUrl,count,distance,storeAddress)=>
+
+      createcouponpost=(uid,message,media,expirationDate)=>
       {
-        var couponList=[]
-        for (var i in couponList)
-        {
-          currentPost=await createPost(uid,latitude,longitude,message,shopAddress,iconUrl,expirationDate,imageUrl)
-          couponList.append(currentPost);
-        }
-        const geocollection=GeoFirestore.collection('CouponGroup');
+        const userReference=firestore().collection('Users').doc(uid)
+        const couponcollection=firestore().collection('CouponPosts');
         return new Promise((resolve)=>
         {
-          geocollection.add({op:uid,expirationDate:expirationDate,shopAddress:shopAddress,message:message,iconUrl:iconUrl,uid:uid,timestamp:firebase.firestore.FieldValue.serverTimestamp(),imageUrl:imageUrl,couponList:couponList}).then((post)=>{
+          couponcollection.add({userReference:userReference,message:message,uid:uid,media:media,expirationDate:expirationDate,timestamp:firebase.firestore.FieldValue.serverTimestamp()}).then((post)=>{
             firestore().collection('Users').doc(uid).update({
-              myCouponGroups:firebase.firestore.FieldValue.arrayUnion(post._document),
+              myCouponPosts:firebase.firestore.FieldValue.arrayUnion(post),
             }).then(()=>{console.log('yayyyy');resolve(post)});
           });
         })
-
       }
+  createcoupon=async (uid,message,media,count,expirationDate,radius,coordinates,iconUrl)=>
+  {
+  var postsInRadius=  GeoFirestore.collection('Posts').near({center:new firebase.firestore.GeoPoint(coordinates.latitude,coordinates.longitude), radius:100000});
+  var couponArray=[]
+  var promises=[]
+  console.log(media,'MEDIAISJDKFSJL')
+  var createdCoupon=await this.createcouponpost(uid,message,media,expirationDate)
+      var couponId=createdCoupon._documentPath._parts[1]
+      var remotePath='media/'+couponId
+      var localPath=media.path
+      var collectionName='CouponPosts'
+      var documentName=couponId
+      var field='media.path'
+  var firebaseMediaUrl= await firebaseSDK.addToStorage(remotePath,localPath,collectionName,documentName,field)
+      var iconRemotePath='iconUrl/'+couponId
+      var iconLocalPath=iconUrl
+      var field='iconUrl'
+    var firebaseIconUrl =await firebaseSDK.addtoStorageNoDbUpdate(iconRemotePath,iconLocalPath)
+for(var i = 0; i <count; i++){
+    var overlapCheck=true;
+    while (overlapCheck)
+   {
+var testCoordinates=Utility.getRandomCoordinates(coordinates,radius);
+console.log(testCoordinates,'testCoordinates')
+      for (var posts in postsInRadius){
+if(Utility.getDistanceFromLatLonInm(coordinates.latitude,coordinates.longitude,testCoordinates.latitude,testCoordinates.longitude)<15){
+  break;
+}
+}
+var createdPost=  await this.createpost(uid,testCoordinates.latitude,testCoordinates.longitude,message,firebaseIconUrl,firebaseMediaUrl)
+    createdPost._document.update({couponReference:createdCoupon})
+    promises.push(createdPost._document);
+  couponArray.push(createdPost);
+  //getting Data
+  var createdPostData=await createdPost._document.get()
+  console.log(createdPostData.data(),'dATA')
+   postsInRadius[createdPost._document.id]=createdPostData
+  overlapCheck=false
+   }
+ }
+ Promise.all(promises).then((values)=>{console.log(values,'OMGMKSD');createdCoupon.update({postReferences:values,'media.path':firebaseMediaUrl,iconUrl:iconUrl})})
+ }
       deleteCouponGroup=async (uid,groupId)=>
       {
         var postRef=firestore().collection('CouponGroup').doc(groupId).get().then((posts)=>
@@ -270,6 +358,12 @@ createUserHardCode=async(phone_number,email,username,password)=>{
     getPost=async (pid)=>
     {
       var docRef = await firestore().collection('Posts').doc(pid).get();
+      return docRef;
+    }
+
+    getCouponPost=async (pid)=>
+    {
+      var docRef = await firestore().collection('CouponPosts').doc(pid).get();
       return docRef;
     }
 
@@ -341,6 +435,7 @@ createUserHardCode=async(phone_number,email,username,password)=>{
 
     setStore=async(uid,storeId,postId,gridData,profilePic,description,name)=>
     {
+      console.log(postId,'zZZZ')
       firestore().collection('Posts').doc(postId.toString()).update({iconUrl:profilePic});
         firestore().collection('StorePosts').doc(storeId.toString()).update({gridData:gridData,storeProfilePic:profilePic,storeDescription:description,storeName:name}).then((storePost)=>{
           this.storageUpdatedGridData(gridData,storeId.toString(),'StorePosts').then((newGridData)=>{

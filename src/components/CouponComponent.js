@@ -1,7 +1,7 @@
 import React, { useState, useEffect,useRef } from 'react';
 import {TouchableOpacity, StyleSheet, Image,Text, SafeAreaView, ScrollView,View,Modal } from 'react-native';
 import FirebaseSDK from '../config/FirebaseSDK'
-import PostViewer from './PostViewer'
+import CouponViewerCreator from './CouponViewerCreatorComponent.js'
 
 const Separator = () => (
   <View style={styles.separator} />
@@ -35,7 +35,7 @@ return(
       >
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
-          <PostViewer activatedCoupons={props.activatedCoupons} uid={props.uid} closePostViewerModal={closePostViewerModal} postViewerInfo={props.postViewerInfo} claimedCoupons={props.claimedCoupons} />
+          <CouponViewerCreator uid={props.uid} closePostViewerModal={closePostViewerModal} postViewerInfo={props.postViewerInfo} />
           </View>
         </View>
       </Modal>

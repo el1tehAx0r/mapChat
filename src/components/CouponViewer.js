@@ -75,9 +75,8 @@ useEffect(()=>
   console.log(props.postViewerInfo.expirationDate.toDate().toString())
   var itemIndex=findByKey(props.postViewerInfo.postId, props.activatedCoupons,'postId')
   console.log(itemIndex)
-  console.log(props.postViewerInfo,'ROAAAA')
-var claimed=  props.claimedCoupons.includes(props.postViewerInfo)
-console.log(claimed,'ZZZZZZZZ')
+var claimed=  props.claimedCoupons.includes(props.postViewerInfo.postId)
+console.log(claimed)
 if(claimed){
   if(itemIndex!=-1)
   {

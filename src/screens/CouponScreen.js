@@ -87,13 +87,6 @@ const signOut=()=>
         <View style={{flex:5,}}>
         {<CouponContainerComponent activatedCoupons={props.activatedCoupons} sortFilter={sortFilter} key={props.uid} uid={props.uid} coupons={claimedCoupons}/>}
         </View>
-<View style={{justifyContent:'center',flexDirection:'row'}}>
-            <TouchableHighlight
-              style={{ ...styles.addButton, backgroundColor: "#2196F3" }}
-              onPress={()=>setModalVisible(!modalVisible)}>
-              <Text style={styles.textStyle}>+</Text>
-            </TouchableHighlight>
-            </View>
     </View>
   );
 }

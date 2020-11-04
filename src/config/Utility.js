@@ -2,6 +2,35 @@ class Utility{
   constructor() {
   }
 
+  concatTwoStrings=(string1,string2)=>{
+  let totalString;
+if(string1.localeCompare(string2)>0)
+{
+  totalString=string1+string2
+}
+else{
+  totalString=string2+string1
+}
+return totalString;
+  }
+  getRandomCoordinates=(coordinates,radius)=>
+  {
+  var distances= this.getRandomDistanceXandY(radius)
+  var xDistance=distances.xDistance/111000
+  var yDistance=distances.yDistance/111000
+  return ({latitude:coordinates.latitude+xDistance,longitude:coordinates.longitude+yDistance})
+  }
+  getRandomDistanceXandY=(distance)=>
+  {
+    var randomXDistance=this.getRandomNumber(distance);
+    var randomYDistance=this.getRandomNumber(distance-Math.abs(randomXDistance));
+    return ({xDistance:randomXDistance,yDistance:randomYDistance})
+  }
+  getRandomNumber=(distance)=>
+  {
+    var randomNumber=(Math.random()*(distance)*2)-(distance-1)
+    return randomNumber
+  }
     deg2rad=(deg)=> {
       return deg * (Math.PI/180)
     }
@@ -16,7 +45,7 @@ class Utility{
       Math.sin(dLon/2) * Math.sin(dLon/2)
       ;
       var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-      var d = (R * c)*1000; // Distance in km
+      var d = (R * c)*1000;
       return d;
     }
 

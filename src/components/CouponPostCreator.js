@@ -22,14 +22,15 @@ const CouponPostCreator= (props) => {
 const [postType,setPostType]=useState('');
   const [customDialogVisible,setCustomDialogVisible]=useState(false);
   const [message,setMessage]=useState('')
-  const [latitude,setLatitude]=useState(null)
-  const [longitude,setLongitude]=useState(null)
-  const [radius,setRadius]=useState();
-  const [expirationDate,setExpirationDate]=useState(null);
+  const [latitude,setLatitude]=useState(41.784080)
+  const [longitude,setLongitude]=useState(-88.124800)
+  const [radius,setRadius]=useState(50);
+  const [expirationDate,setExpirationDate]=useState(new Date());
   const [expirationTime,setExpirationTime]=useState(null);
   const [expirationDay,setExpirationDay]=useState(null);
   const [timePicker,setTimePicker]=useState(null)
   const [media,setMedia]=useState({path:'file:///storage/emulated/0/Android/data/com.gaialive/files/Pictures/fc6e1d81-41b4-4dec-af83-70c3663d6369.jpg',mime:'image/jpeg'})
+  const [count,setCount]=useState(2)
   const videoRef= useRef(null);
 const combineDateAndTime = function(date, time) {
     var timeString = time.getHours() + ':' + time.getMinutes() + ':00';
@@ -57,11 +58,14 @@ setCustomDialogVisible(false)
 },[media])
 const cancelPressed=()=>
 {
-props.closeBoardPostCreatorModal()
+props.closeCouponPostCreatorModal()
 }
-const createBoardPost=()=>
+const createCouponPost=()=>
 {
-  props.createBoardPost(props.uid,message,media,expirationDate,radius,{latitude,longitude})
+
+
+props.createCouponPost(props.uid,message,media,count,expirationDate,radius,{latitude:latitude,longitude:longitude})
+//  props.createCouponPost(props.uid,message,media,count,expirationDate,radius,{latitude:latitude,longitude:longitude})
 }
 const onPressImageUrl=()=>
 {
@@ -167,13 +171,13 @@ const showTimePicker =()=>
         style={{ height: 35, borderColor: 'gray', borderWidth: 1 }}
         placeholder="Lat"
         onChangeText={lat=> setLatitude(lat)}
-        defaultValue={null}
+        defaultValue={latitude}
       />
       <TextInput
         style={{ height: 35, borderColor: 'gray', borderWidth: 1 }}
         placeholder="long"
         onChangeText={long=> setLongitude(long)}
-        defaultValue={null}
+        defaultValue={longitude}
       />
       </View>
       <View style={{flexDirection:'row'}}>
@@ -186,8 +190,8 @@ const showTimePicker =()=>
       <TextInput
         style={{ flex:2, height: 35, borderColor: 'gray', borderWidth: 1 }}
         placeholder="How many generate"
-        onChangeText={count=> setCouponCount(count)}
-        defaultValue={null}
+        onChangeText={count=> count(count)}
+        defaultValue={count}
       />
       </View>
 
@@ -242,7 +246,7 @@ const showTimePicker =()=>
             </TouchableHighlight>
             <TouchableHighlight
               style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
-              onPress={createBoardPost}
+              onPress={createCouponPost}
             >
               <Text style={styles.textStyle}>Create Post</Text>
             </TouchableHighlight>
