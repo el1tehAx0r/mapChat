@@ -7,10 +7,10 @@ import storage from '@react-native-firebase/storage';
 import Utility from './Utility'
 const GeoFirestore=geofirestore.initializeApp(firestore());
 let messageUnsub;
+let chatUnsub;
 class FirebaseSDK {
   constructor() {
   }
-
   login = async (email,password) => {
     return new Promise((resolve)=>
     {
@@ -72,7 +72,6 @@ class FirebaseSDK {
         }).then(() => {
         postgeocollection.add({userReference:geocollection.doc(user.uid)._document,coordinates:new firebase.firestore.GeoPoint(0,0)}).then((post)=>{
         storegeocollection.add({userReference:geocollection.doc(user.uid)._document,postReference:post._document, coordinates:new firebase.firestore.GeoPoint(0,0),storeProfilePic:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/storePhotos%2F2EEmr?alt=media&token=956bc3e7-a81e-4d4b-8410-b0e4c0d5bb3d',gridData:[],storeDescription:'',storeName:''}).then((storePost)=>{
-          console.log('OMGGGG');
         post.update({storeReference:storePost._document})
         geocollection.doc(user.uid).update({myStorePosts:storePost._document,myPosts:[post._document]}).then(()=>{console.log('zZZZZ')}).catch((err)=>{console.log(err)})
 })
@@ -143,9 +142,12 @@ createUserHardCode=async(phone_number,email,username,password)=>{
 
     console.error(error);
   });}
-getMessages=(callback,userId,storeUid)=>{
+getMessages=async (callback,userId,storeUid)=>{
   var chatId=Utility.concatTwoStrings(userId,storeUid);
-  messageUnsub=firestore().collection('Chats').doc(chatId).collection('Messages').orderBy('createdAt','asc').limitToLast(20).onSnapshot(documentSnapshot=>
+  var bringl=await firestore().collection('Users').doc(userId).collection('Chats').doc(chatId).collection('Messages').get()
+  bringl.forEach((item, i) => {
+  });
+  messageUnsub=firestore().collection('Users').doc(userId).collection('Chats').doc(chatId).collection('Messages').orderBy('createdAt','desc').limitToLast(20).onSnapshot(documentSnapshot=>
   {
     var messages=[];
   try{
@@ -156,16 +158,40 @@ getMessages=(callback,userId,storeUid)=>{
   callback(messages)
   }
   catch{
+
+
+  }
+  })
+}
+getChatData=async(callback,uid)=>
+{
+  chatUnsub=firestore().collection('Users').doc(uid).collection('Chats').orderBy('lastUpdated','desc').onSnapshot(documentSnapshot=>
+  {
+    var chats=[];
+  try{
+  documentSnapshot.forEach((querySnapshot,index)=>{
+    querySnapshot.data().lastUpdated=querySnapshot.data().lastUpdated.toDate()
+    querySnapshot.data().key=querySnapshot.id
+  chats.push(querySnapshot.data())
+  });
+  callback(chats)
+  }
+  catch{
     console.log('didnt work')
   }
   })
 }
-sendMessages=(messages,userId,storeUid)=>{
-var chatId=Utility.concatTwoStrings(userId,storeUid);
+sendMessages=async (messages,uid,storeUid)=>{
+var chatId=Utility.concatTwoStrings(uid,storeUid);
+let last;
 for (var i in messages)
 {
-firestore().collection('Chats').doc(chatId).collection('Messages').add(messages[i])
+firestore().collection('Users').doc(uid).collection('Chats').doc(chatId).collection('Messages').add(messages[i])
+firestore().collection('Users').doc(storeUid).collection('Chats').doc(chatId).collection('Messages').add(messages[i])
+last=messages[i]
 }
+firestore().collection('Users').doc(uid).collection('Chats').doc(chatId).set({otherUser:storeUid,lastMessage:last,lastUpdated:firebase.firestore.FieldValue.serverTimestamp(),read:true})
+firestore().collection('Users').doc(storeUid).collection('Chats').doc(chatId).set({otherUser:uid,lastMessage:last,lastUpdated:firebase.firestore.FieldValue.serverTimestamp(),read:false})
 }
 unsubMessages=()=>
 {
@@ -174,32 +200,19 @@ unsubMessages=()=>
   messageUnsub();
 }
 }
-
-/*sendMessages=async (messages,userId,storeId)=>{
-  try{
-var messageGroup=firestore().collection('Chats').where('users', 'array-contains', storeId+userId).collection('Messages')
-    for (var i in messages)
-    {
-    messageGroup.add({messages[i]})
-    }
+unsubChat=()=>
+{
+  if(chatUnsub)
+  {
+    chatUnsub();
   }
-  catch{
-  firestore().collection('Chats').set({users:[storeId+userId,userId+storeId]}).then(()=>{
-var messageGroup= firestore().collection('Chats').where('users', 'array-contains', storeId+userId).collection('Messages')
-    for (var i in messages)
-    {
-    messageGroup.add({messages[i]})
-    }
-  })
-  }
-}*/
+}
   getCurrentUserInfo=async()=>
   {
     var user = auth().currentUser;
     if(user)
     {
       try{
-        console.log(user,'THIS IS USER')
         var docRef = await firestore().collection('Users').doc(user.uid).get();
         var docRefData=docRef.data()
         docRefData.uid=user.uid;
@@ -225,22 +238,6 @@ var messageGroup= firestore().collection('Chats').where('users', 'array-contains
       },(err)=>{console.log(err)},{distanceFilter:5, enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 })
     })
   }
-
-  sendMessage=(senderId,recieverId,chatId,message)=>
-  {
-    firestore().collection('Messages').add({senderUid:senderUid,recieverUid:recieverUid,message:message,timestamp:firestore().FieldValue.serverTimestamp()}).then((messageId)=>{
-      firestore().collection('Chats').doc(chatId).update({messages:firestore().FieldValue.arrayUnion(messageId)})})
-    }
-    createChat=(senderUid,recieverUid,message)=>
-    {
-      firestore().collection('Messages').add({senderUid:senderUid,recieverUid:recieverUid,message:message}).then((messageId)=>{
-        firestore().collection('Chats').add({participants:[senderUid,recieverUid],messages:[messageId]}).then((chatId)=>
-        {
-          firestore.collection('Users').doc(senderUid).update({chats:firestore().FieldValue.arrayUnion(chatId)})
-          firestore.collection('Users').doc(recieverUid).update({chats:firestore().FieldValue.arrayUnion(chatId)})
-        })})
-      }
-
       createpost=(uid,latitude,longitude,message,iconurl,media)=>
       {
         const userReference=firestore().collection('Users').doc(uid)

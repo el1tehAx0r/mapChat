@@ -12,6 +12,7 @@ import RNDeviceHeading from 'react-native-device-heading'
 import StoreEditorPage from './StoreEditorScreen'
 import CouponManager from './CouponManagerScreen'
 import Geolocation from '@react-native-community/geolocation';
+import MessengerPage from './MessengerScreen';
 import * as geofirestore from 'geofirestore';
 const GeoFirestore=geofirestore.initializeApp(firestore());
 const Tab = createMaterialTopTabNavigator();
@@ -31,6 +32,7 @@ function MainNavigator({route, navigation}) {
   const [myCouponPosts,setMyCouponPosts]=useState([])
   const [storeId,setStoreId]=useState(null)
   const [postIdStore,setPostIdStore]=useState(null)
+  const [chats,setChats]=useState([]);
   let postUnsub;
   let postUnsub1;
   const updateSelfLocation=()=>
@@ -99,7 +101,6 @@ function MainNavigator({route, navigation}) {
           }
         }
         catch{
-          console.log('didntwork')
         }
         try{
           var couponPosts=documentSnapshot.data().myCouponPosts.map((post, index)=>{
@@ -109,6 +110,7 @@ function MainNavigator({route, navigation}) {
         }
         catch{
         }
+
         try{
           var userActivatedCoupons=documentSnapshot.data().activatedCoupons.map((post, index)=>{
           return {postId:post.couponId,timeStamp:post.timeStamp}
@@ -116,7 +118,6 @@ function MainNavigator({route, navigation}) {
           setActivatedCoupons(userActivatedCoupons)
         }
         catch{
-          console.log('didntwork')
         }
         try{
           var userStore=documentSnapshot.data().myStorePosts.get().then((documentSnapshot)=>{setStoreId(documentSnapshot.id);setMyStore(documentSnapshot.data())
@@ -124,7 +125,6 @@ setPostIdStore(documentSnapshot.data().postReference.id)
         })
         }
         catch{
-          console.log('didntwork')
         }
       });
     }
@@ -134,10 +134,14 @@ firebaseSDK.getCurrentUserInfo().then((user)=>{setUserInfo(user);
 });
 }
   useEffect(() => {
+    firebaseSDK.getChatData((chatData)=>{
+      setChats(chatData)
+    },user.uid)
     updateSelfLocation()
     getUserPosts()
     initializeUserInfo()
         return () => {
+          firebaseSDK.unsubChat()
           RNDeviceHeading.stop();
           Geolocation.clearWatch(watchId);
           if(postUnsub!=undefined)
@@ -154,23 +158,15 @@ firebaseSDK.getCurrentUserInfo().then((user)=>{setUserInfo(user);
         }
   }, [])
   return (
-<Tab.Navigator swipeEnabled={false}>
+<Tab.Navigator headerShown={false}  swipeEnabled={false}>
     <Tab.Screen
     name="Map"
        children={()=><MapPage postIdStore={postIdStore} storeId={storeId} navigation={navigation} deviceHeading={deviceHeading} coordinates={coordinates} activatedCoupons={activatedCoupons} circleCenters={circleCenters} claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid} />}/>
-  {/*  <Tab.Screen
-    name="Profile Page"
-    children={()=><ProfilePage claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid}/>}/>*/}
-    {/*<Tab.Screen
-    name="Coupon Page"
-    children={()=><CouponPage claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid}/>}/>
-    <Tab.Screen
-    name="Coupon Creator"
-    children={()=><CouponManager myCoupons={myCouponPosts} uid={user.uid}/>}/>*/}
     <Tab.Screen
     name="Store Page"
     children={()=><StoreEditorPage storeId={storeId} myStore={myStore} uid={user.uid} postIdStore={postIdStore}/>}
     />
+    <Tab.Screen name="Messages" children={()=><MessengerPage uid={user.uid} chats={chats}/>}/>
     </Tab.Navigator>
   );
 }

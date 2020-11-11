@@ -1,7 +1,29 @@
+import deepEqual from 'deep-equal'
 class Utility{
   constructor() {
   }
+  contains =(item,list)=> list.some(elem =>{
+    console.log(item,'ITEM')
+    console.log(elem,'ELEM')
+console.log(deepEqual(item,elem))
+  return deepEqual(item,elem)
+});
+shallowEqual=(object1, object2)=>{
+  const keys1 = Object.keys(object1);
+  const keys2 = Object.keys(object2);
 
+  if (keys1.length !== keys2.length) {
+    return false;
+  }
+
+  for (let key of keys1) {
+    if (object1[key] !== object2[key]) {
+      return false;
+    }
+  }
+
+  return true;
+}
   concatTwoStrings=(string1,string2)=>{
   let totalString;
 if(string1.localeCompare(string2)>0)

@@ -241,6 +241,13 @@ else{
 firebaseSDK.setStore(props.uid,storeId,props.postIdStore,gridData,storeProfilePic,storeDescription,storeName).then();
 }
     }
+
+const signOut=()=>
+{
+  auth()
+  .signOut()
+  .then(() => console.log('User signed out!'));
+}
   var resetState=()=>
   {
   setShowSave(false);setEditMode(false);
@@ -288,7 +295,7 @@ firebaseSDK.setStore(props.uid,storeId,props.postIdStore,gridData,storeProfilePi
           <ModalContainer modalVisible={modalVisible}>
         <BoardPostCreator uid={props.uid} createBoardPost={createPost} closeBoardPostCreatorModal={cancelPressed} mediaChanged={(media)=>{}}/>
             </ModalContainer>
-                        {React.cloneElement(props.children, { editMode:editMode,setEditMode:setEditMode,setModalVisible:setModalVisible,setStore:setStore,resetState:resetState,showSave:showSave })}
+                        {React.cloneElement(props.children, { signOut:signOut,editMode:editMode,setEditMode:setEditMode,setModalVisible:setModalVisible,setStore:setStore,resetState:resetState,showSave:showSave })}
 {/*<EditButtonSet editMode={editMode} setEditMode={setEditMode} setModalVisible={setModalVisible} modalVisible={modalVisible} setStore={setStore} resetState={resetState} showSave={showSave}/>*/}
             </>
   );

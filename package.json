@@ -25,6 +25,7 @@
     "@react-navigation/material-top-tabs": "^5.2.16",
     "@react-navigation/native": "^5.7.3",
     "@react-navigation/stack": "^5.9.0",
+    "deep-equal": "^2.0.4",
     "dimensions": "^0.1.0",
     "firebase": "^7.19.0",
     "firebase-admin": "^9.2.0",
@@ -80,6 +81,7 @@
     "react-native-snap-carousel": "^4.0.0-beta.6",
     "react-native-spinkit": "^1.5.0",
     "react-native-svg": "^12.1.0",
+    "react-native-swipe-list-view": "^3.2.5",
     "react-native-tab-view": "^2.15.1",
     "react-native-ultimate-listview": "^3.3.0",
     "react-native-user-avatar": "^1.0.7",
@@ -90,6 +92,7 @@
     "react-native-video-helper": "^1.4.4",
     "react-native-video-player": "^0.10.1",
     "react-native-video-processing": "^2.0.0",
+    "shallow-equal": "^1.2.1",
     "use-state-with-callback": "^2.0.3"
   },
   "devDependencies": {

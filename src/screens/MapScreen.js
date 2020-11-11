@@ -69,6 +69,11 @@ function MapPage(props,{navigation}) {
           }
         }
   })
+  useEffect(()=>{
+  return ()=>{
+  unsubMessages()
+  }
+  },[])
 useEffect(()=>
 {
   mapRef.current.animateCamera(
@@ -111,19 +116,16 @@ useEffect(()=>
     },[props.coordinates])
       useEffect(()=>{
         setClaimedCoupons(props.claimedCoupons)
-        console.log(props.claimedCoupons,'AAAAA')
       },[props.claimedCoupons])
       useEffect(()=>
     {
       setMyPosts(props.myPosts)
-      console.log(props.myPosts,'aSDLFJLKD')
     },[props.myPosts])
     useEffect(()=>{
       setMyStore(props.myStore)
     },[props.myStore])
 const createBoardPost=(uid,message,media,postId)=>
 {
-  console.log(uid,'sldkjfklsdj',media,'THISISIATEST')
 firebaseSDK.createBoardPost(uid,message,media,postId).then((boardPost)=>{
       var boardPostId=boardPost._documentPath._parts[1]
       var remotePath='media/'+boardPostId
@@ -136,7 +138,6 @@ firebaseSDK.createBoardPost(uid,message,media,postId).then((boardPost)=>{
 }
 const crtPost= async (uid,latitude,longitude,message,iconUrl,media)=>
   {
-    console.log(media,'wtf')
     firebaseSDK.createPost(uid,latitude,longitude,message,iconUrl).then((post)=>{
       var postId=post._document._documentPath._parts[1]
   createBoardPost(uid.toString(),message,media,postId.toString())
@@ -153,7 +154,7 @@ const crtPost= async (uid,latitude,longitude,message,iconUrl,media)=>
     var postObject={}
     postObject=postCreatorInfo;
     setPostCreatorInfo({latitude:lat,longitude:long,expirationDate:null,message:'',op:'',media:{path: 'file:///storage/emulated/0/Android/data/com.gaialive/files/Pictures/fc6e1d81-41b4-4dec-af83-70c3663d6369.jpg',mime:'image/jpeg'},iconUrl:'file:///storage/emulated/0/Android/data/com.gaialive/files/Pictures/fc6e1d81-41b4-4dec-af83-70c3663d6369.jpg'}
-,()=>{console.log('jk');setPostModalVisible(true)})
+,()=>{setPostModalVisible(true)})
       }
       const createPost=(point)=>
       {
@@ -165,7 +166,6 @@ const crtPost= async (uid,latitude,longitude,message,iconUrl,media)=>
             {
               if ((i==(circleCenters.length-1)))
               {
-                console.log('zzz')
                 openCreatePostModal(point.coordinate.latitude,point.coordinate.longitude)
               }
             }
@@ -194,7 +194,6 @@ const crtPost= async (uid,latitude,longitude,message,iconUrl,media)=>
         }*/
           const mapViewPressed=(coordinates)=>
         {
-          console.log(myPosts,'tHESE MYPSOIDS')
           for (var i in circleCenters)
           {
             if (Utility.getDistanceFromLatLonInm(circleCenters[i].latitude,circleCenters[i].longitude,coordinates.latitude,coordinates.longitude)<7)
@@ -203,7 +202,6 @@ const crtPost= async (uid,latitude,longitude,message,iconUrl,media)=>
                   if (postObj.couponReference!=null)
                   {
                   postObj.couponReference.get().then((couponObject)=>{
-                    console.log(couponObject.data(),'DATA')
                   setPostViewerInfo(couponObject.data(), ()=>{setModalVisible(true)})
                   }
                 )
@@ -264,6 +262,7 @@ console.log(exception,'NOOOO')
               if ((i==(circleCenters.length-1)))
               {
                 firebaseSDK.placeStore(props.postIdStore, tempStorePoint.coordinate);
+                setShowStoreModal(false);
               }
             }
             else{
@@ -273,6 +272,7 @@ console.log(exception,'NOOOO')
         }
         else{
                 firebaseSDK.placeStore(props.postIdStore, tempStorePoint.coordinate);
+                setShowStoreModal(false);
         }
       }
 

@@ -11,11 +11,18 @@ export default function createButtonSet(props)
 <View style={{justifyContent:'center',flexDirection:'row'}}>
   { (() => {
        if (!props.editMode){
-          return             <TouchableHighlight
+          return ( <><TouchableHighlight
               style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
               onPress={()=>{props.setEditMode(!props.editMode)}}>
               <Text style={styles.textStyle}>EDIT STORE</Text>
-            </TouchableHighlight>}
+            </TouchableHighlight>
+
+    <TouchableHighlight
+              style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
+              onPress={()=>props.signOut()}>
+              <Text style={styles.textStyle}>Sign Out</Text>
+            </TouchableHighlight></>)
+          }
         else {
           if (props.showSave)
           {
@@ -36,10 +43,7 @@ export default function createButtonSet(props)
               onPress={()=>{props.resetState()}}>
               <Text style={styles.textStyle}>Cancel</Text>
             </TouchableHighlight>
-            </>
-
-          )
-          }
+            </>)}
           else{
             return(
 <><TouchableHighlight
@@ -51,12 +55,13 @@ export default function createButtonSet(props)
               style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
               onPress={()=>props.resetState()}>
               <Text style={styles.textStyle}>Cancel</Text>
-            </TouchableHighlight></>
+            </TouchableHighlight>
+            </>
           )
           }
         }
    })()}
-  </View> 
+  </View>
    </>
  )
 }

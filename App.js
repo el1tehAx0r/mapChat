@@ -58,7 +58,12 @@ if (initializing) return null;
 <Stack.Screen name="Login" component={LoginPage}/>
 <Stack.Screen name="Signup" component={SignupPage}/>
    </>) :
-    (<><Stack.Screen name="MainNavigator" component={MainNavigator} initialParams={{user:user}}/>
+    (<><Stack.Screen name="MainNavigator" component={MainNavigator} initialParams={{user:user}}
+        options={{
+          headerShown:false
+        }}
+
+     />
     </>)}
       </Stack.Navigator>
     </NavigationContainer>
