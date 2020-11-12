@@ -18,6 +18,7 @@ import Geolocation from '@react-native-community/geolocation';
 import TwoButtonModal from '../components/TwoButtonModal'
 import StorePage from './StoreScreen'
 import ChatViewer from '../components/ChatViewer'
+import styles,{mapstyle} from '../MapStyleSheet'
 const { width, height } = Dimensions.get("window");
 const CARD_HEIGHT = height*0.25;
 const CARD_WIDTH = width * 0.7;
@@ -32,26 +33,17 @@ function MapPage(props,{navigation}) {
   const [coordinates,setCoordinates]=useState({latitude:5,longitude:5})
   const [nearbyPosts,setNearbyPosts]=useState([])
   const [circleCenters,setCircleCenters]=useState([])
-  const [claimedCoupons,setClaimedCoupons]=useState([])
   const [modalVisible,setModalVisible]=useState(false)
   const [postModalVisible,setPostModalVisible]=useState(false)
-  const [postViewerInfo,setPostViewerInfo]=useStateWithCallbackLazy(false);
-  const [postCreatorInfo,setPostCreatorInfo]=useStateWithCallbackLazy({expirationDate:null,message:'',op:'',media:{path: 'file:///storage/emulated/0/Android/data/com.gaialive/files/Pictures/fc6e1d81-41b4-4dec-af83-70c3663d6369.jpg',mime:'image/jpeg'},iconUrl:'file:///storage/emulated/0/Android/data/com.gaialive/files/Pictures/fc6e1d81-41b4-4dec-af83-70c3663d6369.jpg'});
   const [shownModal,setShownModal]=useState(null)
-  const [myPosts,setMyPosts]=useStateWithCallbackLazy([])
   const [showStoreModal,setShowStoreModal]=useState(false);
-  const mapViewRef=useRef(null);
-  const [deviceHeading,setDeviceHeading]=useState(1);
-  const [watchId,setWatchId]=useState()
   const [tempStorePoint,setTempStorePoint]=useState(null)
   const [storeModalVisible,setStoreModalVisible]=useState(false);
   const [messengerModalVisible,setMessengerModalVisible]=useState(false);
   const [storeViewerInfo,setStoreViewerInfo]=useStateWithCallbackLazy({userReference:{id:null}});
-  const [myStore,setMyStore]=useState({})
   const [messages,setMessages]=useStateWithCallbackLazy([])
  const mapRef = useRef(null);
   let postUnsub;
-  let postUnsub2;
   let getPostUnsub;
   let getStorePostUnsub;
   useEffect(()=>{
@@ -108,22 +100,8 @@ useEffect(()=>
     },[props.circleCenters])
       useEffect(()=>
     {
-      setDeviceHeading(props.deviceHeading)
-    },[props.deviceHeading])
-      useEffect(()=>
-    {
       setCoordinates(props.coordinates)
     },[props.coordinates])
-      useEffect(()=>{
-        setClaimedCoupons(props.claimedCoupons)
-      },[props.claimedCoupons])
-      useEffect(()=>
-    {
-      setMyPosts(props.myPosts)
-    },[props.myPosts])
-    useEffect(()=>{
-      setMyStore(props.myStore)
-    },[props.myStore])
 const createBoardPost=(uid,message,media,postId)=>
 {
 firebaseSDK.createBoardPost(uid,message,media,postId).then((boardPost)=>{
@@ -149,13 +127,6 @@ const crtPost= async (uid,latitude,longitude,message,iconUrl,media)=>
       firebaseSDK.addToStorage(remotePath,localPath,collectionName,documentName,field)
       closePostCreatorModal()})
     }
-    const openCreatePostModal=(lat,long)=>
-    {
-    var postObject={}
-    postObject=postCreatorInfo;
-    setPostCreatorInfo({latitude:lat,longitude:long,expirationDate:null,message:'',op:'',media:{path: 'file:///storage/emulated/0/Android/data/com.gaialive/files/Pictures/fc6e1d81-41b4-4dec-af83-70c3663d6369.jpg',mime:'image/jpeg'},iconUrl:'file:///storage/emulated/0/Android/data/com.gaialive/files/Pictures/fc6e1d81-41b4-4dec-af83-70c3663d6369.jpg'}
-,()=>{setPostModalVisible(true)})
-      }
       const createPost=(point)=>
       {
         if (circleCenters.length!=0)
@@ -178,55 +149,32 @@ const crtPost= async (uid,latitude,longitude,message,iconUrl,media)=>
                 openCreatePostModal(point.coordinate.latitude,point.coordinate.longitude)
         }
       }
-      /*  const mapViewPressed=(coordinates)=>
-        {
-          console.log(myPosts,'tHESE MYPSOIDS')
-          for (var i in circleCenters)
-          {
-            if (Utility.getDistanceFromLatLonInm(circleCenters[i].latitude,circleCenters[i].longitude,coordinates.latitude,coordinates.longitude)<7)
-            {
-                  getPostUnsub=firestore().collection('Posts').doc(circleCenters[i].id).onSnapshot((postObject)=>{var postObj=postObject.data(); console.log(postObj,'CHANGESSSSSSSS'); postObj.postId=circleCenters[i].id;
-                  setPostViewerInfo(postObj, ()=>{setModalVisible(true)})
-                })
-              break;
-            }
-          }
-        }*/
           const mapViewPressed=(coordinates)=>
         {
           for (var i in circleCenters)
           {
             if (Utility.getDistanceFromLatLonInm(circleCenters[i].latitude,circleCenters[i].longitude,coordinates.latitude,coordinates.longitude)<7)
             {
-                  getPostUnsub=firestore().collection('Posts').doc(circleCenters[i].id).onSnapshot((postObject)=>{var postObj=postObject.data(); console.log(postObj,'CHANGESSSSSSSS'); postObj.postId=circleCenters[i].id;
-                  if (postObj.couponReference!=null)
+              getPostUnsub=firebaseSDK.getSnapshotFromRefernce((postObject)=>{
+var postObj=postObject.data(); console.log(postObj,'CHANGESSSSSSSS'); postObj.postId=circleCenters[i].id;
+                  if (postObj.storeReference!=null)
                   {
-                  postObj.couponReference.get().then((couponObject)=>{
-                  setPostViewerInfo(couponObject.data(), ()=>{setModalVisible(true)})
-                  }
-                )
-                  }
-                  else if (postObj.storeReference!=null)
-                  {
-                    getStorePostUnsub=postObj.storeReference.onSnapshot((documentSnapshot)=>{
+                    getStorePostUnsub=firebaseSDK.getSnapshotFromRefernce((documentSnapshot)=>{
                       var storeObj=documentSnapshot.data(); storeObj.storeId=postObj.storeReference.id;
                       storeObj.postId=postObj.postId;
                       setStoreViewerInfo(storeObj,()=>{
                     setStoreModalVisible(true)
                       }
                     )
-                  })
-                  //setPostViewerInfo(postObj, ()=>{setModalVisible(true)})
+                    },postObj.storeReference)
                 }
-                }
-              )
+              },firestore().collection('Posts').doc(circleCenters[i].id))
               break;
             }
           }
       }
       const messageButtonPressed= async ()=>{
-      try{firebaseSDK.getMessages((messageList)=>{console.log('zabboom',messageList);
-      setMessages(messageList,()=>{
+      try{firebaseSDK.getMessages((messageList)=>{setMessages(messageList,()=>{
       setMessengerModalVisible(true)
       })
     },props.uid,storeViewerInfo.userReference.id)}
@@ -308,9 +256,6 @@ console.log(exception,'NOOOO')
     coordinate={coordinates}
   />
             </MapView>
-          <ModalContainer modalVisible={modalVisible}>
-            <PostViewer uid={props.uid} claimedCoupons={claimedCoupons}  closePostViewerModal={closePostViewerModal} postViewerInfo={postViewerInfo}  />
-          </ModalContainer>
           <ModalContainer modalVisible={messengerModalVisible}>
           <ChatViewer uid={props.uid} storeUid={storeViewerInfo.userReference.id} sendMessages={sendMessages} messages={messages} close={()=>{unsubMessages(); setMessengerModalVisible(false)}}></ChatViewer>
           </ModalContainer>
@@ -331,9 +276,6 @@ console.log(exception,'NOOOO')
 </View>
 </StorePage>
           </ModalContainer>
-          <ModalContainer modalVisible={postModalVisible}>
-            <PostCreator  navigation={props.navigation} postCreatorInfo={postCreatorInfo} uid={props.uid}  createPost={crtPost} closePostCreatorModal={closePostCreatorModal}></PostCreator>
-            </ModalContainer>
             <TwoButtonModal visible={showStoreModal} text={'Do you want to set your store here? You only get one. Note, it can be moved anytime by double pressing anywhere else on the map again'} option1Text={'Place'} option2Text={'Cancel'} option1={placeStore} option2={cancelStorePlacement}/>
             </View>
           );
@@ -345,265 +287,3 @@ console.log(exception,'NOOOO')
 
         //<UserMarker image={props.image} coordinate={{latitude:latitude,longitude:longitude}}/>
         export default MapPage;
-        const styles=StyleSheet.create({
-          pinStrip: {
-            position:'absolute',
-            marginTop: Platform.OS === 'ios' ? 40 : 20,
-            flexDirection:"column",
-            backgroundColor: '#fff',
-            width: '12%',
-            height:'45%',
-            opacity:0.6,
-            borderRadius: 5,
-            left:width*0.85,
-            padding: 10,
-            shadowColor: '#ccc',
-            shadowOffset: { width: 0, height: 3 },
-            shadowOpacity: 0.5,
-            shadowRadius: 5,
-            elevation: 10,
-          },
-          cardtitle: {
-            fontSize: 12,
-            // marginTop: 5,
-            fontWeight: "bold",
-          },
-          card: {
-            // padding: 10,
-            elevation: 2,
-            backgroundColor: "#FFF",
-            borderTopLeftRadius: 5,
-            borderTopRightRadius: 5,
-            marginHorizontal: 10,
-            shadowColor: "#000",
-            shadowRadius: 5,
-            shadowOpacity: 0.3,
-            shadowOffset: { x: 2, y: -2 },
-            height: CARD_HEIGHT,
-            width: CARD_WIDTH,
-            overflow: "hidden",
-          },
-          cardImage: {
-            flex: 3,
-            width: "100%",
-            height: "100%",
-            alignSelf: "center",
-          },
-          /*container: {
-          ...StyleSheet.absoluteFillObject,
-          justifyContent: 'flex-end',
-          alignItems: 'center',
-        },*/
-        container:{
-          flex:1,
-        },
-        map: {
-          ...StyleSheet.absoluteFillObject,
-        },
-        bottomBorder:
-        {
-          flexDirection:'row',flex:2,
-          borderBottomColor:'black',
-          borderBottomWidth:1  },
-          openButton: {
-            backgroundColor: "#F194FF",
-            borderRadius: 20,
-            padding: 10,
-            elevation: 2
-          },
-          textStyle: {
-            color: "white",
-            fontWeight: "bold",
-            textAlign: "center"
-          },
-          modalText: {
-            marginBottom: 15,
-            textAlign: "center"
-          }
-        })
-        var mapstyle=[
-  {
-    "elementType": "geometry",
-    "stylers": [
-      {
-        "color": "#212121"
-      }
-    ]
-  },
-  {
-    "elementType": "labels.icon",
-    "stylers": [
-      {
-        "visibility": "off"
-      }
-    ]
-  },
-  {
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
-        "color": "#757575"
-      }
-    ]
-  },
-  {
-    "elementType": "labels.text.stroke",
-    "stylers": [
-      {
-        "color": "#212121"
-      }
-    ]
-  },
-  {
-    "featureType": "administrative",
-    "elementType": "geometry",
-    "stylers": [
-      {
-        "color": "#757575"
-      }
-    ]
-  },
-  {
-    "featureType": "administrative.country",
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
-        "color": "#9e9e9e"
-      }
-    ]
-  },
-  {
-    "featureType": "administrative.land_parcel",
-    "stylers": [
-      {
-        "visibility": "off"
-      }
-    ]
-  },
-  {
-    "featureType": "administrative.locality",
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
-        "color": "#bdbdbd"
-      }
-    ]
-  },
-  {
-    "featureType": "poi",
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
-        "color": "#757575"
-      }
-    ]
-  },
-  {
-    "featureType": "poi.park",
-    "elementType": "geometry",
-    "stylers": [
-      {
-        "color": "#181818"
-      }
-    ]
-  },
-  {
-    "featureType": "poi.park",
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
-        "color": "#616161"
-      }
-    ]
-  },
-  {
-    "featureType": "poi.park",
-    "elementType": "labels.text.stroke",
-    "stylers": [
-      {
-        "color": "#1b1b1b"
-      }
-    ]
-  },
-  {
-    "featureType": "road",
-    "elementType": "geometry.fill",
-    "stylers": [
-      {
-        "color": "#2c2c2c"
-      }
-    ]
-  },
-  {
-    "featureType": "road",
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
-        "color": "#8a8a8a"
-      }
-    ]
-  },
-  {
-    "featureType": "road.arterial",
-    "elementType": "geometry",
-    "stylers": [
-      {
-        "color": "#373737"
-      }
-    ]
-  },
-  {
-    "featureType": "road.highway",
-    "elementType": "geometry",
-    "stylers": [
-      {
-        "color": "#3c3c3c"
-      }
-    ]
-  },
-  {
-    "featureType": "road.highway.controlled_access",
-    "elementType": "geometry",
-    "stylers": [
-      {
-        "color": "#4e4e4e"
-      }
-    ]
-  },
-  {
-    "featureType": "road.local",
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
-        "color": "#616161"
-      }
-    ]
-  },
-  {
-    "featureType": "transit",
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
-        "color": "#757575"
-      }
-    ]
-  },
-  {
-    "featureType": "water",
-    "elementType": "geometry",
-    "stylers": [
-      {
-        "color": "#000000"
-      }
-    ]
-  },
-  {
-    "featureType": "water",
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
-        "color": "#3d3d3d"
-      }
-    ]
-  }
-]

@@ -8,6 +8,7 @@ import Utility from './Utility'
 const GeoFirestore=geofirestore.initializeApp(firestore());
 let messageUnsub;
 let chatUnsub;
+let postUnsub;
 class FirebaseSDK {
   constructor() {
   }
@@ -106,42 +107,6 @@ placeStore=async(postId,coordinates)=>
                 console.log(err)
               })
 }
-createUserHardCode=async(phone_number,email,username,password)=>{
-  const geocollection = GeoFirestore.collection('Users');
-  auth().createUserWithEmailAndPassword('bennyz5@gmail.com','Littledude1!')
-  .then(() => {
-    var user = auth().currentUser;
-    if (user) {
-      console.log(user)
-      geocollection.doc(user.uid).set({
-        phoneNumber: '+12222222222',
-        coordinates:new firebase.firestore.GeoPoint(2.5,2.3),
-        displayName: 'bennyz5',
-        photoURL: 'https://scontent-ort2-1.xx.fbcdn.net/v/t1.0-9/117817111_308049447197739_3150057679575135482_n.jpg?_nc_cat=104&_nc_sid=09cbfe&_nc_ohc=873vxbPNBmoAX_wxMQc&_nc_ht=scontent-ort2-1.xx&oh=74cf666bcd67a1d332313ba3d4636c8a&oe=5F8568B9',}
-      )
-      .then(() => {
-        console.log('User added!');
-      }).catch((err)=>console.log(err))
-
-      auth().currentUser.updateProfile({
-        displayName: 'bennyz5',
-        photoURL: 'http://www.example.com/12345678/photo.png',
-      }).then((me)=>{console.log(user)}).catch((err)=>console.log(err))
-    } else {
-    }
-    console.log('User account created & signed in!');
-  })
-  .catch(error => {
-    if (error.code === 'auth/email-already-in-use') {
-      console.log('That email address is already in use!');
-    }
-
-    if (error.code === 'auth/invalid-email') {
-      console.log('That email address is invalid!');
-    }
-
-    console.error(error);
-  });}
 getMessages=async (callback,userId,storeUid)=>{
   var chatId=Utility.concatTwoStrings(userId,storeUid);
   var bringl=await firestore().collection('Users').doc(userId).collection('Chats').doc(chatId).collection('Messages').get()
@@ -158,10 +123,16 @@ getMessages=async (callback,userId,storeUid)=>{
   callback(messages)
   }
   catch{
-
-
   }
   })
+}
+
+unsubMessages=()=>
+{
+  if(messageUnsub)
+  {
+  messageUnsub();
+}
 }
 getChatData=async(callback,uid)=>
 {
@@ -181,6 +152,13 @@ getChatData=async(callback,uid)=>
   }
   })
 }
+unsubChat=()=>
+{
+  if(chatUnsub)
+  {
+    chatUnsub();
+  }
+}
 sendMessages=async (messages,uid,storeUid)=>{
 var chatId=Utility.concatTwoStrings(uid,storeUid);
 let last;
@@ -193,20 +171,7 @@ last=messages[i]
 firestore().collection('Users').doc(uid).collection('Chats').doc(chatId).set({otherUser:storeUid,lastMessage:last,lastUpdated:firebase.firestore.FieldValue.serverTimestamp(),read:true})
 firestore().collection('Users').doc(storeUid).collection('Chats').doc(chatId).set({otherUser:uid,lastMessage:last,lastUpdated:firebase.firestore.FieldValue.serverTimestamp(),read:false})
 }
-unsubMessages=()=>
-{
-  if(messageUnsub)
-  {
-  messageUnsub();
-}
-}
-unsubChat=()=>
-{
-  if(chatUnsub)
-  {
-    chatUnsub();
-  }
-}
+
   getCurrentUserInfo=async()=>
   {
     var user = auth().currentUser;
@@ -253,80 +218,28 @@ unsubChat=()=>
         })
       }
 
-      createcouponpost=(uid,message,media,expirationDate)=>
-      {
-        const userReference=firestore().collection('Users').doc(uid)
-        const couponcollection=firestore().collection('CouponPosts');
-        return new Promise((resolve)=>
-        {
-          couponcollection.add({userReference:userReference,message:message,uid:uid,media:media,expirationDate:expirationDate,timestamp:firebase.firestore.FieldValue.serverTimestamp()}).then((post)=>{
-            firestore().collection('Users').doc(uid).update({
-              myCouponPosts:firebase.firestore.FieldValue.arrayUnion(post),
-            }).then(()=>{console.log('yayyyy');resolve(post)});
-          });
+getPosts=(callback,coordinates)=>
+    {
+      const postgeocollection = GeoFirestore.collection('Posts');
+      const postquery = postgeocollection.near({ center: new firebase.firestore.GeoPoint(coordinates.latitude,coordinates.longitude), radius: 1000000 });
+      postUnsub=postquery.onSnapshot((dog)=>{
+        var centerPoints=dog.docs.map((markerInfo,index)=>{
+          return {latitude:markerInfo.data().coordinates.latitude,longitude:markerInfo.data().coordinates.longitude, id:markerInfo.id,iconUrl:markerInfo.data().iconUrl}
         })
-      }
-  createcoupon=async (uid,message,media,count,expirationDate,radius,coordinates,iconUrl)=>
-  {
-  var postsInRadius=  GeoFirestore.collection('Posts').near({center:new firebase.firestore.GeoPoint(coordinates.latitude,coordinates.longitude), radius:100000});
-  var couponArray=[]
-  var promises=[]
-  console.log(media,'MEDIAISJDKFSJL')
-  var createdCoupon=await this.createcouponpost(uid,message,media,expirationDate)
-      var couponId=createdCoupon._documentPath._parts[1]
-      var remotePath='media/'+couponId
-      var localPath=media.path
-      var collectionName='CouponPosts'
-      var documentName=couponId
-      var field='media.path'
-  var firebaseMediaUrl= await firebaseSDK.addToStorage(remotePath,localPath,collectionName,documentName,field)
-      var iconRemotePath='iconUrl/'+couponId
-      var iconLocalPath=iconUrl
-      var field='iconUrl'
-    var firebaseIconUrl =await firebaseSDK.addtoStorageNoDbUpdate(iconRemotePath,iconLocalPath)
-for(var i = 0; i <count; i++){
-    var overlapCheck=true;
-    while (overlapCheck)
-   {
-var testCoordinates=Utility.getRandomCoordinates(coordinates,radius);
-console.log(testCoordinates,'testCoordinates')
-      for (var posts in postsInRadius){
-if(Utility.getDistanceFromLatLonInm(coordinates.latitude,coordinates.longitude,testCoordinates.latitude,testCoordinates.longitude)<15){
-  break;
-}
-}
-var createdPost=  await this.createpost(uid,testCoordinates.latitude,testCoordinates.longitude,message,firebaseIconUrl,firebaseMediaUrl)
-    createdPost._document.update({couponReference:createdCoupon})
-    promises.push(createdPost._document);
-  couponArray.push(createdPost);
-  //getting Data
-  var createdPostData=await createdPost._document.get()
-  console.log(createdPostData.data(),'dATA')
-   postsInRadius[createdPost._document.id]=createdPostData
-  overlapCheck=false
-   }
- }
- Promise.all(promises).then((values)=>{console.log(values,'OMGMKSD');createdCoupon.update({postReferences:values,'media.path':firebaseMediaUrl,iconUrl:iconUrl})})
- }
-      deleteCouponGroup=async (uid,groupId)=>
-      {
-        var postRef=firestore().collection('CouponGroup').doc(groupId).get().then((posts)=>
+        callback(centerPoints)
+        if(dog.docs.length==0)
         {
-          for (var i in posts)
-          {
-            deletePost(post[i]);
-          }
-          firestore().collection('Users').doc(uid).update({
-            myCouponGroups:firebase.firestore.FieldValue.arrayRemove(groupId),
-          }).then(()=>
-          {
-            firestore().collection('CouponGroup').doc(groupId).delete().then((checking) => {console.log('postDeleted!');});
-          })
+          callback([])
         }
-      );
-
+      })
     }
-
+unsubPosts=()=>
+{
+  if(postUnsub)
+  {
+  postUnsub();
+}
+}
     editPost=(postId,message,shopAddress,iconUrl,expirationDate,imageUrl)=>
     {
       const geocollection=GeoFirestore.collection('Posts');
@@ -357,79 +270,6 @@ var createdPost=  await this.createpost(uid,testCoordinates.latitude,testCoordin
       var docRef = await firestore().collection('Posts').doc(pid).get();
       return docRef;
     }
-
-    getCouponPost=async (pid)=>
-    {
-      var docRef = await firestore().collection('CouponPosts').doc(pid).get();
-      return docRef;
-    }
-
-    unclaimCoupon=async(uid,couponId)=>
-    {
-      var docRefCoupon = await firestore().collection('Posts').doc(couponId);
-      var docRefUser = await firestore().collection('User').doc(uid);
-      firestore().collection('Users').doc(uid).update({
-        claimedCoupons: firebase.firestore.FieldValue.arrayRemove(docRefCoupon),
-      })
-      firestore().collection('Posts').doc(couponId).update({
-        usersClaimed: firebase.firestore.FieldValue.arrayRemove(docRefUser),
-      })
-    }
-    claimCoupon=async(uid,couponId)=>
-    {
-      var docRefCoupon = await firestore().collection('Posts').doc(couponId);
-      var docRefUser = await firestore().collection('User').doc(uid);
-      firestore().collection('Users').doc(uid).update({
-
-        claimedCoupons:firebase.firestore.FieldValue.arrayUnion(docRefCoupon),
-      })
-      firestore().collection('Posts').doc(couponId).update({
-        usersClaimed:firebase.firestore.FieldValue.arrayUnion(docRefUser),
-      })
-    }
-
-    activateCoupon=async(uid,couponId,timeStamp)=>
-    {
-      var docRefUser = await firestore().collection('User').doc(uid);
-      firestore().collection('Users').doc(uid).update({
-
-        activatedCoupons:firebase.firestore.FieldValue.arrayUnion({couponId:couponId,timeStamp:timeStamp}),
-      })
-    }
-    getCreatedCoupons=async(uid,couponIds)=>
-    {
-      var coupons=[]
-      var docRef = await firestore().collection('Posts').doc(pid).get();
-      await couponIds.forEach(async(couponId)=> {
-        var docRef = await firestore().collection('Posts').doc(couponId).get();
-      });
-    }
-    getClaimedCoupons=async(uid,couponIds)=>
-    {
-      var coupons=[]
-      await couponIds.forEach(async (couponId)=> {
-        var docRef = await firestore().collection('Posts').doc(couponId).get();
-      });
-    }
-    createBoardPost=async (uid,message,media,postId)=>
-    {
-      const userReference=firestore().collection('Users').doc(uid.toString())
-      const postReference=firestore().collection('Posts').doc(postId.toString())
-      const boardpostcollection=firestore().collection('BoardPosts');
-      return new Promise((resolve)=>
-      {
-        boardpostcollection.add({userReference:userReference,message:message,uid:uid,timestamp:firebase.firestore.FieldValue.serverTimestamp(),media:media,postReference:postReference}).then((boardPost)=>{
-          firestore().collection('Posts').doc(postId.toString()).update({
-            boardPosts:firebase.firestore.FieldValue.arrayUnion(boardPost),
-          }).then(()=>{console.log('yayyyyPostid');});
-          firestore().collection('Users').doc(uid.toString()).update({
-            myBoardPosts:firebase.firestore.FieldValue.arrayUnion(boardPost),
-          }).then(()=>{console.log('yayyyy')});
-          resolve(boardPost)
-        });
-      })
-    }
-
     setStore=async(uid,storeId,postId,gridData,profilePic,description,name)=>
     {
       console.log(postId,'zZZZ')
@@ -440,6 +280,14 @@ var createdPost=  await this.createpost(uid,testCoordinates.latitude,testCoordin
         firestore().collection('StorePosts').doc(storeId.toString()).update({gridData:newGridData}).then((storePost)=>{})
           })
         })
+    }
+    getSnapshotFromRefernce=async(callback,reference)=>
+    {
+      var snapshotUnsub=reference.onSnapshot((documentSnapshot)=>
+    {
+      callback(documentSnapshot);
+    })
+    return snapshotUnsub;
     }
     storageUpdatedGridData=async (gridData,storeId,collectionName)=>
     {
@@ -472,7 +320,6 @@ var createdPost=  await this.createpost(uid,testCoordinates.latitude,testCoordin
      resolve(tempGridData)
     })
       }
-
       addtoStorageNoDbUpdate=async(remotePath,localPath)=>{
         return new Promise((resolve)=>{
           const reference=storage().ref(remotePath)
@@ -509,7 +356,6 @@ var createdPost=  await this.createpost(uid,testCoordinates.latitude,testCoordin
           );
         })})
       }
-
       addToPhotoGallery=async(storagePath,localPath,collectionName,documentName,field,galleryArray)=>
       {
         return new Promise((resolve)=>{

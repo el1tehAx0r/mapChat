@@ -36,9 +36,7 @@ const Separator = () => (
 //Geolocation.getCurrentPosition(info => console.log(info));
 function StorePage(props,{navigation}) {
   // Set an initializing state whilst Firebase connects
-  const [profilePicWidth,setProfilePicWidth]=useState(150);
   const [albumGrid,setAlbumGrid]=useState([]);
-  const [profilePicHeight,setProfilePicHeight]=useState(150);
   const [modalVisible, setModalVisible]=useState(false);
   const [userInfo,setUserInfo]=useState({})
   const [myPosts,setMyPosts]=useState([])
@@ -144,8 +142,6 @@ if (JSON.stringify(oldObj)!=JSON.stringify(newObj)){
  setShowSave(false)
 }
   const onPress= (width,height,path) => {
-  setProfilePicWidth(width);
-  setProfilePicHeight(height);
   setStoreProfilePic(path)
   }
   const redXPressed=(key)=>{

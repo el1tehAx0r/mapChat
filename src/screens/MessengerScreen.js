@@ -20,12 +20,11 @@ export default function MessengerPage(props) {
     );
     const [modalVisible,setModalVisible]=useState(false)
     const [storeViewerInfo,setStoreViewerInfo]=useState({})
+    const [chat,setChat]=useStateWithCallbackLazy({});
   const [messages,setMessages]=useStateWithCallbackLazy([])
-
     const [chats,setChats]=useState([])
     useEffect(()=>{
       console.log(props.chats)
-      console.log(listData)
       setChats(props.chats)
     },[props.chats])
     const closeRow = (rowMap, rowKey) => {
@@ -51,9 +50,9 @@ export default function MessengerPage(props) {
         <TouchableHighlight
             onPress={() =>{
               firebaseSDK.getMessages((messageList)=>{console.log('zabboom',messageList);
-      setMessages(messageList,()=>{
+              setChat({messages:messageList,otherUser:data.item.otherUser},()=>{
       setModalVisible(true)
-      })
+              })
     },props.uid,data.item.otherUser)}
               }
             style={styles.rowFront}
@@ -94,7 +93,7 @@ export default function MessengerPage(props) {
                 previewOpenDelay={3000}
                 onRowDidOpen={onRowDidOpen}/>
           <ModalContainer modalVisible={modalVisible}>
-          <ChatViewer uid={props.uid} storeViewerInfo={storeViewerInfo} storeUid={props.uid} sendMessages={sendMessages} messages={messages} close={()=>{firebaseSDK.unsubMessages(); setModalVisible(false)}}></ChatViewer>
+          <ChatViewer uid={props.uid} storeViewerInfo={storeViewerInfo} storeUid={chat.otherUser} sendMessages={sendMessages} messages={chat.messages} close={()=>{firebaseSDK.unsubMessages(); setModalVisible(false)}}></ChatViewer>
           </ModalContainer>
         </View>
     );
