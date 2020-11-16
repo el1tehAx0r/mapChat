@@ -10,6 +10,7 @@ import MainNavigator from './src/screens/MainNavigator';
 import firestore from '@react-native-firebase/firestore';
 import { createStackNavigator } from '@react-navigation/stack';
 import firebaseSDK from './src/config/FirebaseSDK';
+import ButtonPage from './src/screens/ButtonScreen'
 const Stack=createStackNavigator();
 function App() {
   if (!__DEV__) {
@@ -27,44 +28,50 @@ function App() {
       }
       else{
         setUser(user)
-    if (initializing) setInitializing(false)
       }
+
+    if (initializing) setInitializing(false)
     }
   )
   }
+
   function onAuthStateChanged(user) {
-    //setUser(user);
     if(user!=null)
     {
 waitUserInfoUpdated(user)
     }
 else{setUser(user)}
-if(initializing) setInitializing(false)
-//    firebaseSDK.getCurrentUserInfo().then((userInfo)=>{
- // })
   }
-  useEffect(() => {
 
+  useEffect(() => {
     const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
     return subscriber; // unsubscribe on unmount
   }, []);
-if (initializing) return null;
+  useEffect(()=>
+{
+
+},[user])
   return (
         <NavigationContainer>
       <Stack.Navigator>
- {user== null ? (
-<>
-<Stack.Screen name="Splash" component={SplashPage}/>
+      {initializing?
+        (<Stack.Screen name="SplashPage" component={SplashPage}/>
+          ):
+  (user==null ? <>
+  <Stack.Screen name="ButtonPage" component={ButtonPage}/>
 <Stack.Screen name="Login" component={LoginPage}/>
 <Stack.Screen name="Signup" component={SignupPage}/>
-   </>) :
-    (<><Stack.Screen name="MainNavigator" component={MainNavigator} initialParams={{user:user}}
+   </>
+        : <><Stack.Screen name="MainNavigator" component={MainNavigator} initialParams={{user:user}}
         options={{
           headerShown:false
         }}
 
      />
-    </>)}
+    </>
+      )
+
+      }
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -1,142 +1,190 @@
 import React, { useState, useEffect,useRef } from 'react';
 import {
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    TouchableHighlight,
-    View,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableHighlight,
+  View,
+  Image
 } from 'react-native';
+import StoreProfilePic from '../components/StoreProfilePic'
 import  ModalContainer from '../components/ModalContainer'
 import ChatViewer from '../components/ChatViewer'
 import { SwipeListView } from 'react-native-swipe-list-view';
 import firebaseSDK from '../config/FirebaseSDK';
-
+import styles from '../MessengerStyleSheet';
+import StorePage from './StoreScreen'
+import CloseModalButton from '../components/CloseModalButton'
+import Utility from '../config/Utility'
 import { useStateWithCallbackLazy } from 'use-state-with-callback';
 export default function MessengerPage(props) {
-    const [listData, setListData] = useState(
-        Array(20)
-            .fill('')
-            .map((_, i) => ({ key: `${i}`, text: `item #${i}` }))
-    );
-    const [modalVisible,setModalVisible]=useState(false)
-    const [storeViewerInfo,setStoreViewerInfo]=useState({})
-    const [chat,setChat]=useStateWithCallbackLazy({});
+  const [modalVisible,setModalVisible]=useState(false)
+  const [storeViewerInfo,setStoreViewerInfo]=useStateWithCallbackLazy({})
+  const [chat,setChat]=useStateWithCallbackLazy({});
   const [messages,setMessages]=useStateWithCallbackLazy([])
-    const [chats,setChats]=useState([])
+  const [chats,setChats]=useState([])
+  const [storeShown,setStoreShown]=useState(false)
+  const [messageUnsub,setMessageUnsub]=useState(null)
+  const [storeUnsub,setStoreUnsub]=useState(null)
+  useEffect(()=>{
+    return ()=>{
+      if(messageUnsub!=null)
+      {
+        messageUnsub.messageUnsub()
+      }
+      if(storeUnsub!=null)
+      {
+        storeUnsub.storeUnsub()
+      }
+    }
+  },[])
+  async function getChatInfo() {
+    const promises = props.chats.map(async (item) => {
+      var holdItems=await firebaseSDK.getStoreUsernameAndAvatar(item.otherUser)
+      item.userName=holdItems.displayName;
+      item.avatar=holdItems.storeProfilePic;
+      return item
+    });
+    var newChats=await Promise.all(promises);
+    setChats(newChats)}
     useEffect(()=>{
-      console.log(props.chats)
-      setChats(props.chats)
+      getChatInfo();
     },[props.chats])
+      const onRenderItem=async (dataItem)=>{
+        return new Promise(async (resolve)=>{
+          var messageUnsubber=await firebaseSDK.getMessages((messageList)=>{console.log('zabboom');
+          setMessages('djlksjdklfj')
+          setChat({messages:messageList,otherUser:dataItem.otherUser, avatar:dataItem.avatar, userName:dataItem.userName},(chat)=>{
+            resolve(true)
+          })
+        },props.uid,dataItem.otherUser)
+        setMessageUnsub({'messageUnsub':messageUnsubber})
+      })
+    }
+    const onProfilePressed= async (storeUid)=>{
+      console.log(storeUid)
+      return new Promise(async (resolve)=>
+      {
+        console.log(storeUid)
+        firebaseSDK.getDataByCollectionAndDocId('Users',storeUid).then(async (documentData)=>
+        {
+          var storeUnsubber=await firebaseSDK.getSnapshotFromRefernce((snapshot)=>{
+            var snapshotCopy= Object.assign({}, snapshot.data());
+            snapshotCopy.otherUser=storeUid
+            snapshotCopy.userName=snapshot.data().storeName
+            snapshotCopy.avatar=snapshot.data().storeProfilePic
+            setStoreViewerInfo(snapshotCopy,()=>{
+              resolve(true)
+            })
+          },documentData.myStorePosts)
+          setStoreUnsub({'storeUnsub':storeUnsubber})
+        })
+      })
+    }
     const closeRow = (rowMap, rowKey) => {
-        if (rowMap[rowKey]) {
-            rowMap[rowKey].closeRow();
-        }
+      if (rowMap[rowKey]) {
+        rowMap[rowKey].closeRow();
+      }
     };
-
-      const sendMessages=(messages,userId,storeId)=>{
-    firebaseSDK.sendMessages(messages,userId,storeId)
-       }
     const deleteRow = (rowMap, rowKey) => {
-        closeRow(rowMap, rowKey);
-        const newData = [...listData];
-        const prevIndex = listData.findIndex(item => item.key === rowKey);
-        newData.splice(prevIndex, 1);
-        setListData(newData);
+      closeRow(rowMap, rowKey);
+      const newData = [...chats];
+      const prevIndex = chats.findIndex(item => item.key === rowKey);
+      newData.splice(prevIndex, 1);
+      setChat(newData);
     };
     const onRowDidOpen = rowKey => {
-        console.log('This row opened', rowKey);
+      console.log('This row opened', rowKey);
     };
-    const renderItem = data => (
-        <TouchableHighlight
-            onPress={() =>{
-              firebaseSDK.getMessages((messageList)=>{console.log('zabboom',messageList);
-              setChat({messages:messageList,otherUser:data.item.otherUser},()=>{
-      setModalVisible(true)
-              })
-    },props.uid,data.item.otherUser)}
-              }
-            style={styles.rowFront}
-            underlayColor={'#AAA'}>
-            <View>
-                <Text>{data.item.otherUser} </Text>
-                <Text>Last Message: {data.item.lastMessage.text} </Text>
-            </View>
-        </TouchableHighlight>
-    );
 
+    const renderItem = data => (
+      <TouchableHighlight
+      onPress={async () =>{
+        onRenderItem(data.item).then((useless)=>{
+          setStoreShown(false)
+          setStoreShown(false)
+          setModalVisible(true)
+        })
+      }
+    }
+    underlayColor={'#CCC'}>
+    <View style={{...styles.rowFront,flexDirection:'row'}}>
+    <View style={{flex:2}}>
+    <StoreProfilePic editable={false} onPressEditableFalse={()=>{onProfilePressed(data.item.otherUser).then((useless)=>{
+      setStoreShown(true);setModalVisible(true)})}} onPress={(width,height,path)=>{}} profilePic={data.item.avatar}/>
+      </View>
+
+      <View style={{flex:8,flexDirection:'column'}}>
+      <View style={{flexDirection:'row'}}>
+      <View style={{paddingTop:10}}>
+      <Text style={styles.username}> {data.item.userName} </Text>
+      <Text style={styles.text}>Last Message: {data.item.lastMessage.text} </Text>
+      </View>
+      </View>
+      </View>
+      </View>
+      </TouchableHighlight>
+    );
     const renderHiddenItem = (data, rowMap) => (
-        <View style={styles.rowBack}>
-            <TouchableOpacity
-                style={[styles.backRightBtn, styles.backRightBtnLeft]}
-                onPress={() => closeRow(rowMap, data.item.key)}
-            >
-                <Text style={styles.backTextWhite}>Close</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-                style={[styles.backRightBtn, styles.backRightBtnRight]}
-                onPress={() => deleteRow(rowMap, data.item.key)}
-            >
-                <Text style={styles.backTextWhite}>Delete</Text>
-            </TouchableOpacity>
-        </View>
+      <View style={styles.rowBack}>
+      <TouchableOpacity
+      style={[styles.backRightBtn, styles.backRightBtnLeft]}
+      onPress={() => closeRow(rowMap, data.item.key)}
+      >
+      <Text style={styles.backTextWhite}>Close</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+      style={[styles.backRightBtn, styles.backRightBtnRight]}
+      onPress={() => deleteRow(rowMap, data.item.key)}
+      >
+      <Text style={styles.backTextWhite}>Delete</Text>
+      </TouchableOpacity>
+      </View>
     );
 
     return (
-        <View style={styles.container}>
-            <SwipeListView
-                data={chats}
-                renderItem={renderItem}
-                renderHiddenItem={renderHiddenItem}
-                rightOpenValue={-150}
-                previewRowKey={'0'}
-                previewOpenValue={-40}
-                previewOpenDelay={3000}
-                onRowDidOpen={onRowDidOpen}/>
-          <ModalContainer modalVisible={modalVisible}>
-          <ChatViewer uid={props.uid} storeViewerInfo={storeViewerInfo} storeUid={chat.otherUser} sendMessages={sendMessages} messages={chat.messages} close={()=>{firebaseSDK.unsubMessages(); setModalVisible(false)}}></ChatViewer>
-          </ModalContainer>
-        </View>
-    );
-}
+      <View style={styles.container}>
+      <SwipeListView
+      data={chats}
+      renderItem={renderItem}
+      renderHiddenItem={renderHiddenItem}
+      rightOpenValue={-150}
+      previewRowKey={'0'}
+      previewOpenValue={-40}
+      previewOpenDelay={3000}
+      onRowDidOpen={onRowDidOpen}/>
+      <ModalContainer modalVisible={modalVisible}>
+      {
+        storeShown==false?
+        (<ChatViewer avatar={chat.avatar} username={chat.userName} userNamePressed={(storeUid)=>{onProfilePressed(storeUid).then((useless)=>{
+          setStoreShown(true);setModalVisible(true); messageUnsub.messageUnsub()})}} uid={props.uid} storeViewerInfo={storeViewerInfo} storeUid={chat.otherUser} sendMessages={
+(messages,userId,storeId)=>{
+      firebaseSDK.sendMessages(messages,userId,storeId)
+    }
+} messages={chat.messages} close={()=>{//firebaseSDK.unsubMessages();
+            messageUnsub.messageUnsub();
+            setModalVisible(false);console.log('area');
+          }}></ChatViewer>):
 
-const styles = StyleSheet.create({
-    container: {
-        backgroundColor: 'white',
-        flex: 1,
-    },
-    backTextWhite: {
-        color: '#FFF',
-    },
-    rowFront: {
-        alignItems: 'flex-start',
-        backgroundColor: '#CCC',
-        borderBottomColor: 'black',
-        borderBottomWidth: 1,
-        justifyContent: 'center',
-        height:90,
-    },
-    rowBack: {
-        alignItems: 'center',
-        backgroundColor: '#DDD',
-        flex: 1,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingLeft: 15,
-    },
-    backRightBtn: {
-        alignItems: 'center',
-        bottom: 0,
-        justifyContent: 'center',
-        position: 'absolute',
-        top: 0,
-        width: 75,
-    },
-    backRightBtnLeft: {
-        backgroundColor: 'blue',
-        right: 75,
-    },
-    backRightBtnRight: {
-        backgroundColor: 'red',
-        right: 0,
-    },
-});
+          <><CloseModalButton close={()=>{
+            setModalVisible(false);storeUnsub.storeUnsub();
+          }}></CloseModalButton>
+          <StorePage storeId={storeViewerInfo.storeId} myStore={storeViewerInfo} uid={props.uid} postIdStore={storeViewerInfo.postId}>
+          <View style={{justifyContent:'center',flexDirection:'row'}}>
+          <TouchableHighlight
+          style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
+          onPress={()=>{onRenderItem(storeViewerInfo).then((useless)=>{
+            storeUnsub.storeUnsub()
+            setStoreShown(false)
+          })}}>
+          <Text style={styles.textStyle}>Message</Text>
+          </TouchableHighlight>
+          </View>
+          </StorePage>
+          </>
+        }
+        </ModalContainer>
+
+        </View>
+      );
+    }

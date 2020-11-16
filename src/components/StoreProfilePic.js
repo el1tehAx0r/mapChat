@@ -11,6 +11,8 @@ import {
 } from 'react-native-material-textfield';
 export default function StoreProfilePic(props)
 {
+  useEffect(()=>{
+  })
   const onPress = () => {
 ImagePicker.openPicker({
   width: 90,
@@ -21,7 +23,11 @@ props.onPress(image.width,image.heigt,image.path);
 });
   }
   return (
-<TouchableHighlight style={{flex:1}}onPress={()=>{if(props.editable){onPress()}}}>
+<TouchableHighlight style={{flex:1}}onPress={()=>{if(props.editable){onPress()}
+else{
+  props.onPressEditableFalse()
+}
+}}>
    <Image
      style={{
        borderWidth: 1,

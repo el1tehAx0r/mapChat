@@ -15,7 +15,7 @@ export default function CloseModalButton(props){
     return (
     <View >
             <TouchableHighlight
-            onPress={()=>{
+            onPressIn={()=>{
               props.close()
             }}
               style={{ ...styles.addButton, marginBottom:-15,backgroundColor: "red",left:styles.width/1.33 }}>

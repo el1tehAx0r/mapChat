@@ -7,8 +7,8 @@ import storage from '@react-native-firebase/storage';
 import Utility from './Utility'
 const GeoFirestore=geofirestore.initializeApp(firestore());
 let messageUnsub;
-let chatUnsub;
 let postUnsub;
+let userInfoUnsub;
 class FirebaseSDK {
   constructor() {
   }
@@ -70,9 +70,11 @@ class FirebaseSDK {
           coordinates:new firebase.firestore.GeoPoint(2.5,2.3),
           email: email,
           photoURL:"",
+          storeName:'Add Store Name',
+          storeProfilePic:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fimages.png?alt=media&token=0f82c0e3-eb6c-43f6-8e58-6c274d310f42',
         }).then(() => {
-        postgeocollection.add({userReference:geocollection.doc(user.uid)._document,coordinates:new firebase.firestore.GeoPoint(0,0)}).then((post)=>{
-        storegeocollection.add({userReference:geocollection.doc(user.uid)._document,postReference:post._document, coordinates:new firebase.firestore.GeoPoint(0,0),storeProfilePic:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/storePhotos%2F2EEmr?alt=media&token=956bc3e7-a81e-4d4b-8410-b0e4c0d5bb3d',gridData:[],storeDescription:'',storeName:''}).then((storePost)=>{
+        postgeocollection.add({userReference:geocollection.doc(user.uid)._document,iconUrl:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fimages.png?alt=media&token=0f82c0e3-eb6c-43f6-8e58-6c274d310f42', coordinates:new firebase.firestore.GeoPoint(0,0)}).then((post)=>{
+        storegeocollection.add({userReference:geocollection.doc(user.uid)._document,postReference:post._document, coordinates:new firebase.firestore.GeoPoint(0,0),storeProfilePic:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fimages.png?alt=media&token=0f82c0e3-eb6c-43f6-8e58-6c274d310f42',gridData:[],storeDescription:'Description',storeName:'Default Name'}).then((storePost)=>{
         post.update({storeReference:storePost._document})
         geocollection.doc(user.uid).update({myStorePosts:storePost._document,myPosts:[post._document]}).then(()=>{console.log('zZZZZ')}).catch((err)=>{console.log(err)})
 })
@@ -107,13 +109,19 @@ placeStore=async(postId,coordinates)=>
                 console.log(err)
               })
 }
+getStoreUsernameAndAvatar=async(storeUid)=>{
+var returnValue=await firestore().collection('Users').doc(storeUid).get()
+return returnValue.data()
+}
 getMessages=async (callback,userId,storeUid)=>{
+  console.log('beforeupdates')
   var chatId=Utility.concatTwoStrings(userId,storeUid);
   var bringl=await firestore().collection('Users').doc(userId).collection('Chats').doc(chatId).collection('Messages').get()
   bringl.forEach((item, i) => {
   });
-  messageUnsub=firestore().collection('Users').doc(userId).collection('Chats').doc(chatId).collection('Messages').orderBy('createdAt','desc').limitToLast(20).onSnapshot(documentSnapshot=>
+  var messageUnsub1=firestore().collection('Users').doc(userId).collection('Chats').doc(chatId).collection('Messages').onSnapshot(documentSnapshot=>
   {
+    console.log('messagesUpdated');
     var messages=[];
   try{
   documentSnapshot.forEach((querySnapshot,index)=>{
@@ -125,39 +133,38 @@ getMessages=async (callback,userId,storeUid)=>{
   catch{
   }
   })
+  return messageUnsub1;
 }
 
+getSnapshotByCollectionAndDocId=async (callback,collectionName,docId)=>{
+var reference=  firestore().collection(collectionName).doc(docId)
+      var snapshotUnsub=reference.onSnapshot((documentSnapshot)=>{callback(documentSnapshot);})
+    return snapshotUnsub;
+}
 unsubMessages=()=>
 {
-  if(messageUnsub)
+  if(messageUnsub!=undefined)
   {
   messageUnsub();
 }
 }
 getChatData=async(callback,uid)=>
 {
-  chatUnsub=firestore().collection('Users').doc(uid).collection('Chats').orderBy('lastUpdated','desc').onSnapshot(documentSnapshot=>
+  var chatUnsub=firestore().collection('Users').doc(uid).collection('Chats').orderBy('lastUpdated','desc').onSnapshot(documentSnapshot=>
   {
     var chats=[];
-  try{
   documentSnapshot.forEach((querySnapshot,index)=>{
+  try{
     querySnapshot.data().lastUpdated=querySnapshot.data().lastUpdated.toDate()
+}
+  catch{
+    console.log('cannotGetLastUpdatedDate')
+  }
     querySnapshot.data().key=querySnapshot.id
   chats.push(querySnapshot.data())
   });
-  callback(chats)
-  }
-  catch{
-    console.log('didnt work')
-  }
-  })
-}
-unsubChat=()=>
-{
-  if(chatUnsub)
-  {
-    chatUnsub();
-  }
+  callback(chats)})
+    return chatUnsub
 }
 sendMessages=async (messages,uid,storeUid)=>{
 var chatId=Utility.concatTwoStrings(uid,storeUid);
@@ -189,6 +196,22 @@ firestore().collection('Users').doc(storeUid).collection('Chats').doc(chatId).se
       }
     }
   }
+
+  snapshotCurrentUserInfo=async (callback)=>
+  {
+    var user = auth().currentUser;
+    let snapshotCurrentUserInfo
+    if(user)
+    {
+        snapshotCurrentUserInfo=firestore().collection('Users').doc(user.uid).onSnapshot((docRef)=>{
+        var docRefData=docRef.data()
+        docRefData.uid=user.uid;
+        callback(docRefData)
+        })
+    }
+
+        return snapshotCurrentUserInfo;
+  }
   updateSelfLocation=(uid)=>
   {
     return new Promise((resolve)=>{
@@ -217,7 +240,10 @@ firestore().collection('Users').doc(storeUid).collection('Chats').doc(chatId).se
           });
         })
       }
-
+getDataByCollectionAndDocId=async (collectionName,docId)=>{
+var documentSnapshot=await firestore().collection(collectionName).doc(docId).get()
+return documentSnapshot.data()
+}
 getPosts=(callback,coordinates)=>
     {
       const postgeocollection = GeoFirestore.collection('Posts');
@@ -272,11 +298,10 @@ unsubPosts=()=>
     }
     setStore=async(uid,storeId,postId,gridData,profilePic,description,name)=>
     {
-      console.log(postId,'zZZZ')
       firestore().collection('Posts').doc(postId.toString()).update({iconUrl:profilePic});
+      firestore().collection('Users').doc(uid).update({storeName:name,storeProfilePic:profilePic})
         firestore().collection('StorePosts').doc(storeId.toString()).update({gridData:gridData,storeProfilePic:profilePic,storeDescription:description,storeName:name}).then((storePost)=>{
           this.storageUpdatedGridData(gridData,storeId.toString(),'StorePosts').then((newGridData)=>{
-          console.log(newGridData,'newGridData')
         firestore().collection('StorePosts').doc(storeId.toString()).update({gridData:newGridData}).then((storePost)=>{})
           })
         })

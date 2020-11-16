@@ -24,28 +24,60 @@ function MainNavigator({route, navigation}) {
   const [storeId,setStoreId]=useState(null)
   const [postIdStore,setPostIdStore]=useState(null)
   const [chats,setChats]=useState([]);
-  let postUnsub;
-  let postUnsub1;
-  let storeUnsub;
+  const [storeProfilePic,setStoreProfilePic]=useState(null)
+  const [storeName,setStoreName]=useState(null)
+  const [storeUnsub,setStoreUnsub]=useState(null)
+  const [userUnsub,setUserUnsub]=useState(null)
+  const [chatUnsub,setChatUnsub] =useState(null)
+  useEffect(() => {
+    getChatData()
+    handleUserInfo()
+    return () => {
+      RNDeviceHeading.stop();
+      Geolocation.clearWatch(watchId);
+      if(chatUnsub!=null)
+      {
+        chatUnsub.chatUnsub()
+      }
+      if(userUnsub!=null)
+      {
+        userUnsub.userUnsub()
+      }
+      if(storeUnsub!=null){
+        storeUnsub.storeUnsub()
+      }
+    }
+  }, [])
+  const mapScreenEntered=()=>{
+    Geolocation.getCurrentPosition((position)=>{
+      positionHandler(position)
+    });
+    updateSelfLocation()
+  }
+  const mapScreenLeft=()=>{
+console.log('testingMapScreenLeft')
+      RNDeviceHeading.stop();
+      Geolocation.clearWatch(watchId);
+  }
+  const getChatData=async ()=>{
+    var chatUnsubber=await firebaseSDK.getChatData((chatData)=>{
+      setChats(chatData)
+    },user.uid);
+    setChatUnsub({'chatUnsub':chatUnsubber});
+  }
   const updateSelfLocation=()=>
   {
-    RNDeviceHeading.start(10, degree => {
+    RNDeviceHeading.start(30, degree => {
       setDeviceHeading(degree)
     });
     var watch=Geolocation.watchPosition((position)=>
     {
-      console.log(position,'MAYUSHKI')
       positionHandler(position)
     })
     setWatchId(watch)
   }
   const positionHandler=(position)=>
   {
-    if(postUnsub1!=undefined)
-    {
-      postUnsub1()
-      postUnsub1=null;
-    }
     firestore().collection('Users').doc(user.uid).update({coordinates:new firebase.firestore.GeoPoint(position.coords.latitude, position.coords.longitude)})
     firestore().collection('Users').doc(user.uid).update({'g.geopoint':new firebase.firestore.GeoPoint(position.coords.latitude, position.coords.longitude)})
     setCoordinates({latitude:position.coords.latitude,longitude:position.coords.longitude})
@@ -59,62 +91,33 @@ function MainNavigator({route, navigation}) {
     coordinates);
   }
   async function handleStore(storeReference){
-    console.log(storeReference);
-  storeUnsub=  await firebaseSDK.getSnapshotFromRefernce((documentSnapshot)=>{
+    var storeUnsubber= await firebaseSDK.getSnapshotFromRefernce((documentSnapshot)=>{
       documentSnapshot.data().id=documentSnapshot.id
-      console.log(documentSnapshot.data().postReference.id,'RRRR')
-setStoreId(documentSnapshot.id);setMyStore(documentSnapshot.data())
-          setPostIdStore(documentSnapshot.data().postReference.id)
+      setStoreId(documentSnapshot.id);setMyStore(documentSnapshot.data())
+      setPostIdStore(documentSnapshot.data().postReference.id)
+      setStoreName(documentSnapshot.data().storeName)
+      setStoreProfilePic(documentSnapshot.data().storeProfilePic)
     },storeReference)
-    }
-    useEffect(()=>
-  {
-    if(myStore!=null)
-    {
-      console.log(myStore,'YYYY')
-  console.log(myStore.postReference.id,'AAAAA')
-}
-  },[myStore])
-  useEffect(() => {
-    updateSelfLocation()
-    firebaseSDK.getChatData((chatData)=>{
-      setChats(chatData)
-    },user.uid);
-    firebaseSDK.getCurrentUserInfo().then((userData)=>{setUserInfo(userData);
-      handleStore(userData.myStorePosts)
-    });
-    return () => {
-      firebaseSDK.unsubChat()
-      RNDeviceHeading.stop();
-      Geolocation.clearWatch(watchId);
-      if(postUnsub!=undefined)
-      {
-        postUnsub()
-        postUnsub=null;
-      }
-
-      if(postUnsub1!=undefined)
-      {
-        postUnsub1()
-        postUnsub1=null;
-      }
-      if(storeUnsub!=undefined && storeUnsub!=null){
-        storeUnsub()
-        console.log('SSSSSSSSSs')
-        storeUnsub=null;
-      }
-    }
-  }, [])
+    setStoreUnsub({'storeUnsub':storeUnsubber});
+  }
+  async function handleUserInfo(){
+    var userUnsubber=await firebaseSDK.getSnapshotByCollectionAndDocId(userInfoSnapshot,'Users',user.uid);
+    setUserUnsub({'userUnsub':userUnsubber})
+  }
+  const userInfoSnapshot=(userData)=>{
+    setUserInfo(userData);
+    handleStore(userData.data().myStorePosts)
+  }
   return (
     <Tab.Navigator headerShown={false}  swipeEnabled={false}>
     <Tab.Screen
     name="Map"
-    children={()=><MapPage postIdStore={postIdStore} storeId={storeId} navigation={navigation} deviceHeading={deviceHeading} coordinates={coordinates}  circleCenters={circleCenters}  uid={user.uid} />}/>
+    children={()=><MapPage stopLocationHandling={mapScreenLeft} startLocationHandling={mapScreenEntered} storeProfilePic={storeProfilePic} storeName={storeName} postIdStore={postIdStore} storeId={storeId} navigation={navigation} deviceHeading={deviceHeading} coordinates={coordinates}  circleCenters={circleCenters}  uid={user.uid} />}/>
     <Tab.Screen
     name="Store Page"
-    children={()=><StoreEditorPage storeId={storeId} myStore={myStore} uid={user.uid} postIdStore={postIdStore}/>}
+    children={()=><StoreEditorPage myStore={myStore} uid={user.uid}   />}
     />
-    <Tab.Screen name="Messages" children={()=><MessengerPage uid={user.uid} chats={chats}/>}/>
+    <Tab.Screen name="Messages" children={()=><MessengerPage  storeProfilePic={storeProfilePic} storeName={storeName} uid={user.uid} chats={chats}/>}/>
     </Tab.Navigator>
   );
 }

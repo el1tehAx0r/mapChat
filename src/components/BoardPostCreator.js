@@ -22,7 +22,7 @@ const BoardPostCreator= (props) => {
 const [postType,setPostType]=useState('');
   const [customDialogVisible,setCustomDialogVisible]=useState(false);
   const [message,setMessage]=useState('')
-  const [media,setMedia]=useState({path:'file:///storage/emulated/0/Android/data/com.gaialive/files/Pictures/fc6e1d81-41b4-4dec-af83-70c3663d6369.jpg',mime:'image/jpeg'})
+  const [media,setMedia]=useState({path:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fimages.png?alt=media&token=0f82c0e3-eb6c-43f6-8e58-6c274d310f42',mime:'image/jpeg'})
   const videoRef= useRef(null);
 const combineDateAndTime = function(date, time) {
     var timeString = time.getHours() + ':' + time.getMinutes() + ':00';
@@ -105,14 +105,11 @@ ImagePicker.openPicker({
   cropping:false,
   mediaType: "video",
 }).then((data) => {
-  console.log(data,'originalsdata')
   setMedia({mime:'video/mp4',path:data.path});
 });
   }
   const start = () => {
-    console.log('ljskldjf')
     videoRef.current.open({ maxLength: 30 },(data) => {
-  console.log(data,'originalsdata')
       data.path=data.uri
   setMedia({mime:'video/mp4',path:data.uri});
 /*const videoprocess=new VideoProcessor()
@@ -130,7 +127,7 @@ console.log(compressedData,'zzzzz')}
       <VideoRecorder ref={videoRef} />
       <TextInput
         style={{ height: 35, borderColor: 'gray', borderWidth: 1 }}
-        placeholder="Add A Message"
+        placeholder="Description"
         onChangeText={message=> setMessage(message)}
         defaultValue={message}
       />

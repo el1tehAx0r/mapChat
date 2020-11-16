@@ -16,7 +16,6 @@ import VideoPlaybackComponent from './VideoPlaybackComponent'
 import ModalContainer from './ModalContainer'
 import VideoProcessor from './VideoProcessor'
 import { ProcessingManager } from 'react-native-video-processing';
-import CouponPostCreator from './CouponPostCreator'
 import firebaseSDK from '../config/FirebaseSDK'
 import styles from '../StyleSheet';
 const PostCreator= (props) => {
@@ -211,24 +210,6 @@ const setIcon=(iconUrl)=>
     <Modal visible={iconPickerVisible}>
     <IconSelectPage setIcon={setIcon} closeIconPicker={closeIconPicker} videoSource={media.path}/>
     </Modal>
-        <CouponPostCreator uid={props.uid} postViewerInfo={props.postViewerInfo} createCouponPost={createCouponPost} closeCouponPostCreatorModal={cancelPressed} mediaChanged={(media)=>{console.log(media,'SDJFLSKJF');setMedia(media);setIconUrl(media.path)}}>
-<View style={{paddingTop:10, flexDirection:'column'}}>
-<TouchableHighlight onPress={media.mime=='image/jpeg'||media.mime=='image/png'? onPressIconUrl: onPressIconUrlVideo}>
-   <Image
-     style={{
-       borderWidth: 2,
-       borderColor:'red',
-       borderRadius:100,
-       width: 65,height:65,
-       }}
-     resizeMode='cover'
-     source={{
-       uri:iconUrl,
-     }}
-   />
-</TouchableHighlight>
-            </View>
-        </CouponPostCreator>
 
     </View>
     </ScrollView>

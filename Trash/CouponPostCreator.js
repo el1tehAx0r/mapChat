@@ -16,51 +16,22 @@ import VideoPlaybackComponent from './VideoPlaybackComponent'
 import ModalContainer from './ModalContainer'
 import VideoProcessor from './VideoProcessor'
 import { ProcessingManager } from 'react-native-video-processing';
-import BoardPostCreator from './BoardPostCreator'
 import firebaseSDK from '../config/FirebaseSDK'
 import styles from '../StyleSheet';
 const CouponPostCreator= (props) => {
 const [postType,setPostType]=useState('');
-  const [shopAddress,setShopAddress]=useState(props.postCreatorInfo.shopAddress);
   const [customDialogVisible,setCustomDialogVisible]=useState(false);
-  const [message,setMessage]=useState(props.postCreatorInfo.message);
-  const [iconUrl,setIconUrl]=useState('https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/iconUrl%2F0J2xo0x0BDesWW0mrpEp?alt=media&token=06941aa1-0746-4308-a4d2-9b752b3b534a')
-  const [expirationDay,setExpirationDay]=useState(null);
-  const [expirationDate,setExpirationDate]=useState(props.postCreatorInfo.expirationDate);
+  const [message,setMessage]=useState('')
+  const [latitude,setLatitude]=useState(41.784080)
+  const [longitude,setLongitude]=useState(-88.124800)
+  const [radius,setRadius]=useState(50);
+  const [expirationDate,setExpirationDate]=useState(new Date());
   const [expirationTime,setExpirationTime]=useState(null);
-  //const [imageUrl,setImageUrl]=useState(props.postCreatorInfo.imageUrl);
-  const [media,setMedia]=useState({path: 'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d',mime:'image/jpeg'})
-  const [iconPickerVisible,setIconPickerVisible]=useState(false)
+  const [expirationDay,setExpirationDay]=useState(null);
   const [timePicker,setTimePicker]=useState(null)
+  const [media,setMedia]=useState({path:'file:///storage/emulated/0/Android/data/com.gaialive/files/Pictures/fc6e1d81-41b4-4dec-af83-70c3663d6369.jpg',mime:'image/jpeg'})
+  const [count,setCount]=useState(2)
   const videoRef= useRef(null);
-useEffect(()=>
-{
-  console.log(props.postCreatorInfo.media,'zkjdsklfkj')
-  if(props.postCreatorInfo.expirationDate!=null)
-  {
-    setExpirationDate(props.postCreatorInfo.expirationDate.toDate())
-  }
-},[])
-useEffect(()=>{
-  console.log(media,'RRRRR')
-  if(media.mime!="image/jpeg"&&media.mime!="image/png"){
-  console.log(media,'RRRRR')
-      const maximumSize = { width: 300, height: 300 };
-    ProcessingManager.getPreviewForSecond(media.path,0, maximumSize,'JPEG')
-      .then((data) =>{
-        console.log(data,'AYAYYSAYD')
-      setIconUrl(data.uri)
-      })
-    }
-},[media])
-
-  useEffect(()=>{
-    console.log(expirationDay,expirationTime,'BAGOLO')
-    if((expirationDay!==null) &&(expirationTime!=null))
-    {
-    setExpirationDate(combineDateAndTime(expirationDay,expirationTime))
-    }
-  },[expirationTime,expirationDay])
 const combineDateAndTime = function(date, time) {
     var timeString = time.getHours() + ':' + time.getMinutes() + ':00';
     date= new Date(date);
@@ -72,14 +43,106 @@ const combineDateAndTime = function(date, time) {
     var combined = new Date(year,month,day,hours,minutes,0,0);
     return combined;
 };
+
+  useEffect(()=>{
+    console.log(expirationDay,expirationTime,'BAGOLO')
+    if((expirationDay!==null) &&(expirationTime!=null))
+    {
+    setExpirationDate(combineDateAndTime(expirationDay,expirationTime))
+    }
+  },[expirationTime,expirationDay])
+useEffect(()=>
+{
+props.mediaChanged(media)
+setCustomDialogVisible(false)
+},[media])
 const cancelPressed=()=>
 {
-props.closePostCreatorModal()
+props.closeCouponPostCreatorModal()
+}
+const createCouponPost=()=>
+{
+
+
+props.createCouponPost(props.uid,message,media,count,expirationDate,radius,{latitude:latitude,longitude:longitude})
+//  props.createCouponPost(props.uid,message,media,count,expirationDate,radius,{latitude:latitude,longitude:longitude})
 }
 const onPressImageUrl=()=>
 {
 setCustomDialogVisible(true)
 }
+const photoEdit=(image)=>
+{
+PhotoEditor.Edit({
+  onDone:(result)=>{
+    setMedia(image)
+  },
+    path:  image.path.replace('file:///',"")
+});
+}
+  const onChange = (event, selectedTime) => {
+    console.log(selectedTime)
+    setTimePicker(null)
+    setExpirationTime(selectedTime)
+  };
+  const setDialogVisible=()=>
+  {
+    setCustomDialogVisible(false)
+  }
+
+  const photoFromCameraPressed=()=>
+  {
+ImagePicker.openCamera({
+  width: styles.width/1.5,
+  height: styles.height/1.5,
+  cropping: true
+}).then((result)=>{console.log(result);photoEdit(result)})
+  }
+const changeMediaPath= (value, type,value2,type2) => {
+    let qty = { ... media}; // make a copy
+    qty[type] = value;
+    qty[type2] = value2;
+    setMedia(qty);
+};
+  const photoFromLibraryPressed=()=>
+  {
+ImagePicker.openPicker({
+  width:styles.width/1.5,
+  height: styles.height/1.5,
+  cropping: true
+}).then((result)=>{photoEdit(result)});
+  }
+
+  const videoFromCameraPressed=()=>
+  {
+    console.log('ummm')
+start()
+  }
+  const videoFromLibraryPressed=async ()=>
+  {
+ImagePicker.openPicker({
+  cropping:false,
+  mediaType: "video",
+}).then((data) => {
+  console.log(data,'originalsdata')
+  setMedia({mime:'video/mp4',path:data.path});
+});
+  }
+  const start = () => {
+    console.log('ljskldjf')
+    videoRef.current.open({ maxLength: 30 },(data) => {
+  console.log(data,'originalsdata')
+      data.path=data.uri
+  setMedia({mime:'video/mp4',path:data.uri});
+/*const videoprocess=new VideoProcessor()
+videoprocess.compressVideo(data.path).then((compressedData)=>{setMedia({mime:'video/mp4',path:compressedData});
+console.log(compressedData,'zzzzz')}
+)*/
+      //setMedia(data)
+    },(err)=>{console.log(err)});
+
+}
+
 const showTimePicker =()=>
 {
   setTimePicker(
@@ -92,143 +155,103 @@ const showTimePicker =()=>
           onChange={onChange}
         />)
 }
-const onPressIconUrl=()=>
-{
-        ImagePicker.openCropper({
-      path: media.path,
-      width: 65,
-      height: 65,
-    })
-      .then((image) => {
-        console.log(image)
-  setIconUrl(image.path)
-      })
-      .catch((e) => {
-        console.log(e);
-      });
-}
-  const onPressIconUrlVideo= () => {
-  setIconPickerVisible(true)
-}
-
-const deletePost=()=>
-{
-firebaseSDK.deletePost(props.uid,props.postCreatorInfo.postId)
-cancelPressed()
-}
-const setFinalButtons=()=>
-{
-  if(props.postCreatorInfo.isEditing){
   return (
-    <>
-          <TouchableHighlight
+    <View style={{padding: 10}}>
+
+<CustomDialog setDialogVisible={setDialogVisible} photoFromCameraPressed={photoFromCameraPressed} photoFromLibraryPressed={photoFromLibraryPressed} videoFromCameraPressed={videoFromCameraPressed} videoFromLibraryPressed={videoFromLibraryPressed} modalVisible={customDialogVisible} />
+      <VideoRecorder ref={videoRef} />
+      <View style={{flexDirection:'row'}}>
+      <TextInput
+        style={{ height: 35, borderColor: 'gray', borderWidth: 1 }}
+        placeholder="Distance From Location (km)"
+        onChangeText={radius=> setRadius(radius)}
+        defaultValue={null}
+      />
+      <TextInput
+        style={{ height: 35, borderColor: 'gray', borderWidth: 1 }}
+        placeholder="Lat"
+        onChangeText={lat=> setLatitude(lat)}
+        defaultValue={latitude}
+      />
+      <TextInput
+        style={{ height: 35, borderColor: 'gray', borderWidth: 1 }}
+        placeholder="long"
+        onChangeText={long=> setLongitude(long)}
+        defaultValue={longitude}
+      />
+      </View>
+      <View style={{flexDirection:'row'}}>
+      <TextInput
+        style={{ flex:5, height: 35, borderColor: 'gray', borderWidth: 1 }}
+        placeholder="Add A Message"
+        onChangeText={message=> setMessage(message)}
+        defaultValue={message}
+      />
+      <TextInput
+        style={{ flex:2, height: 35, borderColor: 'gray', borderWidth: 1 }}
+        placeholder="How many generate"
+        onChangeText={count=> count(count)}
+        defaultValue={count}
+      />
+      </View>
+
+ <DatePicker
+        style={{width: '100%'}}
+        date={expirationDate}
+        mode="date"
+        placeholder={'pick expiration date'}
+        format="YYYY-MM-DDTHH:MM:SSZ"
+        minDate="2020-05-01"
+        confirmBtnText="Confirm"
+        cancelBtnText="Cancel"
+        customStyles={{
+          dateIcon: {
+            position: 'absolute',
+            left: 0,
+            top: 4,
+            marginLeft: 0
+          },
+          dateInput: {
+            paddingBottom:10,
+            marginLeft: 36,
+            height:30
+          }}}
+        onDateChange={(date) => {setExpirationDay(date);showTimePicker();}}
+      />
+      {timePicker}
+<TouchableHighlight onPress={onPressImageUrl}>
+{media.mime=="image/jpeg"||media.mime=="image/png"?
+   <Image
+     style={{
+       paddingVertical: 30,
+       width: styles.width/1.8,
+       height: styles.height/1.8}}
+     resizeMode='cover'
+     source={{
+       uri:media.path}}
+   />
+   :
+   <VideoPlaybackComponent
+    videoSource={media.path}/>
+}
+   </TouchableHighlight>
+
+<Text>Press to Change Image</Text>
+<View style={{paddingTop:10, flexDirection:'row'}}>
+            {props.children}
+            <TouchableHighlight
               style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
-              onPress={editPost}
-            >
-              <Text style={styles.textStyle}>Save Edits</Text>
+              onPress={cancelPressed}>
+              <Text style={styles.textStyle}>Cancel</Text>
             </TouchableHighlight>
             <TouchableHighlight
               style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
-              onPress={deletePost}
-            >
-              <Text style={styles.textStyle}>Delete</Text>
-            </TouchableHighlight></>
-  )}
-  else{
-  return(
-            <TouchableHighlight
-              style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
-              onPress={createPost}
+              onPress={createCouponPost}
             >
               <Text style={styles.textStyle}>Create Post</Text>
             </TouchableHighlight>
-  )
-}
-}
-const createPost=(uid,message,media)=>
-{
-  console.log(media,'test123')
-  props.createPost(props.uid,props.postCreatorInfo.latitude,props.postCreatorInfo.longitude,message,iconUrl,media)
-}
-
-/*const editPost=()=>
-{
-  firebaseSDK.editPost(props.postCreatorInfo.postId,message,shopAddress,iconUrl,expirationDate,imageUrl).then((post)=>
-{
-      var postId=props.postCreatorInfo.postId
-      var remotePath='couponPic/'+postId
-      var localPath=imageUrl.toString()
-      var collectionName='Posts'
-      var documentName=postId
-      var field='imageUrl'
-      firebaseSDK.addToStorage(remotePath,localPath,collectionName,documentName,field)
-      var remotePath='couponIcon/'+postId
-      var localPath=iconUrl.toString()
-      var collectionName='Posts'
-      var documentName=postId
-      var field='iconUrl'
-      firebaseSDK.addToStorage(remotePath,localPath,collectionName,documentName,field).then(()=>
-    {
-      cancelPressed()
-    })
-})
-}*/
-  const onChange = (event, selectedTime) => {
-    console.log(selectedTime)
-    setTimePicker(null)
-    setExpirationTime(selectedTime)
-  };
-  const setDialogVisible=()=>
-  {
-  setCustomDialogVisible(false)
-  }
-
-  const photoFromCameraPressed=()=>
-  {
-ImagePicker.openCamera({
-  width: styles.width/1.5,
-  height: styles.height/1.5,
-  cropping: true
-}).then((result)=>{console.log(result);photoEdit(result)})
-  }
-  const videoFromCameraPressed=()=>
-  {
-    console.log('ummm')
-start()
-  }
-  const closeIconPicker=()=>{
-    setIconPickerVisible(false)
-  }
-
-const setIcon=(iconUrl)=>
-{
-  setIconUrl(iconUrl)
-}
-  return (
-    <View style={{padding: 10}}>
-    <Modal visible={iconPickerVisible}>
-    <IconSelectPage setIcon={setIcon} closeIconPicker={closeIconPicker} videoSource={media.path}/>
-    </Modal>
-        <BoardPostCreator uid={props.uid} postViewerInfo={props.postViewerInfo} createBoardPost={createPost} closeBoardPostCreatorModal={cancelPressed} mediaChanged={(media)=>{console.log(media,'SDJFLSKJF');setMedia(media);setIconUrl(media.path)}}>
-<View style={{paddingTop:10, flexDirection:'column'}}>
-<TouchableHighlight onPress={media.mime=='image/jpeg'||media.mime=='image/png'? onPressIconUrl: onPressIconUrlVideo}>
-   <Image
-     style={{
-       borderWidth: 2,
-       borderColor:'red',
-       borderRadius:100,
-       width: 65,height:65,
-       }}
-     resizeMode='cover'
-     source={{
-       uri:iconUrl,
-     }}
-   />
-</TouchableHighlight>
             </View>
-        </BoardPostCreator>
-
     </View>
   );
 }
-export default PostPostCreator;
+export default CouponPostCreator;

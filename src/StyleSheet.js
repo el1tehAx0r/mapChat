@@ -157,9 +157,8 @@ separation:
   addButton: {
     backgroundColor: "#F194FF",
     width:width/8,
-    height:39,
-    borderRadius: 20,
-    padding: 10,
+    height:width/8,
+    padding: 15,
     elevation: 2
   },
   closeButton: {
@@ -184,7 +183,15 @@ separation:
   modalText: {
     marginBottom: 15,
     textAlign: "center"
-  }
+  },
+    rowFront: {
+        alignItems: 'flex-start',
+        backgroundColor: '#a9a9a9',
+        borderBottomColor: 'black',
+        borderBottomWidth: 1,
+        justifyContent: 'center',
+        height:90,
+    },
 })
-export {draggableGridStyles}
+export {width, draggableGridStyles}
 export default styles;
