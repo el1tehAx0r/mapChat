@@ -42,7 +42,7 @@ export default function MessengerPage(props) {
   async function getChatInfo() {
     const promises = props.chats.map(async (item) => {
       var holdItems=await firebaseSDK.getStoreUsernameAndAvatar(item.otherUser)
-      item.userName=holdItems.displayName;
+      item.userName=holdItems.storeName;
       item.avatar=holdItems.storeProfilePic;
       return item
     });

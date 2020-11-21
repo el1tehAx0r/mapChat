@@ -115,7 +115,6 @@ bottomBorder:
   flexDirection:'row',flex:2,
   borderBottomColor:'black',
   paddingBottom:10,
-  marginBottom:10,
   borderBottomWidth:1  },
 
 separation:

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {Button, TouchableHighlight, View,Image, Modal, Text,TextInput,StyleSheet,ScrollView,TouchableOpacity,ImageBackground } from 'react-native';
 import auth from '@react-native-firebase/auth';
@@ -48,6 +49,7 @@ function StorePage(props,{navigation}) {
           width: styles.width/5,
           height: styles.height/5}}
           >
+
           {this.props.media.mime=="image/jpeg"||this.props.media.mime=="image/png"?
           <ImageBackground
           style={{
@@ -67,6 +69,14 @@ function StorePage(props,{navigation}) {
               autoplay={true}
               />
               </View>}
+
+
+          <TextInput
+          editable={false}
+          style={{ height: 35,fontSize:12, width:styles.width/5, borderColor: 'gray', borderWidth: 1 }}
+          placeholder="Title+"
+          defaultValue={props.message}
+          />
             </View>)}}
       const render_item=(item:{media:object, key:string,message:string}) =>{
         return (
@@ -78,25 +88,14 @@ function StorePage(props,{navigation}) {
             <RedXButton code={item.key} redXPressed={redXPressed} />
             </View>:null
           }
-          <MyListItem media={item.media}/>
+          <MyListItem message={item.message} media={item.media}/>
 
-          <TextInput
-          editable={false}
-          style={{ height: 35,fontSize:12, width:styles.width/5, borderColor: 'gray', borderWidth: 1 }}
-          placeholder="Title+"
-          defaultValue={item.message}
-          />
-
-          <TextInput
-          editable={false}
-          style={{ height: 35,fontSize:12, width:styles.width/5, borderColor: 'gray', borderWidth: 1 }}
-          placeholder="Title+"
-          defaultValue={item.message}
-          />
           </View>
         );
       }
       function checkDifferent(){
+        /*
+*/
         var newStates=[storeProfilePic,storeDescription,storeName,gridData]
         var oldStates=[oldStoreProfilePic,oldStoreDescription,oldStoreName,oldGridData]
         for (var i in newStates)
@@ -218,20 +217,13 @@ function StorePage(props,{navigation}) {
       <>
       <ScrollView style={{
          borderTopWidth:0.5, borderLeftWidth:0.5, borderRightWidth:0.5}} >
-      <View style={{flex:1,flexDirection:'column',padding:10,paddingBottom:20,paddingTop:3}}>
-      <View style={{...styles.bottomBorder,marginBottom:25}}>
+      <View style={{flex:1,flexDirection:'column',padding:10,paddingBottom:60,}}>
+      <View style={{...styles.bottomBorder}}>
       <View style={{flex:1,marginTop:"8%", flexDirection:'column',alignItems:'center',justifyContent:'center'}}>
 
       <StoreProfilePic onPressEditableFalse={()=>{}} editable={editMode} onPress={(width,height,path)=>{onPress(width,height,path)}} profilePic={storeProfilePic}/>
       </View>
       <View style={{flex:2,flexDirection:'column' }}>
-      <TextInput
-      editable={editMode}
-      style={styles.input}
-      value={'aklsdjfklsk'}
-      onChangeText={text=>{setStoreName(text)}}
-      multiline={false}
-      underlineColorAndroid='transparent'/>
       <TextInput
       editable={editMode}
       style={styles.input}
@@ -249,7 +241,7 @@ function StorePage(props,{navigation}) {
       </View>
       </View>
       <DraggableGrid
-      itemHeight={styles.height/4}
+      style={{marginBottom:39}}
       numColumns={4}
       renderItem={render_item}
       data={gridData}
