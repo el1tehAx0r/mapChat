@@ -31,7 +31,7 @@ const PIN_STRIP_WIDTH='12%';
 const MARKER_SIZE=width*0.1;
 const MARKER_X_POSITION=(0.12*width)/2-MARKER_SIZE/4
 const GeoFirestore=geofirestore.initializeApp(firestore());
-function MapPage(props,{navigation}) {
+function MapPage(props) {
   const [coordinates,setCoordinates]=useState({latitude:5,longitude:5})
   const [nearbyPosts,setNearbyPosts]=useState([])
   const [circleCenters,setCircleCenters]=useState([])
@@ -49,7 +49,6 @@ function MapPage(props,{navigation}) {
   const [storePostUnsub,setStorePostUnsub]=useState(null)
   const mapRef = useRef(null);
   useEffect(()=>{
-
     return ()=>{
       if(messageUnsub!=null){
       messageUnsub.messageUnsub()
@@ -63,7 +62,6 @@ function MapPage(props,{navigation}) {
       }
     }
   },[])
-
 useFocusEffect(
     React.useCallback(() => {
       props.startLocationHandling()
@@ -72,7 +70,6 @@ useFocusEffect(
       }
     }, [])
   );
-
   useEffect(()=>
   {
     mapRef.current.animateCamera(
@@ -121,47 +118,16 @@ useFocusEffect(
       firebaseSDK.addToStorage(remotePath,localPath,collectionName,documentName,field)
       setPostModalVisible(false)})
     }
-    const crtPost= async (uid,latitude,longitude,message,iconUrl,media)=>
-    {
-      firebaseSDK.createPost(uid,latitude,longitude,message,iconUrl).then((post)=>{
-        var postId=post._document._documentPath._parts[1]
-        createBoardPost(uid.toString(),message,media,postId.toString())
-        var remotePath='iconUrl/'+postId.toString()
-        var localPath=iconUrl.toString()
-        var collectionName='Posts'
-        var documentName=postId.toString()
-        var field='iconUrl'
-        firebaseSDK.addToStorage(remotePath,localPath,collectionName,documentName,field)
-        closePostCreatorModal()})
-      }
-      const createPost=(point)=>
-      {
-        if (circleCenters.length!=0)
-        {
-          for( var i in circleCenters)
-          {
-            if (Utility.getDistanceFromLatLonInm(circleCenters[i].latitude,circleCenters[i].longitude,point.coordinate.latitude,point.coordinate.longitude)>20)
-            {
-              if ((i==(circleCenters.length-1)))
-              {
-                openCreatePostModal(point.coordinate.latitude,point.coordinate.longitude)
-              }
-            }
-            else{
-              break;
-            }
-          }
-        }
-        else{
-          openCreatePostModal(point.coordinate.latitude,point.coordinate.longitude)
-        }
-      }
       const mapViewPressed=async (coordinates)=>
       {
         for (var i in circleCenters)
         {
           if (Utility.getDistanceFromLatLonInm(circleCenters[i].latitude,circleCenters[i].longitude,coordinates.latitude,coordinates.longitude)<7)
           {
+
+            if(circleCenters[i].id==props.postIdStore)
+            { props.navigation.navigate('Store Page')}
+            else{
             var postUnsubber=await firebaseSDK.getSnapshotFromRefernce(async (postObject)=>{
               var postObj=postObject.data();  postObj.postId=circleCenters[i].id;
               if (postObj.storeReference!=null)
@@ -178,6 +144,7 @@ useFocusEffect(
             }
           },firestore().collection('Posts').doc(circleCenters[i].id))
           setPostUnsub({'postUnsub':postUnsubber});
+        }
           break;
         }
       }
@@ -193,16 +160,9 @@ useFocusEffect(
       setMessageUnsub({'messageUnsub':messageUnsubber})
     }
       catch(exception){
-        console.log(exception,'NOOOO')
       }}
-      useEffect(()=>{},[messages])
       const sendMessages=(messages,userId,storeId)=>{
         firebaseSDK.sendMessages(messages,userId,storeId)
-      }
-      const closePostCreatorModal=()=>
-      {
-        setPostCreatorInfo({expirationDate:null,message:'',op:'',media:{path: 'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d',mime:'image/jpeg'},iconUrl:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fadu12345?alt=media&token=db4f1cbc-2f44-470b-bed1-01462fb5447d'})
-        setPostModalVisible(false)
       }
       const placeStore=()=>
       {
@@ -287,10 +247,4 @@ useFocusEffect(
           </View>
         );
       }
-
-      /*<PinStripView
-      onMarkerDrag={onMarkerDrag}
-      getMarkerReleaseCoordinate={(point)=>getMarkerReleaseCoordinate(point)} pin_strip_spacing={PIN_STRIP_HEIGHT_PIXELS/5} style={styles.pinStrip} markerStatuses={markerStatuses} size={MARKER_SIZE} onDrag={onDrag} x={MARKER_X_POSITION} y={0}/>*/
-
-      //<UserMarker image={props.image} coordinate={{latitude:latitude,longitude:longitude}}/>
       export default MapPage;

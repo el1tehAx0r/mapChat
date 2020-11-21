@@ -21,7 +21,7 @@ anchor={{x:0.50,y:0.48}}
        borderRadius: 150 / 2,
        overflow: "hidden",
        borderColor: "red",
-    borderWidth: 1,
+       borderWidth: 1,
        width: 55,
        height:55,
      }}

@@ -23,7 +23,6 @@ const styles=StyleSheet.create({
     elevation: 2
   },
     container: {
-        backgroundColor: '#cccccc',
         flex: 1,
     },
     backTextWhite: {

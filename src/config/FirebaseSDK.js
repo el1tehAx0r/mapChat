@@ -1,13 +1,13 @@
 import firebase from '@react-native-firebase/app';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
+import messaging from '@react-native-firebase/messaging';
 import * as geofirestore from 'geofirestore';
 import Geolocation from '@react-native-community/geolocation';
 import storage from '@react-native-firebase/storage';
 import Utility from './Utility'
 const GeoFirestore=geofirestore.initializeApp(firestore());
 let messageUnsub;
-let postUnsub;
 let userInfoUnsub;
 class FirebaseSDK {
   constructor() {
@@ -97,7 +97,7 @@ class FirebaseSDK {
     });}
 placeStore=async(postId,coordinates)=>
 {
-   firestore().collection('Posts')
+  GeoFirestore.collection('Posts')
               .doc(postId.toString())
               .update({
                 coordinates:new firebase.firestore.GeoPoint(coordinates.latitude,coordinates.longitude)
@@ -177,6 +177,23 @@ last=messages[i]
 }
 firestore().collection('Users').doc(uid).collection('Chats').doc(chatId).set({otherUser:storeUid,lastMessage:last,lastUpdated:firebase.firestore.FieldValue.serverTimestamp(),read:true})
 firestore().collection('Users').doc(storeUid).collection('Chats').doc(chatId).set({otherUser:uid,lastMessage:last,lastUpdated:firebase.firestore.FieldValue.serverTimestamp(),read:false})
+
+firestore().collection('Users').doc(storeUid).get().then(async (docSnapshot)=>{
+await messaging().sendToDevice(
+    docSnapshot.data().tokens, // ['token_1', 'token_2', ...]
+    {
+      data: {
+        owner: JSON.stringify(uid),
+        user: JSON.stringify(storeUid),
+        picture: JSON.stringify(messages),
+      },
+    },
+    {
+      contentAvailable: true,
+      priority: 'high',
+    },
+  )
+})
 }
 
   getCurrentUserInfo=async()=>
@@ -244,11 +261,11 @@ getDataByCollectionAndDocId=async (collectionName,docId)=>{
 var documentSnapshot=await firestore().collection(collectionName).doc(docId).get()
 return documentSnapshot.data()
 }
-getPosts=(callback,coordinates)=>
+snapshotPosts=async (callback,coordinates)=>
     {
       const postgeocollection = GeoFirestore.collection('Posts');
-      const postquery = postgeocollection.near({ center: new firebase.firestore.GeoPoint(coordinates.latitude,coordinates.longitude), radius: 1000000 });
-      postUnsub=postquery.onSnapshot((dog)=>{
+      const postquery = postgeocollection.near({ center: new firebase.firestore.GeoPoint(coordinates.latitude,coordinates.longitude), radius: 30 });
+      var postUnsub=postquery.onSnapshot((dog)=>{
         var centerPoints=dog.docs.map((markerInfo,index)=>{
           return {latitude:markerInfo.data().coordinates.latitude,longitude:markerInfo.data().coordinates.longitude, id:markerInfo.id,iconUrl:markerInfo.data().iconUrl}
         })
@@ -258,14 +275,8 @@ getPosts=(callback,coordinates)=>
           callback([])
         }
       })
+      return postUnsub;
     }
-unsubPosts=()=>
-{
-  if(postUnsub)
-  {
-  postUnsub();
-}
-}
     editPost=(postId,message,shopAddress,iconUrl,expirationDate,imageUrl)=>
     {
       const geocollection=GeoFirestore.collection('Posts');
@@ -306,6 +317,9 @@ unsubPosts=()=>
           })
         })
     }
+  updateRead=async(uid,chatId)=>{
+    firestore().collection('Users').doc(uid).collection('Chats').doc(chatId).update({read:true})
+  }
     getSnapshotFromRefernce=async(callback,reference)=>
     {
       var snapshotUnsub=reference.onSnapshot((documentSnapshot)=>

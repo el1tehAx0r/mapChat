@@ -8,7 +8,8 @@ export default function createButtonSet(props)
   return(
   <>
 
-<View style={{justifyContent:'center',flexDirection:'row'}}>
+<View style={{justifyContent:'center', flexDirection:'row', paddingBottom:10,
+}}>
   { (() => {
        if (!props.editMode){
           return ( <><TouchableHighlight

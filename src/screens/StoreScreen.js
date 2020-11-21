@@ -75,14 +75,21 @@ function StorePage(props,{navigation}) {
           >
           {editMode?
             <View >
-            <RedXButton  code={item.key} redXPressed={redXPressed} />
+            <RedXButton code={item.key} redXPressed={redXPressed} />
             </View>:null
           }
           <MyListItem media={item.media}/>
 
           <TextInput
           editable={false}
-          style={{ height: 35, width:styles.width/5, borderColor: 'gray', borderWidth: 1 }}
+          style={{ height: 35,fontSize:12, width:styles.width/5, borderColor: 'gray', borderWidth: 1 }}
+          placeholder="Title+"
+          defaultValue={item.message}
+          />
+
+          <TextInput
+          editable={false}
+          style={{ height: 35,fontSize:12, width:styles.width/5, borderColor: 'gray', borderWidth: 1 }}
           placeholder="Title+"
           defaultValue={item.message}
           />
@@ -199,12 +206,6 @@ function StorePage(props,{navigation}) {
       }
     }
 
-    const signOut=()=>
-    {
-      auth()
-      .signOut()
-      .then(() => console.log('User signed out!'));
-    }
     var resetState=()=>
     {
       setShowSave(false);setEditMode(false);
@@ -215,19 +216,28 @@ function StorePage(props,{navigation}) {
     }
     return (
       <>
-      <ScrollView style={{borderTopWidth:0.5, borderLeftWidth:0.5, borderRightWidth:0.5}} >
-      <View style={{flex:1,flexDirection:'column',padding:10,paddingTop:3}}>
-      <View style={styles.bottomBorder}>
+      <ScrollView style={{
+         borderTopWidth:0.5, borderLeftWidth:0.5, borderRightWidth:0.5}} >
+      <View style={{flex:1,flexDirection:'column',padding:10,paddingBottom:20,paddingTop:3}}>
+      <View style={{...styles.bottomBorder,marginBottom:25}}>
       <View style={{flex:1,marginTop:"8%", flexDirection:'column',alignItems:'center',justifyContent:'center'}}>
-      <StoreProfilePic editable={editMode} onPress={(width,height,path)=>{onPress(width,height,path)}} profilePic={storeProfilePic}/>
+
+      <StoreProfilePic onPressEditableFalse={()=>{}} editable={editMode} onPress={(width,height,path)=>{onPress(width,height,path)}} profilePic={storeProfilePic}/>
       </View>
       <View style={{flex:2,flexDirection:'column' }}>
       <TextInput
       editable={editMode}
       style={styles.input}
+      value={'aklsdjfklsk'}
+      onChangeText={text=>{setStoreName(text)}}
+      multiline={false}
+      underlineColorAndroid='transparent'/>
+      <TextInput
+      editable={editMode}
+      style={styles.input}
       value={storeName}
       onChangeText={text=>{setStoreName(text)}}
-      multiline={true}
+      multiline={false}
       underlineColorAndroid='transparent'/>
       <TextInput
       editable={editMode}
@@ -252,7 +262,7 @@ function StorePage(props,{navigation}) {
       <ModalContainer modalVisible={modalVisible}>
       <BoardPostCreator uid={props.uid} createBoardPost={createPost} closeBoardPostCreatorModal={cancelPressed} mediaChanged={(media)=>{}}/>
       </ModalContainer>
-      {React.cloneElement(props.children, { signOut:signOut,editMode:editMode,setEditMode:setEditMode,setModalVisible:setModalVisible,setStore:setStore,resetState:resetState,showSave:showSave })}
+      {React.cloneElement(props.children, { signOut:props.signOut,editMode:editMode,setEditMode:setEditMode,setModalVisible:setModalVisible,setStore:setStore,resetState:resetState,showSave:showSave })}
       {/*<EditButtonSet editMode={editMode} setEditMode={setEditMode} setModalVisible={setModalVisible} modalVisible={modalVisible} setStore={setStore} resetState={resetState} showSave={showSave}/>*/}
       </>
     );

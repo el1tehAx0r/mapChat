@@ -4,5 +4,5 @@ import StorePage from './StoreScreen.js'
 import EditButtonSet from '../components/EditButtonSet'
 export default function storePage(props)
 {
-return( <StorePage storeId={props.storeId} myStore={props.myStore} uid={props.uid} postIdStore={props.postIdStore}><EditButtonSet/></StorePage>)
+return( <StorePage signOut={props.signOut} storeId={props.storeId} myStore={props.myStore} uid={props.uid} postIdStore={props.postIdStore}><EditButtonSet/></StorePage>)
 }

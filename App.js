@@ -10,6 +10,7 @@ import MainNavigator from './src/screens/MainNavigator';
 import firestore from '@react-native-firebase/firestore';
 import { createStackNavigator } from '@react-navigation/stack';
 import firebaseSDK from './src/config/FirebaseSDK';
+import { useFocusEffect } from '@react-navigation/native';
 import ButtonPage from './src/screens/ButtonScreen'
 const Stack=createStackNavigator();
 function App() {
@@ -18,31 +19,12 @@ function App() {
 }
   const [initializing, setInitializing] = useState(true);
   const [user, setUser] = useState();
-  function waitUserInfoUpdated (user){
-  const query=firestore().collection('Users').doc(user.uid).get().then(
-    (querySnapshot)=>
-    {
-      if (querySnapshot.data()==undefined)
-      {
-        waitUserInfoUpdated(user)
-      }
-      else{
-        setUser(user)
-      }
 
-    if (initializing) setInitializing(false)
-    }
-  )
-  }
 
   function onAuthStateChanged(user) {
-    if(user!=null)
-    {
-waitUserInfoUpdated(user)
-    }
-else{setUser(user)}
+setUser(user);
+    if (initializing) setInitializing(false)
   }
-
   useEffect(() => {
     const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
     return subscriber; // unsubscribe on unmount
@@ -51,33 +33,31 @@ else{setUser(user)}
 {
 
 },[user])
+if(initializing) return null;
+
   return (
         <NavigationContainer>
       <Stack.Navigator>
-      {initializing?
-        (<Stack.Screen name="SplashPage" component={SplashPage}/>
-          ):
-  (user==null ? <>
-  <Stack.Screen name="ButtonPage" component={ButtonPage}/>
+  {user==null ? <>
+  <Stack.Screen name="Welcome To StoreFront!" component={ButtonPage}/>
 <Stack.Screen name="Login" component={LoginPage}/>
 <Stack.Screen name="Signup" component={SignupPage}/>
    </>
-        : <><Stack.Screen name="MainNavigator" component={MainNavigator} initialParams={{user:user}}
-        options={{
-          headerShown:false
-        }}
+        : <><Stack.Screen name="StoreFront" component={MainNavigator} initialParams={{user:user}}
 
      />
     </>
-      )
-
       }
+
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
 
 
+      /*initializing?
+        (<Stack.Screen name="SplashPage" component={SplashPage}/>
+      ):*/
 //<Stack.Screen name="Login" component={LoginPage} />
 //<Stack.Screen name="SignupPage" component={SignupPage} options={{title:''}}/>
 

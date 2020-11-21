@@ -16,16 +16,17 @@ import styles from '../MessengerStyleSheet';
 import StorePage from './StoreScreen'
 import CloseModalButton from '../components/CloseModalButton'
 import Utility from '../config/Utility'
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useStateWithCallbackLazy } from 'use-state-with-callback';
 export default function MessengerPage(props) {
   const [modalVisible,setModalVisible]=useState(false)
   const [storeViewerInfo,setStoreViewerInfo]=useStateWithCallbackLazy({})
   const [chat,setChat]=useStateWithCallbackLazy({});
-  const [messages,setMessages]=useStateWithCallbackLazy([])
   const [chats,setChats]=useState([])
   const [storeShown,setStoreShown]=useState(false)
   const [messageUnsub,setMessageUnsub]=useState(null)
   const [storeUnsub,setStoreUnsub]=useState(null)
+  const [unreadMessages,setUnreadMessages]=useState(0)
   useEffect(()=>{
     return ()=>{
       if(messageUnsub!=null)
@@ -53,7 +54,6 @@ export default function MessengerPage(props) {
       const onRenderItem=async (dataItem)=>{
         return new Promise(async (resolve)=>{
           var messageUnsubber=await firebaseSDK.getMessages((messageList)=>{console.log('zabboom');
-          setMessages('djlksjdklfj')
           setChat({messages:messageList,otherUser:dataItem.otherUser, avatar:dataItem.avatar, userName:dataItem.userName},(chat)=>{
             resolve(true)
           })
@@ -96,10 +96,13 @@ export default function MessengerPage(props) {
     const onRowDidOpen = rowKey => {
       console.log('This row opened', rowKey);
     };
-
     const renderItem = data => (
       <TouchableHighlight
       onPress={async () =>{
+        if(data.item.read==false)
+        {
+firebaseSDK.updateRead(props.uid,data.item.key)
+        }
         onRenderItem(data.item).then((useless)=>{
           setStoreShown(false)
           setStoreShown(false)
@@ -120,6 +123,7 @@ export default function MessengerPage(props) {
       <Text style={styles.username}> {data.item.userName} </Text>
       <Text style={styles.text}>Last Message: {data.item.lastMessage.text} </Text>
       </View>
+      <View style={{flex:2, alignItems:'center',justifyContent:'center'}}>{data.item.read? <Ionicons name='mail-open-outline' size={20} color="#900" />: <Ionicons name='mail-outline' size={20} color="#900" />}</View>
       </View>
       </View>
       </View>
@@ -144,6 +148,7 @@ export default function MessengerPage(props) {
 
     return (
       <View style={styles.container}>
+      {chats.length>0?
       <SwipeListView
       data={chats}
       renderItem={renderItem}
@@ -152,7 +157,9 @@ export default function MessengerPage(props) {
       previewRowKey={'0'}
       previewOpenValue={-40}
       previewOpenDelay={3000}
-      onRowDidOpen={onRowDidOpen}/>
+      onRowDidOpen={onRowDidOpen}/>:
+      <Text>No Messages currently found, Click on a store on the map to send a message to begin!</Text>
+      }
       <ModalContainer modalVisible={modalVisible}>
       {
         storeShown==false?
@@ -163,9 +170,7 @@ export default function MessengerPage(props) {
     }
 } messages={chat.messages} close={()=>{//firebaseSDK.unsubMessages();
             messageUnsub.messageUnsub();
-            setModalVisible(false);console.log('area');
-          }}></ChatViewer>):
-
+            setModalVisible(false);console.log('area');}}></ChatViewer>):
           <><CloseModalButton close={()=>{
             setModalVisible(false);storeUnsub.storeUnsub();
           }}></CloseModalButton>
