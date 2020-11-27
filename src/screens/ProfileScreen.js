@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {Button, TouchableHighlight, View,Image, Modal, Text,TextInput,StyleSheet,ScrollView } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import {DisplayName }from '../components/DisplayName.js'
-import ChatScreen from './ChatScreen.js'
  import PhotoUpload from 'react-native-photo-upload'
  import ImagePicker from 'react-native-image-crop-picker';
  import PP from '../components/ProfilePic.js'

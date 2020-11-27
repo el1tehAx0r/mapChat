@@ -12,7 +12,7 @@ import {
   Text,
   Button,
   TextInput,
-  StyleSheet,Modal
+  StyleSheet,Modal,Alert
 } from 'react-native'
 import PhoneVerifyer from '../components/PhoneVerifyer'
 import PhoneInput from 'react-native-phone-input'
@@ -32,64 +32,27 @@ export default class SignUpPage extends ValidationComponent{
   }
 
   _onSubmit=async ()=> {
-    if(true)
-      /*this.validate({
-      password: {minlength:3, maxlength:7, required: true},
-      email: {email: true},
-    })*/
+    if(this.state.email!=''&&this.state.username!=''&&this.state.password!='')
       {
 var userExist=await firebaseSDK.userExist(this.state.email,this.state.username);
 if (!userExist){
       this.createUser()}
-          //this.setState({ ['modalVisible']: true},
-          //this.createPhoneNumber(this.state.phone_number))}
     else{
-      console.log('Something wrong with login information')
+      Alert.alert("User Exists")
     }
+  }
+  else{
+      Alert.alert('Fields cannot be empty')
   }
 }
 
-  createPhoneNumber=(phoneNumber)=> {
-    var formattedPhoneNumber =  this.formatPhoneNumber(phoneNumber)
-    console.log(formattedPhoneNumber)
-    const confirmation = auth().signInWithPhoneNumber(phoneNumber).then((confirmingItem)=>this.setState({confirm:confirmingItem},this.setState({['modalVisible']: true})))
-  }
-
-  formatPhoneNumber=(phoneNumber)=>
-  {
-
-    var formattedPhoneNumber=phoneNumber.substr(0,phoneNumber.length-10)+' '+phoneNumber.substr(-10,3)+'-'+phoneNumber.substr(-7,3)+'-'+phoneNumber.substr(-4);
-    return formattedPhoneNumber
-  }
-
-  confirmCode=async ()=>{
-    try {
-      console.log(this.state.code)
-      await this.state.confirm.confirm(this.state.code);
-      console.log('success');
-      this.createUser()
-    } catch (error) {
-
-      console.log('Invalid code.');
-      console.log(error)
-    }
-  }
 
   closeModal=()=>{
     this.setState({modalVisible:false})
   }
-    createUser=()=>
-  { firebaseSDK.createUser(this.state.email,this.state.username,this.state.password)  }
+    createUser=async ()=>
+  { var testing=await firebaseSDK.createUser(this.state.email,this.state.username,this.state.password);Alert.alert(testing)  }
 
-  _onSubmitHardCode=async ()=> {
-var userExist=await firebaseSDK.userExist('+12222222222','bennyz5@gmail.com','bennyz5');
-if (!userExist){
-          this.createPhoneNumber('+12222222222')
-        }
-    else{
-      console.log('Something wrong with login information')
-    }
-}
   // Call ValidationComponent validate method
   render() {
     return (

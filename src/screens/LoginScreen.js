@@ -4,7 +4,7 @@ import {KeyboardAvoidingScrollView} from 'react-native-keyboard-avoiding-scroll-
 import firestore from '@react-native-firebase/firestore';
 import ValidationComponent from 'react-native-form-validator';
 import firebaseSDK from '../config/FirebaseSDK'
-
+import Utility from '../config/Utility'
 import {
   TouchableHighlight,
   View,
@@ -13,7 +13,7 @@ import {
   Text,
   Button,
   TextInput,
-  StyleSheet,Modal
+  StyleSheet,Modal,Alert
 } from 'react-native'
 import PhoneVerifyer from '../components/PhoneVerifyer'
 import PhoneInput from 'react-native-phone-input'
@@ -26,13 +26,18 @@ export default class SignUpPage extends ValidationComponent{
     this.setState({ [key]: val })
   }
   _onSubmit=async ()=> {
-    if(true)
-      /*this.validate({
-      password: {minlength:3, maxlength:7, required: true},
-      email: {email: true},
-    })*/
+    if(this.state.email!=''&&this.state.password!='')
       {
-        firebaseSDK.login(this.state.email,this.state.password)
+        if(Utility.validateEmail(this.state.email)){
+      var testing= await firebaseSDK.login(this.state.email,this.state.password);
+      Alert.alert(testing)
+        }
+        else{
+          Alert.alert('Email is Invalid')
+        }
+  }
+  else{
+    Alert.alert('Fields Cannot Be Empty')
   }
 }
   render() {
@@ -61,7 +66,7 @@ export default class SignUpPage extends ValidationComponent{
       placeholderTextColor='black'
       onChangeText={val => this.onChangeText('password', val)}
       />
-      
+
       <View style={styles.btnContainer}>
       <Button title="Login" onPress={this._onSubmit} />
       </View>

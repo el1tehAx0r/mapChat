@@ -46,6 +46,7 @@ const styles=StyleSheet.create({
    input: {
     width:'85%',
     borderBottomColor:'red',
+
     borderBottomWidth:1,
 },
   separator: {
@@ -129,10 +130,10 @@ separation:
     marginTop: 8
   },
   modalView: {
-    width:'93%',
+    width:'95%',
     height:'98%',
-    margin: 10,
-    padding:10,
+    margin: 8,
+    padding:8,
     backgroundColor: "white",
     alignItems: "stretch",
     shadowColor: "#000",

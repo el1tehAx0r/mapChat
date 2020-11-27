@@ -22,6 +22,7 @@ const BoardPostCreator= (props) => {
 const [postType,setPostType]=useState('');
   const [customDialogVisible,setCustomDialogVisible]=useState(false);
   const [message,setMessage]=useState('')
+  const [price,setPrice]=useState('')
   const [media,setMedia]=useState({path:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fimages.png?alt=media&token=0f82c0e3-eb6c-43f6-8e58-6c274d310f42',mime:'image/jpeg'})
   const videoRef= useRef(null);
 const combineDateAndTime = function(date, time) {
@@ -46,7 +47,7 @@ props.closeBoardPostCreatorModal()
 }
 const createBoardPost=()=>
 {
-  props.createBoardPost(props.uid,message,media)
+  props.createBoardPost(props.uid,message,price,media)
 }
 const onPressImageUrl=()=>
 {
@@ -125,6 +126,12 @@ console.log(compressedData,'zzzzz')}
 
 <CustomDialog setDialogVisible={setDialogVisible} photoFromCameraPressed={photoFromCameraPressed} photoFromLibraryPressed={photoFromLibraryPressed} videoFromCameraPressed={videoFromCameraPressed} videoFromLibraryPressed={videoFromLibraryPressed} modalVisible={customDialogVisible} />
       <VideoRecorder ref={videoRef} />
+      <TextInput
+        style={{ height: 35, borderColor: 'gray', borderWidth: 1 }}
+        placeholder="Price"
+        onChangeText={price=> setPrice(price)}
+        defaultValue={price}
+      />
       <TextInput
         style={{ height: 35, borderColor: 'gray', borderWidth: 1 }}
         placeholder="Description"

@@ -51,14 +51,21 @@ function MapPage(props) {
   useEffect(()=>{
     return ()=>{
       if(messageUnsub!=null){
+        console.log('zella')
       messageUnsub.messageUnsub()
+      setMessageUnsub(null)
       }
       if(postUnsub!=null)
       {
+
+        console.log('zella')
       postUnsub.postUnsub()
+      setPostUnsub(null)
       }
       if(storePostUnsub!=null){
+        console.log('zella')
       storePostUnsub.storePostUnsub()
+      setStorePostUnsub(null)
       }
     }
   },[])
@@ -66,6 +73,23 @@ useFocusEffect(
     React.useCallback(() => {
       props.startLocationHandling()
       return () =>{
+      if(messageUnsub!=null){
+        console.log('zella')
+      messageUnsub.messageUnsub()
+      setMessageUnsub(null)
+      }
+      if(postUnsub!=null)
+      {
+
+        console.log('zella')
+      postUnsub.postUnsub()
+      setPostUnsub(null)
+      }
+      if(storePostUnsub!=null){
+        console.log('zella')
+      storePostUnsub.storePostUnsub()
+      setStorePostUnsub(null)
+      }
       props.stopLocationHandling()
       }
     }, [])
@@ -199,12 +223,13 @@ useFocusEffect(
         <View style={styles.container}>
         <MapView
         ref={mapRef}
+        zoomEnabled={false}
         scrollEnabled={true}
         loadingEnabled
         rotateEnabled={true}
+        showsUserLocation={true}
         onPress={(e)=>{//mapViewPressed(e.nativeEvent.coordinate);
           console.log(e.nativeEvent)}}
-          zoomEnabled={false}
           customMapStyle={mapstyle}
           onDoublePress={(e)=>
             {
@@ -218,9 +243,6 @@ useFocusEffect(
           style={styles.container}
           >
           {nearbyPosts}
-          <Marker.Animated
-          coordinate={coordinates}
-          />
           </MapView>
           <ModalContainer modalVisible={messengerModalVisible}>
           <ChatViewer  avatar={storeViewerInfo.storeProfilePic} userNamePressed={()=>{}}username={storeViewerInfo.storeName} uid={props.uid} storeUid={storeViewerInfo.userReference.id} sendMessages={sendMessages} messages={messages} close={()=>{messageUnsub.messageUnsub(); setMessengerModalVisible(false)}}></ChatViewer>

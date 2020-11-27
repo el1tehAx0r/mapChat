@@ -18,6 +18,7 @@ import CloseModalButton from '../components/CloseModalButton'
 import Utility from '../config/Utility'
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useStateWithCallbackLazy } from 'use-state-with-callback';
+import { useFocusEffect } from '@react-navigation/native';
 export default function MessengerPage(props) {
   const [modalVisible,setModalVisible]=useState(false)
   const [storeViewerInfo,setStoreViewerInfo]=useStateWithCallbackLazy({})
@@ -39,6 +40,20 @@ export default function MessengerPage(props) {
       }
     }
   },[])
+useFocusEffect(
+    React.useCallback(() => {
+    return ()=>{
+      if(messageUnsub!=null)
+      {
+        messageUnsub.messageUnsub()
+      }
+      if(storeUnsub!=null)
+      {
+        storeUnsub.storeUnsub()
+      }
+    }
+    }, [])
+  );
   async function getChatInfo() {
     const promises = props.chats.map(async (item) => {
       var holdItems=await firebaseSDK.getStoreUsernameAndAvatar(item.otherUser)

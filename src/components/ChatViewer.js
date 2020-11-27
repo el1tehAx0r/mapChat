@@ -29,7 +29,7 @@ export default function ChatViewer(props) {
 
 <View style={{flex:2}}>
     <TouchableHighlight onPress={()=>{props.userNamePressed(props.storeUid)}}>
-    <Text style={{paddingTop:20, textDecorationLine: 'underline', fontWeight: 'bold'}}>Hey</Text>
+    <Text style={{paddingTop:20, textDecorationLine: 'underline', fontWeight: 'bold'}}>{props.username}</Text>
 
     </TouchableHighlight>
     </View>

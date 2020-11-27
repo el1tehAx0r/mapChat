@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
 import {Button, TouchableHighlight, View,Image, Modal, Text,TextInput,StyleSheet,ScrollView,TouchableOpacity,ImageBackground } from 'react-native';
+
 import auth from '@react-native-firebase/auth';
 import {DisplayName }from '../components/DisplayName.js'
-import ChatScreen from './ChatScreen.js'
 import ImagePicker from 'react-native-image-crop-picker';
 import StoreProfilePic from '../components/StoreProfilePic'
 import {GetUserInfo} from '../components/UserInfo.js'
@@ -15,6 +15,7 @@ import storage from '@react-native-firebase/storage';
 import firestore from '@react-native-firebase/firestore';
 import firebase from '@react-native-firebase/app';
 import firebaseSDK from '../config/FirebaseSDK';
+import { useFocusEffect } from '@react-navigation/native';
 import { Col, Row, Grid } from "react-native-easy-grid";
 import VideoPlayer from 'react-native-video-player';
 import { DraggableGrid } from 'react-native-draggable-grid';
@@ -41,23 +42,37 @@ function StorePage(props,{navigation}) {
   const [storeDescription,setStoreDescription]=useState('Add Description');
   const [oldStoreDescription,setOldStoreDescription]=useState('Add Store Name')
   class MyListItem extends React.PureComponent {
+  constructor(props) {
+    super(props);
+    this.state = {price:this.props.price,message:this.props.message,media:this.props.media};
+  }
     render() {
       return (
         <View
         style={{
           borderRadius: 5,
-          width: styles.width/5,
-          height: styles.height/5}}
+          paddingTop:3,
+          paddingLeft:styles.width/38,
+          width: styles.width/3.2,
+          height: styles.height/4.5}}
           >
-
           {this.props.media.mime=="image/jpeg"||this.props.media.mime=="image/png"?
           <ImageBackground
           style={{
-            width: styles.width/5,
-            height: styles.height/5}}
+            width: styles.width/4,
+              justifyContent:'center',
+            height: styles.height/4}}
             resizeMode='cover'
             source={{
               uri:this.props.media.path}}>
+          <TextInput
+          editable={this.props.editable}
+          textAlign={'center'}
+          style={{ height: 35,fontSize:12,marginBottom:30,color:'white',width:styles.width/4,  backgroundColor: "#000000a0"}}
+          placeholder="Title+"
+          defaultValue={this.state.price}
+          onEndEditing={stuff=>{this.setState({price:stuff.nativeEvent.text},()=>{this.props.onChange(this.state.price,this.state.message,this.props.index)})}}
+          />
               </ImageBackground>
               :
               <View pointerEvents="none">
@@ -70,29 +85,44 @@ function StorePage(props,{navigation}) {
               />
               </View>}
 
-
           <TextInput
-          editable={false}
-          style={{ height: 35,fontSize:12, width:styles.width/5, borderColor: 'gray', borderWidth: 1 }}
+          editable={this.props.editable}
+          style={{ height: 35,fontSize:12, width:styles.width/4, borderColor: 'gray', borderWidth: 1 }}
           placeholder="Title+"
-          defaultValue={props.message}
+          defaultValue={this.state.message}
+          onEndEditing={stuff=>{this.setState({message:stuff.nativeEvent.text},()=>{this.props.onChange(this.state.price,this.state.message,this.props.index)})}}
+
           />
+
             </View>)}}
-      const render_item=(item:{media:object, key:string,message:string}) =>{
+      const render_item=(item:{media:object,price:string, key:string,message:string},index) =>{
         return (
           <View
-          key={item.key}
-          >
+          style={{paddingBottom:styles.width/6,}}
+          key={item.key}>
           {editMode?
             <View >
             <RedXButton code={item.key} redXPressed={redXPressed} />
             </View>:null
           }
-          <MyListItem message={item.message} media={item.media}/>
-
+          <MyListItem key={index} onChange={(price,message,index)=>{handleChange(price,message,index)}} index={index} editable={editMode} message={item.message} price={item.price} media={item.media}/>
           </View>
         );
       }
+      function handleChange (price,message,index) {
+        console.log(index,price,message)
+    let items = [...gridData];
+    console.log(items)
+    console.log(items[index],'zendaey')
+    const returnedTarget = Object.assign({}, items[index]);
+    returnedTarget.price= price;
+    returnedTarget.message= message;
+    console.log(returnedTarget,'jsaljdfl')
+    items[index]=returnedTarget
+    setGridData(items)
+
+  //setGridData(items)
+}
       function checkDifferent(){
         /*
 */
@@ -139,14 +169,16 @@ function StorePage(props,{navigation}) {
         setDisplayName(value)
       }
 
-      const createPost=(uid,message,media)=>
+      const createPost=(uid,message,price,media)=>
       {
+        console.log(price)
         const savedState= gridData.map((data) => {
+          console.log(data,'aslkdfjklsdjl')
           return data;
         }
       )
       var key=Utility.makeid(5)
-      savedState.push({media:media,key:key,message:message})
+      savedState.push({media:media,key:key,message:message,price:price})
       setGridData(savedState)
       setShowSave(true);
       setModalVisible(false);
@@ -155,8 +187,6 @@ function StorePage(props,{navigation}) {
     {
       setModalVisible(false)
     }
-    useEffect(()=>{
-    })
     useEffect(() => {
     }, [])
     useEffect(() => {
@@ -213,17 +243,36 @@ function StorePage(props,{navigation}) {
       setStoreName(oldStoreName);
       setStoreProfilePic(oldStoreProfilePic);
     }
+    var renderItem=()=>{
+      var rows = [];
+      var cols=[];
+      var j=0
+for (var i = 0; i <gridData.length; i++) {
+  var bear=render_item(gridData[i],i)
+  var dog=bear
+  rows.push(dog)
+  if (i%2==0 && i!=0){
+    cols.push(<Row key={i}>{rows}</Row>)
+    rows=[]
+  }
+}
+  if(i%3!=0)
+  {
+    cols.push(<Row key={i}>{rows}</Row>)
+  }
+return cols
+    }
     return (
       <>
       <ScrollView style={{
          borderTopWidth:0.5, borderLeftWidth:0.5, borderRightWidth:0.5}} >
-      <View style={{flex:1,flexDirection:'column',padding:10,paddingBottom:60,}}>
+      <View style={{flex:1,flexDirection:'column',paddingBottom:60,paddingTop:3,alignItems:'center' }}>
       <View style={{...styles.bottomBorder}}>
       <View style={{flex:1,marginTop:"8%", flexDirection:'column',alignItems:'center',justifyContent:'center'}}>
-
       <StoreProfilePic onPressEditableFalse={()=>{}} editable={editMode} onPress={(width,height,path)=>{onPress(width,height,path)}} profilePic={storeProfilePic}/>
       </View>
       <View style={{flex:2,flexDirection:'column' }}>
+
       <TextInput
       editable={editMode}
       style={styles.input}
@@ -231,6 +280,7 @@ function StorePage(props,{navigation}) {
       onChangeText={text=>{setStoreName(text)}}
       multiline={false}
       underlineColorAndroid='transparent'/>
+      <Text style={{color:editMode?'black':'#d3d3d3'}}>Username</Text>
       <TextInput
       editable={editMode}
       style={styles.input}
@@ -238,17 +288,10 @@ function StorePage(props,{navigation}) {
       onChangeText={text=>{setStoreDescription(text)}}
       multiline={true}
       underlineColorAndroid='transparent'/>
+      <Text style={{color:editMode?'black':'#d3d3d3'}}>Description</Text>
       </View>
       </View>
-      <DraggableGrid
-      style={{marginBottom:39}}
-      numColumns={4}
-      renderItem={render_item}
-      data={gridData}
-      onDragRelease={(data) => {
-        setGridData(data);// need reset the props data sort after drag release
-      }}
-      />
+      <Grid>{renderItem()}</Grid>
       </View>
       </ScrollView>
       <ModalContainer modalVisible={modalVisible}>

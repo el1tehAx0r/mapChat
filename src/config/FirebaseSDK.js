@@ -15,21 +15,21 @@ class FirebaseSDK {
   login = async (email,password) => {
     return new Promise((resolve)=>
     {
+      console.log(email,password,'AAJAKJLK')
       auth()
       .signInWithEmailAndPassword(email, password)
       .then(() => {
-        console.log('User account created & signed in!');
-        resolve(true)
+        resolve('User ', email,'logged in.' );
       })
       .catch(error => {
         if (error.code === 'auth/email-already-in-use') {
-          console.log('That email address is already in use!');
+          resolve('That email address is already in use!');
         }
         if (error.code === 'auth/invalid-email') {
-          console.log('That email address is invalid!');
+          resolve('That email address is invalid!');
         }
-        resolve(false)
-        console.error(error);
+
+        resolve('email or password invalid');
       });
     })
   };
@@ -61,6 +61,11 @@ class FirebaseSDK {
     const geocollection = GeoFirestore.collection('Users');
     const postgeocollection= GeoFirestore.collection('Posts');
     const storegeocollection= GeoFirestore.collection('StorePosts');
+    return new Promise ((resolve)=>{
+      if(email==null||password==null)
+{
+  resolve("you cannot have null fields")
+}
     auth().createUserWithEmailAndPassword(email,password)
     .then(() => {
       var user = auth().currentUser;
@@ -70,11 +75,11 @@ class FirebaseSDK {
           coordinates:new firebase.firestore.GeoPoint(2.5,2.3),
           email: email,
           photoURL:"",
-          storeName:'Add Store Name',
+          storeName:username,
           storeProfilePic:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fimages.png?alt=media&token=0f82c0e3-eb6c-43f6-8e58-6c274d310f42',
         }).then(() => {
         postgeocollection.add({userReference:geocollection.doc(user.uid)._document,iconUrl:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fimages.png?alt=media&token=0f82c0e3-eb6c-43f6-8e58-6c274d310f42', coordinates:new firebase.firestore.GeoPoint(0,0)}).then((post)=>{
-        storegeocollection.add({userReference:geocollection.doc(user.uid)._document,postReference:post._document, coordinates:new firebase.firestore.GeoPoint(0,0),storeProfilePic:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fimages.png?alt=media&token=0f82c0e3-eb6c-43f6-8e58-6c274d310f42',gridData:[],storeDescription:'Description',storeName:'Default Name'}).then((storePost)=>{
+        storegeocollection.add({userReference:geocollection.doc(user.uid)._document,postReference:post._document, coordinates:new firebase.firestore.GeoPoint(0,0),storeProfilePic:'https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/profilePics%2Fimages.png?alt=media&token=0f82c0e3-eb6c-43f6-8e58-6c274d310f42',gridData:[],storeDescription:'Description',storeName:username}).then((storePost)=>{
         post.update({storeReference:storePost._document})
         geocollection.doc(user.uid).update({myStorePosts:storePost._document,myPosts:[post._document]}).then(()=>{console.log('zZZZZ')}).catch((err)=>{console.log(err)})
 })
@@ -82,19 +87,21 @@ class FirebaseSDK {
         }).catch((err)=>console.log(err))
       } else {
       }
-      console.log('User account created & signed in!');
+    resolve('User account created & signed in!');
     })
     .catch(error => {
       if (error.code === 'auth/email-already-in-use') {
-        console.log('That email address is already in use!');
+        resolve('That email address is already in use!');
       }
 
       if (error.code === 'auth/invalid-email') {
-        console.log('That email address is invalid!');
+        resolve('That email address is invalid!');
       }
 
-      console.error(error);
-    });}
+      resolve(error);
+    });
+    })
+  }
 placeStore=async(postId,coordinates)=>
 {
   GeoFirestore.collection('Posts')
@@ -116,10 +123,7 @@ return returnValue.data()
 getMessages=async (callback,userId,storeUid)=>{
   console.log('beforeupdates')
   var chatId=Utility.concatTwoStrings(userId,storeUid);
-  var bringl=await firestore().collection('Users').doc(userId).collection('Chats').doc(chatId).collection('Messages').get()
-  bringl.forEach((item, i) => {
-  });
-  var messageUnsub1=firestore().collection('Users').doc(userId).collection('Chats').doc(chatId).collection('Messages').onSnapshot(documentSnapshot=>
+  var messageUnsub1=firestore().collection('Users').doc(userId).collection('Chats').doc(chatId).collection('Messages').orderBy('createdAt','desc').onSnapshot(documentSnapshot=>
   {
     console.log('messagesUpdated');
     var messages=[];
@@ -169,31 +173,21 @@ getChatData=async(callback,uid)=>
 sendMessages=async (messages,uid,storeUid)=>{
 var chatId=Utility.concatTwoStrings(uid,storeUid);
 let last;
+firestore().collection('Users').doc(storeUid).get().then(async (docSnapshot)=>{
+
 for (var i in messages)
 {
 firestore().collection('Users').doc(uid).collection('Chats').doc(chatId).collection('Messages').add(messages[i])
 firestore().collection('Users').doc(storeUid).collection('Chats').doc(chatId).collection('Messages').add(messages[i])
+await messaging().sendMessage(
+    {'to':docSnapshot.data().tokens[0],"collapseKey": "com.gaialive", "data": {}, "from": "296204123359", "messageId": "0:1606005983371021%bff9852bbff9852b", "notification": {"android": {}, "body": "dhey", "title": "hey"}, "sentTime": 1606005983357, "ttl": 2419200}
+  )
 last=messages[i]
 }
 firestore().collection('Users').doc(uid).collection('Chats').doc(chatId).set({otherUser:storeUid,lastMessage:last,lastUpdated:firebase.firestore.FieldValue.serverTimestamp(),read:true})
 firestore().collection('Users').doc(storeUid).collection('Chats').doc(chatId).set({otherUser:uid,lastMessage:last,lastUpdated:firebase.firestore.FieldValue.serverTimestamp(),read:false})
-
-firestore().collection('Users').doc(storeUid).get().then(async (docSnapshot)=>{
-await messaging().sendToDevice(
-    docSnapshot.data().tokens, // ['token_1', 'token_2', ...]
-    {
-      data: {
-        owner: JSON.stringify(uid),
-        user: JSON.stringify(storeUid),
-        picture: JSON.stringify(messages),
-      },
-    },
-    {
-      contentAvailable: true,
-      priority: 'high',
-    },
-  )
 })
+
 }
 
   getCurrentUserInfo=async()=>
@@ -269,10 +263,12 @@ snapshotPosts=async (callback,coordinates)=>
         var centerPoints=dog.docs.map((markerInfo,index)=>{
           return {latitude:markerInfo.data().coordinates.latitude,longitude:markerInfo.data().coordinates.longitude, id:markerInfo.id,iconUrl:markerInfo.data().iconUrl}
         })
-        callback(centerPoints)
         if(dog.docs.length==0)
         {
           callback([])
+        }
+        else{
+        callback(centerPoints)
         }
       })
       return postUnsub;
@@ -330,32 +326,26 @@ snapshotPosts=async (callback,coordinates)=>
     }
     storageUpdatedGridData=async (gridData,storeId,collectionName)=>
     {
-      console.log(gridData,'asdklfjsdlk')
       return new Promise(async (resolve)=>
       {
       const remotePathArray=await  Promise.all(
         gridData.map(async (data) => {
-          console.log(data,'DAN')
             var remotePath='storePhotos/'+data.key
         if (!(data.media.path.includes('firebasestorage.googleapis.com'))){
           var firebaseStorageUrl=await this.addtoStorageNoDbUpdate(remotePath,data.media.path)
-          console.log(firebaseStorageUrl,'ksdjkldjlkaaaaaaa')
           return firebaseStorageUrl}
           else{
             return data.media.path
           }
         }))
-      console.log(remotePathArray,'REMOTEPATHS');
       const tempGridData= gridData.map((a) =>{var tempObject=Object.assign({}, a)
       tempObject.media=Object.assign({},tempObject.media); return tempObject;
     });
-      console.log(tempGridData,'asdlkjflAAAAAAAtinietempah')
       for(var i in tempGridData){
         if (!(tempGridData[i].media.path.includes('firebasestorage.googleapis.com'))){
         tempGridData[i].media.path=remotePathArray[i];
         }
       }
-      console.log(tempGridData,'tinietempah')
      resolve(tempGridData)
     })
       }

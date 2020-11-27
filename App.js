@@ -13,6 +13,24 @@ import firebaseSDK from './src/config/FirebaseSDK';
 import { useFocusEffect } from '@react-navigation/native';
 import ButtonPage from './src/screens/ButtonScreen'
 const Stack=createStackNavigator();
+import {PermissionsAndroid} from 'react-native';
+async function requestLocationPermission()
+{
+  try {
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+      {
+        'title': 'Example App',
+        'message': 'Example App access to your location '
+      }
+    )
+    if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+    } else {
+    }
+  } catch (err) {
+    console.warn(err)
+  }
+}
 function App() {
   if (!__DEV__) {
   console.log = () => {};
@@ -20,30 +38,41 @@ function App() {
   const [initializing, setInitializing] = useState(true);
   const [user, setUser] = useState();
 
-
   function onAuthStateChanged(user) {
+    console.log(user,'USER')
 setUser(user);
     if (initializing) setInitializing(false)
   }
   useEffect(() => {
-    const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
+    let subscriber;
+
+requestLocationPermission();
+
+
+subscriber = auth().onAuthStateChanged(onAuthStateChanged);
     return subscriber; // unsubscribe on unmount
+
   }, []);
+
   useEffect(()=>
 {
 
 },[user])
+
+const signOut=()=>{
+  setUser(null);
+}
 if(initializing) return null;
 
   return (
         <NavigationContainer>
       <Stack.Navigator>
   {user==null ? <>
-  <Stack.Screen name="Welcome To StoreFront!" component={ButtonPage}/>
+  <Stack.Screen name="Welcome To The MapMarket!" component={ButtonPage}/>
 <Stack.Screen name="Login" component={LoginPage}/>
 <Stack.Screen name="Signup" component={SignupPage}/>
    </>
-        : <><Stack.Screen name="StoreFront" component={MainNavigator} initialParams={{user:user}}
+        : <><Stack.Screen name="Welcome To The MapMarket!" component={MainNavigator} initialParams={{user:user}}
 
      />
     </>
