@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import {TextInput} from 'react-native';
 import {
   TextField,
   FilledTextField,
@@ -19,20 +20,18 @@ export class DisplayName extends Component {
 
     console.log(field.value());
   };
-
-
   changeText=(value)=>
   {
     this.props.onChangeText(value)
   }
   render() {
     return (
-      <OutlinedTextField
-      defaultValue={this.props.defaultValue}
-        onChangeText={(value)=>this.changeText(value)}
-        onSubmitEditing={this.onSubmit}
+      <TextInput
+      style={{width:80, height: 35, borderColor: 'gray', borderWidth: 1 }}
+      onChangeText={text => this.changeText(text)}
+      value={this.props.defaultValue}
         ref={this.fieldRef}
-      />
+    />
     );
   }
 }

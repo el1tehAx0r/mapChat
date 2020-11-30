@@ -134,8 +134,8 @@ android {
         applicationId "com.gaialive"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode 3 
+        versionName "3.0"
 	multiDexEnabled true
     }
     splits {
@@ -147,6 +147,12 @@ android {
         }
     }
     signingConfigs {
+    release {
+      storeFile file('your_key_name.keystore')
+      storePassword 'Littledude1'
+      keyAlias 'your_key_alias'
+      keyPassword 'Littledude1'
+    }
         debug {
             storeFile file('debug.keystore')
             storePassword 'android'
@@ -164,6 +170,7 @@ android {
             signingConfig signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+ signingConfig signingConfigs.release
         }
     }
 
@@ -184,6 +191,7 @@ android {
 }
 
 dependencies {
+ compile 'com.android.support:multidex:1.0.1'
 compile project(':react-native-device-heading')
 compile project(':react-native-maps')
     implementation fileTree(dir: "libs", include: ["*.jar"])

@@ -1,218 +1,246 @@
 import React, { useState, useEffect } from 'react';
 import {Button, TouchableHighlight, View,Image, Text,TextInput,StyleSheet } from 'react-native';
-import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import auth from '@react-native-firebase/auth';
-import {DisplayName }from '../components/DisplayName.js'
-import ChatScreen from './ChatScreen.js'
- import PhotoUpload from 'react-native-photo-upload'
- import ImagePicker from 'react-native-image-crop-picker';
- import PP from '../components/ProfilePic.js'
- import {GetUserInfo} from '../components/UserInfo.js'
- import MapPage from './MapScreen.js';
- import ProfilePage from './ProfileScreen';
- import CouponPage from './CouponScreen';
- import TabBar from "@mindinventory/react-native-tab-bar-interaction";
- import storage from '@react-native-firebase/storage';
- import firestore from '@react-native-firebase/firestore';
- import firebase from '@react-native-firebase/app';
- import firebaseSDK from '../config/FirebaseSDK';
+import { createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import MapPage from './MapScreen.js';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import firestore from '@react-native-firebase/firestore';
+import firebase from '@react-native-firebase/app';
+import firebaseSDK from '../config/FirebaseSDK';
 import RNDeviceHeading from 'react-native-device-heading'
+import auth from '@react-native-firebase/auth';
+import StoreEditorPage from './StoreEditorScreen'
 import Geolocation from '@react-native-community/geolocation';
+import messaging from '@react-native-firebase/messaging';
+import MessengerPage from './MessengerScreen';
 import * as geofirestore from 'geofirestore';
 const GeoFirestore=geofirestore.initializeApp(firestore());
- import {
-  TextField,
-  FilledTextField,
-  OutlinedTextField2,
-} from 'react-native-material-textfield';
-const Tab = createMaterialTopTabNavigator();
+import Utility from '../config/Utility.js';
+import { useFocusEffect } from '@react-navigation/native';
+const Tab = createBottomTabNavigator();
+//this Method is the main method of our post-loginProgram. We lift up state here.
 function MainNavigator({route, navigation}) {
-  const {user}=route.params;
-  // Set an initializing state whilst Firebase connects
-  const [displayName,setDisplayName]=useState('darryl');
-  const [profilePic,setProfilePic]=useState('https://www.sparklabs.com/forum/styles/comboot/theme/images/default_avatar.jpg');
-  const [profilePicWidth,setProfilePicWidth]=useState(150);
-  const [profilePicHeight,setProfilePicHeight]=useState(150);
+  //Setting state for everything here
   const [userInfo,setUserInfo]=useState({})
-  const [claimedCoupons,setClaimedCoupons]=useState([])
   const [coordinates,setCoordinates]=useState({latitude:5,longitude:5})
-  const [myPosts,setMyPosts]=useState([])
   const [circleCenters,setCircleCenters]=useState([])
-  const [nearbyPosts,setNearbyPosts]=useState([])
-  const [activatedCoupons,setActivatedCoupons]=useState([])
-  const [deviceHeading,setDeviceHeading]=useState(1);
-  let postUnsub;
-  let watchId;
-  const requestCameraPermission = async () => {
-  try {
-    const granted = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+  const [deviceHeading,setDeviceHeading]=useState(1)
+  const [watchId,setWatchId]=useState(null)
+  const [myStore,setMyStore]=useState(null)
+  const [chats,setChats]=useState([]);
+  const [unreadChats,setUnreadChats]=useState(0)
+  const [storeUnsub,setStoreUnsub]=useState(null)
+  const [userUnsub,setUserUnsub]=useState(null)
+  const [chatUnsub,setChatUnsub] =useState(null)
+  const [postUnsub,setPostUnsub] =useState(null)
+
+  //Getting Notification tokens
+  async function saveTokenToDatabase(token) {
+  await firestore()
+    .collection('Users')
+    .doc(auth().currentUser.uid)
+    .update({
+      tokens: firestore.FieldValue.arrayUnion(token),
+    });
+}
+
+//function to Unsub enmass for all listeners
+const massUnsub=()=>{
+      RNDeviceHeading.stop();
+      Geolocation.clearWatch(watchId);
+      if(!Utility.isEmpty(chatUnsub))
       {
-        title: "Cool Photo App Camera Permission",
-        message:
-          "Cool Photo App needs access to your camera " +
-          "so you can take awesome pictures.",
-        buttonNeutral: "Ask Me Later",
-        buttonNegative: "Cancel",
-        buttonPositive: "OK"
+        chatUnsub.chatUnsub()
+        setChatUnsub(null);
       }
-    );
-    if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-      console.log("You can use the camera");
-    } else {
-      console.log("Camera permission denied");
-    }
-  } catch (err) {
-    console.warn(err);
+      if(!Utility.isEmpty(userUnsub))
+      {
+        userUnsub.userUnsub()
+        setUserUnsub(null);
+      }
+      if(!Utility.isEmpty(storeUnsub)){
+        storeUnsub.storeUnsub()
+        setStoreUnsub(null);
+      }
+      if(!Utility.isEmpty(postUnsub)){
+        postUnsub.postUnsub()
+        setPostUnsub(null);
+      }
+}
+
+//When MainNavigator stack is entered and left
+    useFocusEffect(
+      React.useCallback(() => {
+        let isSubscribed = true;
+        messaging()
+          .getToken()
+          .then(token => {
+            return saveTokenToDatabase(token);
+          });
+        if (isSubscribed) {
+          getChatData()
+          handleUserInfo()
+        }
+        return () => {
+          isSubscribed = false
+          messaging().onTokenRefresh(token => {
+            saveTokenToDatabase(token);
+          });
+          massUnsub();
+        }
+      }, [])
+
+    //Lift up state method for when MapTabIsOpen
+    );  const mapScreenEntered=()=>{
+      //we first call get the geolocaion on first call because on snapshot waits for a change so we need to initialize
+    Geolocation.getCurrentPosition((position)=>{
+      positionHandler(position)
+    });
+    //update self lcoation contains the snapshot method
+    updateSelfLocation()
   }
-};
-  const onPPPress = (width,height,path) => {
-  setProfilePicWidth(width);
-  setProfilePicHeight(height);
-  const reference=storage().ref('profilePics/'+displayName)
-    reference.putFile(path).then((path)=>{console.log(path)
- storage()
-  .ref('profilePics/'+displayName)
-  .getDownloadURL().then((url)=>{setProfilePic(url)
-  firestore().collection('Users')
-  .doc(auth().currentUser.uid)
-  .update({
-    PPPathDb:url,
-  })
-  .then(() => {
-    console.log('User updated!');
-  }).catch((err)=>
-{
-  console.log(err)
-});}
-);
-    })
+
+    //Lift up state method for when MapTabIsClosed for navigation purposes
+  const mapScreenLeft=()=>{
+      RNDeviceHeading.stop();
+      Geolocation.clearWatch(watchId);
   }
 
-    function getUserPosts()
-    {
-      postUnsub= firestore()
-      .collection('Users')
-      .doc(user.uid).onSnapshot(documentSnapshot => {
-        try{
-          var userPosts=documentSnapshot.data().myPosts.map((post, index)=>{
-            return post._documentPath._parts[1]
-          })
-          setMyPosts(userPosts)
+//Gets the Chats you are in using a snapshotListner with firebaseSDK helper
+  const getChatData=async ()=>{
+    var chatUnsubber=await firebaseSDK.getChatData((chatData)=>{
+      var urChats=0
+      for(var i in chatData)
+      {
+        if (!chatData[i].read){
+          urChats++;
         }
-        catch{}
-        try{
-          var userClaimedCoupons=documentSnapshot.data().claimedCoupons.map((post, index)=>{
-            return(post._documentPath._parts[1])
-          })
-          setClaimedCoupons(userClaimedCoupons)
-        }
-        catch{
-          console.log('didntwork')
-        }
+      }
+      //anyUnreadChats?
+      setUnreadChats(urChats)
+      setChats(chatData)
+    },auth().currentUser.uid);
+    //unsubscriber method
+    setChatUnsub({'chatUnsub':chatUnsubber});
+  }
 
-        try{
-          var userActivatedCoupons=documentSnapshot.data().activatedCoupons.map((post, index)=>{
-          return {postId:post.couponId,timeStamp:post.timeStamp}
-          })
-          setActivatedCoupons(userActivatedCoupons)
-        }
-        catch{
-          console.log('didntwork')
-        }
-
-      });
-    }
-
+//method to update the location of yourself
   const updateSelfLocation=()=>
   {
-    RNDeviceHeading.start(20, degree => {
+    RNDeviceHeading.start(30, degree => {
       setDeviceHeading(degree)
-      //   console.log(degree,"degrees rotated")
     });
-    watchId=Geolocation.watchPosition((position)=>
+    var watch=Geolocation.watchPosition((position)=>
     {
-      firestore().collection('Users').doc(user.uid).update({coordinates:new firebase.firestore.GeoPoint(position.coords.latitude, position.coords.longitude)})
-      firestore().collection('Users').doc(user.uid).update({'g.geopoint':new firebase.firestore.GeoPoint(position.coords.latitude, position.coords.longitude)})
-      setCoordinates({latitude:position.coords.latitude,longitude:position.coords.longitude})
-      mapObjectGrabber({latitude:position.coords.latitude,longitude:position.coords.longitude})
-    },(err)=>{console.log(err)},{distanceFilter:5, enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 })
+      positionHandler(position)
+    },()=>{},{ enableHighAccuracy: true,
+        maximumAge: 10000,
+        timeout: 2000,
+        distanceFilter:50,
+    })
+    setWatchId(watch)
   }
 
-    const mapObjectGrabber=(coordinates)=>
+//sign OUt method unsubscribe and set all info to zero
+    const signOut=()=>
     {
-      const postgeocollection = GeoFirestore.collection('Posts');
-      const postquery = postgeocollection.near({ center: new firebase.firestore.GeoPoint(coordinates.latitude,coordinates.longitude), radius: 1000000 });
-      postUnsub=postquery.onSnapshot((dog)=>{
-        var jsxPostsMarkers=[]
-        var jsxPostMarkersTemp=dog.docs.map((markerInfo,index)=>{
-          return {coordinates:{latitude:markerInfo.data().coordinates.latitude,longitude:markerInfo.data().coordinates.longitude},iconUrl:markerInfo.data().iconUrl}})
-        var centerPoints=dog.docs.map((markerInfo,index)=>{
-          return {latitude:markerInfo.data().coordinates.latitude,longitude:markerInfo.data().coordinates.longitude, id:markerInfo.id,}
-        })
-        setCircleCenters(centerPoints)
-        jsxPostsMarkers=jsxPostMarkersTemp
-        setNearbyPosts(jsxPostsMarkers)
-        if(dog.docs.length==0)
-        {
-          setCircleCenters([])
-          setNearbyPosts([])
-        }
-      })
+  setUserInfo({});
+  setCircleCenters([]);
+setMyStore(null);
+setChats([]);
+setUnreadChats(0);
+massUnsub()
+      auth()
+      .signOut()
+      .then(() => console.log('User signed out!'));
     }
-const onChangeText=(value)=>{
-  setDisplayName(value)
-}
 
-const initializeUserInfo=()=>
-{
-firebaseSDK.getCurrentUserInfo().then((user)=>{setDisplayName(user.displayName);
-
-  setUserInfo(user);
-  if(user.PPPathDb!='')
-    {
-    setProfilePic(user.PPPathDb)
+//takes the geolocation info from snapshot and get and updates user state positions
+  const positionHandler=(position)=>
+  {
+    firestore().collection('Users').doc(auth().currentUser.uid).update({coordinates:new firebase.firestore.GeoPoint(position.coords.latitude, position.coords.longitude)})
+    firestore().collection('Users').doc(auth().currentUser.uid).update({'g.geopoint':new firebase.firestore.GeoPoint(position.coords.latitude, position.coords.longitude)})
+    setCoordinates({latitude:position.coords.latitude,longitude:position.coords.longitude})
+    mapObjectGrabber({latitude:position.coords.latitude,longitude:position.coords.longitude})
   }
-});
+
+
+//updates the map
+  const mapObjectGrabber=async (coordinates)=>
+  {
+    if(setPostUnsub!=null)
+    {
+if(!Utility.isEmpty(userUnsub)){
+
+        postUnsub.postUnsub()
 }
-useEffect(()=>
-{
-  console.log(activatedCoupons)
-},[activatedCoupons])
-  useEffect(() => {
-    //updateSelfLocation()
-    getUserPosts()
-    initializeUserInfo()
-        return () => {
-          console.log('yaypoo')
-          RNDeviceHeading.stop();
-          Geolocation.clearWatch(watchId);
-          if(postUnsub!=undefined)
-          {
-            postUnsub()
-            postUnsub=null;
-          }
-        }
-  }, [])
-const signOut=()=>
-{
-  auth()
-  .signOut()
-  .then(() => console.log('User signed out!'));
-}
+    }
+    var postUnsubber=await firebaseSDK.snapshotPosts(async(centerPoints)=>{
+      setCircleCenters(centerPoints)
+    },
+    coordinates);
+    setPostUnsub({'postUnsub':postUnsubber});
+  }
+
+
+  const userInfoSnapshot=(userData)=>{
+    setUserInfo(userData);
+    try{
+    if(userData.data().myStorePosts!=undefined){
+    handleStore(userData.data().myStorePosts)
+    }
+    }
+    catch{
+    }
+  }
+  //updates user store information
+  async function handleStore(storeReference){
+    var storeUnsubber= await firebaseSDK.getSnapshotFromRefernce((documentSnapshot)=>{
+      documentSnapshot.data().id=documentSnapshot.id
+      setMyStore(documentSnapshot.data())
+    },storeReference)
+    setStoreUnsub({'storeUnsub':storeUnsubber});
+  }
+
+  //method to handle user account info
+  async function handleUserInfo(){
+    var userUnsubber=await firebaseSDK.getSnapshotByCollectionAndDocId(userInfoSnapshot,'Users',auth().currentUser.uid);
+    setUserUnsub({'userUnsub':userUnsubber})
+  }
+
+const screenOptions=({ route }) => ({
+          tabBarIcon: ({ focused, color, size }) => {
+             let iconName;
+            if (route.name === 'Map') {
+              iconName = focused
+                ? 'map'
+                : 'map-outline';
+            } else if (route.name === 'Messages') {
+              iconName=unreadChats==0? 'mail-open-outline' : 'mail-outline';
+            }
+            else  {
+              iconName = focused ? 'pricetags' : 'pricetags-outline';
+            }
+            return <Ionicons name={iconName} size={size} color={color} />;
+          },
+        })
   return (
-<Tab.Navigator swipeEnabled={false}>
+    <Tab.Navigator
+screenOptions={screenOptions}
+        tabBarOptions={{
+          activeTintColor: 'tomato',
+          inactiveTintColor: 'gray',
+        }}
+     headerShown={false}  swipeEnabled={false}>
     <Tab.Screen
     name="Map"
-       children={()=><MapPage  activatedCoupons={activatedCoupons} circleCenters={circleCenters} claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid} />}/>
+    children={()=><MapPage stopLocationHandling={mapScreenLeft} startLocationHandling={mapScreenEntered}  postIdStore={myStore?myStore.postReference.id:null}  navigation={navigation} deviceHeading={deviceHeading} coordinates={coordinates}  circleCenters={circleCenters}  uid={auth().currentUser.uid} />}/>
     <Tab.Screen
-    name="ProfilePage"
-    children={()=><ProfilePage  claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid}/>}/>
-    <Tab.Screen
-    name="Coupon Screen"
-    children={()=><CouponPage  activatedCoupons={activatedCoupons} claimedCoupons={claimedCoupons} myPosts={myPosts} uid={user.uid}/>}/>
+    name="Store Page"
+    children={()=><StoreEditorPage myStore={myStore} uid={auth().currentUser.uid} signOut={signOut}  />}
+    />
+    <Tab.Screen name={'Messages' }  options={{ tabBarBadge: unreadChats }}  children={()=><MessengerPage uid={auth().currentUser.uid} chats={chats}/>}/>
     </Tab.Navigator>
   );
 }
-
 export default MainNavigator;

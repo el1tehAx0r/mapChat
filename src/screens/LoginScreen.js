@@ -4,7 +4,7 @@ import {KeyboardAvoidingScrollView} from 'react-native-keyboard-avoiding-scroll-
 import firestore from '@react-native-firebase/firestore';
 import ValidationComponent from 'react-native-form-validator';
 import firebaseSDK from '../config/FirebaseSDK'
-
+import Utility from '../config/Utility'
 import {
   TouchableHighlight,
   View,
@@ -13,11 +13,13 @@ import {
   Text,
   Button,
   TextInput,
-  StyleSheet,Modal
+  StyleSheet,Modal,Alert
 } from 'react-native'
+import {signUpStyles} from '../StyleSheet'
 import PhoneVerifyer from '../components/PhoneVerifyer'
 import PhoneInput from 'react-native-phone-input'
 import auth from '@react-native-firebase/auth';
+import MaterialIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 export default class SignUpPage extends ValidationComponent{
   state = {
     username: '', password: '', email: '', phone_number: '', modalVisible:false, confirm:null,code:null
@@ -26,27 +28,32 @@ export default class SignUpPage extends ValidationComponent{
     this.setState({ [key]: val })
   }
   _onSubmit=async ()=> {
-    if(true)
-      /*this.validate({
-      password: {minlength:3, maxlength:7, required: true},
-      email: {email: true},
-    })*/
+    if(this.state.email!=''&&this.state.password!='')
       {
-        firebaseSDK.login(this.state.email,this.state.password)
+        if(Utility.validateEmail(this.state.email)){
+      var testing= await firebaseSDK.login(this.state.email,this.state.password);
+      Alert.alert(testing)
+        }
+        else{
+          Alert.alert('Email is Invalid')
+        }
+  }
+  else{
+    Alert.alert('Fields Cannot Be Empty')
   }
 }
   render() {
     return (
       <KeyboardAvoidingScrollView
       behavior={Platform.OS == "ios" ? "padding" : "height"}
-      style={styles.container}
+      style={signUpStyles.container}
       >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={styles.inner}>
-      <Text style={styles.header}>Head</Text>
+      <View style={signUpStyles.inner}>
+  <MaterialIcons style={signUpStyles.header} name={'store-outline'}  />
 
       <TextInput
-      style={styles.textInput}
+      style={signUpStyles.textInput}
       placeholder='email'
       autoCapitalize="none"
       placeholderTextColor='black'
@@ -54,15 +61,15 @@ export default class SignUpPage extends ValidationComponent{
       />
 
       <TextInput
-      style={styles.textInput}
+      style={signUpStyles.textInput}
       placeholder='Password'
       secureTextEntry={true}
       autoCapitalize="none"
       placeholderTextColor='black'
       onChangeText={val => this.onChangeText('password', val)}
       />
-      
-      <View style={styles.btnContainer}>
+
+      <View style={signUpStyles.btnContainer}>
       <Button title="Login" onPress={this._onSubmit} />
       </View>
       </View>
@@ -71,28 +78,3 @@ export default class SignUpPage extends ValidationComponent{
     )
   }
 }
-const styles = StyleSheet.create({
-  container: {
-    flex: 1
-  },
-  inner: {
-    padding: 24,
-    flex: 1,
-    justifyContent: "space-around"
-  },
-  header: {
-    fontSize: 36,
-    marginBottom: 48
-  },
-  textInput: {
-    height: 40,
-    borderColor: "#000000",
-    borderBottomWidth: 1,
-    marginBottom: 36
-  },
-  btnContainer: {
-    backgroundColor: "white",
-    marginTop: 12
-  }
-
-});

@@ -2,11 +2,9 @@ import React, { useState,useEffect,useRef } from 'react';
 import { Text, TextInput, View,Button,TouchableHighlight, Image } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import DatePicker from 'react-native-datepicker'
-import Icon from 'react-native-vector-icons/Feather';
 import ImagePicker from 'react-native-image-crop-picker'
 import CountDown from 'react-native-countdown-component';
 import { Form, TextValidator } from 'react-native-validator-form';
-
 import firebaseSDK from '../config/FirebaseSDK'
 import styles from '../StyleSheet';
 const PostViewer= (props) => {
@@ -73,11 +71,13 @@ return -1;
 
 useEffect(()=>
 {
+  console.log('RRRRR')
   console.log(props.postViewerInfo.expirationDate.toDate().toString())
   var itemIndex=findByKey(props.postViewerInfo.postId, props.activatedCoupons,'postId')
   console.log(itemIndex)
-var claimed=  props.claimedCoupons.includes(props.postViewerInfo.postId)
-console.log(claimed)
+  console.log(props.postViewerInfo,'ROAAAA')
+var claimed=  props.claimedCoupons.includes(props.postViewerInfo)
+console.log(claimed,'ZZZZZZZZ')
 if(claimed){
   if(itemIndex!=-1)
   {
@@ -98,16 +98,11 @@ var activatedTime=props.activatedCoupons[itemIndex].timeStamp.toDate()
     }
   }
     else{
-  setCountDownTimer(
-            <TouchableHighlight
+  setCountDownTimer(<TouchableHighlight
               style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
               onPress={activateButtonPressed}>
               <Text style={styles.textStyle}>3 minute activation do not click till at the store and ready to redeem</Text>
-            </TouchableHighlight>
-
-          )
-  }
-}
+            </TouchableHighlight>)}}
 },[])
 
 useEffect(() => {
