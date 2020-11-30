@@ -115,7 +115,6 @@ return totalString;
         return false
       }
     }
-
     GetFormattedDate=()=> {
       var todayTime = new Date();
       var month = format(todayTime .getMonth() + 1);
@@ -123,7 +122,6 @@ return totalString;
       var year = format(todayTime .getFullYear());
       return year+ "-" + month+ "-" + date;
     }
-
   requestCameraPermission = async () => {
   try {
     const granted = await PermissionsAndroid.request(

@@ -7,14 +7,12 @@ import CustomDialog from './CustomDialog'
 import RNDateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/Feather';
 import ImagePicker from 'react-native-image-crop-picker'
-import IconSelectPage from '../screens/IconSelectScreen'
 import { Form, TextValidator } from 'react-native-validator-form';
 import { VideoPlayer, Trimmer } from 'react-native-video-processing';
 import VideoRecorder from 'react-native-beautiful-video-recorder';
 import VideoEditor from './VideoEditor'
 import VideoPlaybackComponent from './VideoPlaybackComponent'
 import ModalContainer from './ModalContainer'
-import VideoProcessor from './VideoProcessor'
 import { ProcessingManager } from 'react-native-video-processing';
 import firebaseSDK from '../config/FirebaseSDK'
 import styles from '../StyleSheet';
@@ -113,17 +111,11 @@ ImagePicker.openPicker({
     videoRef.current.open({ maxLength: 30 },(data) => {
       data.path=data.uri
   setMedia({mime:'video/mp4',path:data.uri});
-/*const videoprocess=new VideoProcessor()
-videoprocess.compressVideo(data.path).then((compressedData)=>{setMedia({mime:'video/mp4',path:compressedData});
-console.log(compressedData,'zzzzz')}
-)*/
-      //setMedia(data)
     },(err)=>{console.log(err)});
 
 }
   return (
     <View style={{padding: 10}}>
-
 <CustomDialog setDialogVisible={setDialogVisible} photoFromCameraPressed={photoFromCameraPressed} photoFromLibraryPressed={photoFromLibraryPressed} videoFromCameraPressed={videoFromCameraPressed} videoFromLibraryPressed={videoFromLibraryPressed} modalVisible={customDialogVisible} />
       <VideoRecorder ref={videoRef} />
       <TextInput

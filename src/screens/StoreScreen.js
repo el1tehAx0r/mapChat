@@ -1,24 +1,17 @@
 
 import React, { useState, useEffect } from 'react';
 import {Button, TouchableHighlight, View,Image, Modal, Text,TextInput,StyleSheet,ScrollView,TouchableOpacity,ImageBackground } from 'react-native';
-
-import auth from '@react-native-firebase/auth';
 import {DisplayName }from '../components/DisplayName.js'
 import ImagePicker from 'react-native-image-crop-picker';
 import StoreProfilePic from '../components/StoreProfilePic'
-import {GetUserInfo} from '../components/UserInfo.js'
 import Utility from '../config/Utility'
-import DraggableGridComponent from '../components/DraggableGrid'
 import ModalContainer from '../components/ModalContainer'
 import BoardPostCreator from '../components/BoardPostCreator.js'
 import storage from '@react-native-firebase/storage';
-import firestore from '@react-native-firebase/firestore';
-import firebase from '@react-native-firebase/app';
 import firebaseSDK from '../config/FirebaseSDK';
 import { useFocusEffect } from '@react-navigation/native';
 import { Col, Row, Grid } from "react-native-easy-grid";
 import VideoPlayer from 'react-native-video-player';
-import { DraggableGrid } from 'react-native-draggable-grid';
 import styles,{draggableGridStyles} from '../StyleSheet'
 import { Ionicons } from 'react-native-vector-icons/Ionicons';
 import RedXButton from '../components/RedXButton'

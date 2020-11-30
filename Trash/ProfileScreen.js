@@ -110,7 +110,6 @@ const signOut=()=>
             onChangeText={text=>{}}
             multiline={true}
             underlineColorAndroid='transparent'/>
-{/*<Button title="signout" onPress={signOut}></Button>*/}
         </View>
          </View>
          <Separator/>

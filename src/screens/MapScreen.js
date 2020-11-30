@@ -4,13 +4,11 @@ import RNDeviceHeading from 'react-native-device-heading'
 import { useStateWithCallbackLazy } from 'use-state-with-callback';
 import MapView,{Marker,PROVIDER_GOOGLE,Circle} from 'react-native-maps';
 import TabBar from "@mindinventory/react-native-tab-bar-interaction";
-import UserMarker from "../components/UserMarker";
 import firestore from '@react-native-firebase/firestore';
 import firebase from '@react-native-firebase/app';
 import * as geofirestore from 'geofirestore';
 import firebaseSDK from '../config/FirebaseSDK'
 import PostMarker from '../components/PostsMarker.js'
-import PostCreator from '../components/PostCreator'
 import PostViewer from '../components/PostViewer'
 import ModalContainer from '../components/ModalContainer'
 import Utility from '../config/Utility'
@@ -48,27 +46,8 @@ function MapPage(props) {
   const [postUnsub,setPostUnsub]=useState(null)
   const [storePostUnsub,setStorePostUnsub]=useState(null)
   const mapRef = useRef(null);
-  useEffect(()=>{
-    return ()=>{
-      if(messageUnsub!=null){
-        console.log('zella')
-      messageUnsub.messageUnsub()
-      setMessageUnsub(null)
-      }
-      if(postUnsub!=null)
-      {
 
-        console.log('zella')
-      postUnsub.postUnsub()
-      setPostUnsub(null)
-      }
-      if(storePostUnsub!=null){
-        console.log('zella')
-      storePostUnsub.storePostUnsub()
-      setStorePostUnsub(null)
-      }
-    }
-  },[])
+  //effect hooks
 useFocusEffect(
     React.useCallback(() => {
       props.startLocationHandling()
@@ -94,8 +73,10 @@ useFocusEffect(
       }
     }, [])
   );
+  //updating the position on map
   useEffect(()=>
   {
+    setCoordinates(props.coordinates)
     mapRef.current.animateCamera(
       {
         center: {
@@ -109,6 +90,9 @@ useFocusEffect(
       }
     )
   },[props.coordinates,props.deviceHeading])
+
+
+  //updating state of the circle markers
   useEffect(()=>
   {
     var jsxPostsMarkers=[]
@@ -126,10 +110,8 @@ useFocusEffect(
   {
     setCircleCenters(props.circleCenters)
   },[props.circleCenters])
-  useEffect(()=>
-  {
-    setCoordinates(props.coordinates)
-  },[props.coordinates])
+
+//double tap on map creates a marker or moves it
   const createBoardPost=(uid,message,media,postId)=>
   {
     firebaseSDK.createBoardPost(uid,message,media,postId).then((boardPost)=>{
@@ -142,6 +124,8 @@ useFocusEffect(
       firebaseSDK.addToStorage(remotePath,localPath,collectionName,documentName,field)
       setPostModalVisible(false)})
     }
+
+    //checking if the map has been pressed
       const mapViewPressed=async (coordinates)=>
       {
         for (var i in circleCenters)
@@ -173,6 +157,7 @@ useFocusEffect(
         }
       }
     }
+    //messageButton
     const messageButtonPressed= async ()=>{
       try{
 
@@ -215,10 +200,6 @@ useFocusEffect(
           setShowStoreModal(true)
         }
       }
-      const cancelStorePlacement=()=>
-      {
-        setShowStoreModal(false);
-      }
       return (
         <View style={styles.container}>
         <MapView
@@ -248,15 +229,13 @@ useFocusEffect(
           <ChatViewer  avatar={storeViewerInfo.storeProfilePic} userNamePressed={()=>{}}username={storeViewerInfo.storeName} uid={props.uid} storeUid={storeViewerInfo.userReference.id} sendMessages={sendMessages} messages={messages} close={()=>{messageUnsub.messageUnsub(); setMessengerModalVisible(false)}}></ChatViewer>
           </ModalContainer>
           <ModalContainer modalVisible={storeModalVisible}>
-
-          <StorePage storeId={storeViewerInfo.storeId} myStore={storeViewerInfo} uid={props.uid} postIdStore={storeViewerInfo.postId}>
+          <StorePage  myStore={storeViewerInfo} uid={props.uid} >
           <View style={{justifyContent:'center',flexDirection:'row'}}>
           <TouchableHighlight
           style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
           onPress={()=>setStoreModalVisible(false)}>
           <Text style={styles.textStyle}>Close</Text>
           </TouchableHighlight>
-
           <TouchableHighlight
           style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
           onPress={messageButtonPressed}>
@@ -265,7 +244,7 @@ useFocusEffect(
           </View>
           </StorePage>
           </ModalContainer>
-          <TwoButtonModal visible={showStoreModal} text={'Do you want to set your store here? You only get one. Note, it can be moved anytime by double pressing anywhere else on the map again'} option1Text={'Place'} option2Text={'Cancel'} option1={placeStore} option2={cancelStorePlacement}/>
+          <TwoButtonModal visible={showStoreModal} text={'Do you want to set your store here? You only get one. Note, it can be moved anytime by double pressing anywhere else on the map again'} option1Text={'Place'} option2Text={'Cancel'} option1={placeStore} option2={()=>{setShowStoreModal(false);}}/>
           </View>
         );
       }

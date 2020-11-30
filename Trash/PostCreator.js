@@ -3,7 +3,6 @@ import {Alert, ScrollView,Text,TextInput,View,Button,TouchableHighlight,Image,Ke
 import DatePicker from 'react-native-datepicker'
 import PhotoEditor from 'react-native-photo-editor'
 import * as RNFS from 'react-native-fs';
-import CustomDialog from './CustomDialog'
 import RNDateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/Feather';
 import ImagePicker from 'react-native-image-crop-picker'
@@ -21,7 +20,6 @@ import styles from '../StyleSheet';
 const PostCreator= (props) => {
 const [postType,setPostType]=useState('');
   const [shopAddress,setShopAddress]=useState(props.postCreatorInfo.shopAddress);
-  const [customDialogVisible,setCustomDialogVisible]=useState(false);
   const [message,setMessage]=useState(props.postCreatorInfo.message);
   const [iconUrl,setIconUrl]=useState('https://firebasestorage.googleapis.com/v0/b/mapapp-1e662.appspot.com/o/iconUrl%2F0J2xo0x0BDesWW0mrpEp?alt=media&token=06941aa1-0746-4308-a4d2-9b752b3b534a')
   const [expirationDay,setExpirationDay]=useState(null);
@@ -178,10 +176,6 @@ const createCouponPost=(uid,message,media,count,expirationDate,radius,coordinate
     setTimePicker(null)
     setExpirationTime(selectedTime)
   };
-  const setDialogVisible=()=>
-  {
-  setCustomDialogVisible(false)
-  }
 
   const photoFromCameraPressed=()=>
   {

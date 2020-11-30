@@ -8,6 +8,31 @@ const PIN_STRIP_HEIGHT_PIXELS=0.35*height;
 const PIN_STRIP_WIDTH='12%';
 const MARKER_SIZE=width*0.1;
 
+  const signUpStyles= StyleSheet.create({
+    container: {
+      flex: 1
+    },
+    inner: {
+      padding: 24,
+      flex: 1,
+      justifyContent: "space-around"
+    },
+    header: {
+      fontSize: 36,
+      marginBottom: 48
+    },
+    textInput: {
+      height: 40,
+      borderColor: "#000000",
+      borderBottomWidth: 1,
+      marginBottom: 36
+    },
+    btnContainer: {
+      backgroundColor: "white",
+      marginTop: 12
+    }
+
+  });
 const draggableGridStyles = StyleSheet.create({
   button:{
     width:150,
@@ -193,5 +218,5 @@ separation:
         height:90,
     },
 })
-export {width, draggableGridStyles}
+export {width, draggableGridStyles,signUpStyles}
 export default styles;
